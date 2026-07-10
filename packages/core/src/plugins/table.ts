@@ -735,9 +735,9 @@ function buildTablePanel(editor: Editor, close: () => void): HTMLElement {
   const danger = doc.createElement('div');
   danger.className = 'sbe-table-danger-row';
   danger.append(
-    action('delete-row', 'Delete row', '−', 'TableDeleteRow', 'danger'),
+    action('delete-table', 'Delete table', '×', 'TableDelete', 'danger'),
     action('delete-col', 'Delete column', '−', 'TableDeleteCol', 'danger'),
-    action('delete-table', 'Delete table', '×', 'TableDelete', 'danger')
+    action('delete-row', 'Delete row', '−', 'TableDeleteRow', 'danger'),
   );
   context.append(header, quick, propertyGrid, danger);
   panel.appendChild(context);
@@ -800,9 +800,11 @@ export const tablePlugin: Plugin = {
     editor.ui.addMenuItem('rowbelow', { menu: 'table', text: 'Insert row below', command: 'TableInsertRowAfter' });
     editor.ui.addMenuItem('colleft', { menu: 'table', text: 'Insert column left', command: 'TableInsertColBefore' });
     editor.ui.addMenuItem('colright', { menu: 'table', text: 'Insert column right', command: 'TableInsertColAfter' });
-    editor.ui.addMenuItem('delrow', { menu: 'table', text: 'Delete row', command: 'TableDeleteRow' });
-    editor.ui.addMenuItem('delcol', { menu: 'table', text: 'Delete column', command: 'TableDeleteCol' });
     editor.ui.addMenuItem('deltable', { menu: 'table', text: 'Delete table', command: 'TableDelete' });
+    editor.ui.addMenuItem('delcol', { menu: 'table', text: 'Delete column', command: 'TableDeleteCol' });
+    editor.ui.addMenuItem('delrow', { menu: 'table', text: 'Delete row', command: 'TableDeleteRow' });
+    
+    
     editor.ui.addMenuItem('tableprops', { menu: 'table', text: 'Table properties…', command: 'TableProps' });
     editor.ui.addMenuItem('cellprops', { menu: 'table', text: 'Cell properties…', command: 'CellProps' });
     editor.ui.addMenuItem('rowprops', { menu: 'table', text: 'Row properties…', command: 'RowProps' });
