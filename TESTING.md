@@ -60,6 +60,7 @@ Pattern: kebab-case, stable, semantic. Never derive from labels/i18n. One editor
 | Editor root wrapper                     | `editor-root`                                                            |
 | Menubar / toolbar / content / statusbar | `editor-menubar`, `editor-toolbar`, `editor-content`, `editor-statusbar` |
 | Toolbar button                          | `tb-<name>` (e.g. `tb-bold`, `tb-undo`, `tb-h1`)                         |
+| Toolbar overflow                        | `tb-more`, `toolbar-more-panel`                                          |
 | Toolbar select (blocks/fonts)           | `tb-select-<name>`                                                       |
 | Menubar menu button                     | `menu-<name>` (e.g. `menu-file`)                                         |
 | Menu item                               | `menuitem-<id>`                                                          |

@@ -11,12 +11,14 @@ import { imagePlugin } from './image';
 import { hrPlugin } from './hr';
 import { sourceCodePlugin } from './sourcecode';
 import { fullscreenPlugin } from './fullscreen';
+import { clipboardPlugin } from './clipboard';
 
 export type { Plugin } from './types';
 
 /** Built-ins loaded into every editor (they use the public plugin API like anything else). */
 export const corePlugins: Plugin[] = [
   historyPlugin,
+  clipboardPlugin,
   formatsPlugin,
   blocksPlugin,
   alignPlugin,

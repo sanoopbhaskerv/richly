@@ -5,6 +5,21 @@ const svg = (inner: string): string =>
 export const icons: Record<string, string> = {
   undo: svg('<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>'),
   redo: svg('<path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>'),
+  selectall: svg(
+    '<rect x="6" y="6" width="12" height="12" rx="1"/><path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5" stroke-dasharray="2 2"/>'
+  ),
+  copy: svg(
+    '<rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>'
+  ),
+  cut: svg(
+    '<circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="m8.5 8.5 10 7M8.5 15.5l10-7"/>'
+  ),
+  paste: svg(
+    '<path d="M9 5h6M9 3h6v4H9z"/><path d="M8 5H6a2 2 0 0 0-2 2v13h16V7a2 2 0 0 0-2-2h-2"/>'
+  ),
+  more: svg(
+    '<circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/>'
+  ),
   bold: svg('<path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/>'),
   italic: svg('<path d="M11 5h6M7 19h6M14 5l-4 14"/>'),
   underline: svg('<path d="M7 4v7a5 5 0 0 0 10 0V4M6 20h12"/>'),

@@ -60,6 +60,44 @@ test.describe('basic formatting (vanilla instance)', () => {
     await editor.clickButton('redo');
     await editor.expectContentMatches(/<strong>brave\s*<\/strong>/);
   });
+
+  test('toolbar wraps by default without hiding tools', async ({ page }) => {
+    await page.setViewportSize({ width: 540, height: 760 });
+    const toolbarBox = (await editor.toolbar.boundingBox())!;
+    expect(toolbarBox.height).toBeGreaterThan(50);
+    await expect(editor.button('selectall')).toBeVisible();
+    await expect(editor.button('removeformat')).toBeVisible();
+    await expect(editor.button('more')).toHaveCount(0);
+  });
+
+  test('toolbar overflow can be enabled to expose a More menu', async ({ page }) => {
+    const reactEditor = new EditorPage(page, 'reditor');
+    await page.setViewportSize({ width: 540, height: 760 });
+    const toolbarBox = (await reactEditor.toolbar.boundingBox())!;
+    expect(toolbarBox.height).toBeLessThan(50);
+    await expect(reactEditor.button('more')).toBeVisible();
+    await reactEditor.clickButton('more');
+    await expect(reactEditor.root.getByTestId('toolbar-more-panel')).toBeVisible();
+  });
+
+  test('copy, cut, paste, and select-all toolbar actions work', async ({ page }) => {
+    await editor.selectWord('brave');
+    await editor.clickButton('copy');
+    await editor.placeCursorAtEnd();
+    await editor.clickButton('paste');
+    await editor.expectContentMatches(/worldbrave/);
+
+    await editor.selectWord('hello');
+    await editor.clickButton('cut');
+    expect(await editor.content.innerHTML()).not.toContain('hello');
+    await editor.placeCursorAtEnd();
+    await editor.clickButton('paste');
+    await editor.expectContentMatches(/hello/);
+
+    await editor.clickButton('selectall');
+    await page.keyboard.press('Delete');
+    await expect(editor.content).not.toContainText('brave');
+  });
 });
 
 test.describe('React instance parity', () => {

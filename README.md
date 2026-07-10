@@ -10,7 +10,8 @@ themeable editor UI included.
 - No runtime editor dependencies and no deprecated browser editing commands.
 - A framework-free core with first-class React bindings.
 - HTML in and out through `getContent()` and `setContent()` with sanitized markup.
-- Accessible toolbar, menus, dialogs, keyboard shortcuts, and light/dark themes.
+- Responsive, accessible toolbar with automatic overflow, clipboard actions,
+  menus, dialogs, keyboard shortcuts, and light/dark themes.
 - Productive table editing: contextual actions, right-click menu, properties,
   column resizing, and whole-table resize handles.
 
@@ -68,7 +69,9 @@ export function ArticleEditor() {
 ```
 
 Use `initialValue` for an uncontrolled editor. The component accepts `toolbar`,
-`menubar`, `statusbar`, and `resize` options from the core configuration.
+`toolbarOverflow`, `menubar`, `statusbar`, and `resize` options from the core
+configuration. Tool groups wrap onto additional rows by default; set
+`toolbarOverflow: true` to keep one row and move extra groups into a More menu.
 
 ## Development
 

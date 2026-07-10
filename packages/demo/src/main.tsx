@@ -21,7 +21,7 @@ function App(): JSX.Element {
   );
   return (
     <div>
-      <ReactEditor value={html} onChange={setHtml} testIdPrefix="reditor" />
+      <ReactEditor value={html} onChange={setHtml} testIdPrefix="reditor" toolbarOverflow />
     </div>
   );
 }

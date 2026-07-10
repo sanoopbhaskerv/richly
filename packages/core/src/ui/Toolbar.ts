@@ -8,15 +8,20 @@ import { icons } from './icons';
 export class Toolbar {
   private toggles: { name: string; el: HTMLButtonElement; command: string }[] = [];
   private buttons: HTMLButtonElement[] = [];
+  private sections: HTMLElement[][] = [];
+  private moreWrap: HTMLElement | null = null;
+  private morePanel: HTMLElement | null = null;
 
   constructor(
     private editor: Editor,
     private container: HTMLElement,
-    spec: string
+    spec: string,
+    overflow = false
   ) {
     container.setAttribute('role', 'toolbar');
     container.setAttribute('aria-label', 'Editor toolbar');
     this.render(spec);
+    if (overflow) this.installOverflow();
     editor.events.on('selectionchange', () => this.refresh());
     editor.events.on('change', () => this.refresh());
     editor.events.on('execcommand', () => this.refresh());
@@ -27,10 +32,12 @@ export class Toolbar {
     const doc = this.container.ownerDocument;
     const groups = spec.split('|').map((g) => g.trim().split(/\s+/).filter(Boolean));
     groups.forEach((names, gi) => {
+      const section: HTMLElement[] = [];
       if (gi > 0) {
         const sep = doc.createElement('div');
         sep.className = 'sbe-tb-sep';
         this.container.appendChild(sep);
+        section.push(sep);
       }
       const groupEl = doc.createElement('div');
       groupEl.className = 'sbe-tb-group';
@@ -92,7 +99,120 @@ export class Toolbar {
         this.buttons.push(btn);
       }
       this.container.appendChild(groupEl);
+      section.push(groupEl);
+      this.sections.push(section);
     });
+  }
+
+  /** Keep the toolbar on one row and move whole groups into a More panel. */
+  private installOverflow(): void {
+    const doc = this.container.ownerDocument;
+    const view = doc.defaultView;
+    this.container.classList.add('sbe-toolbar-overflow-enabled');
+    const wrap = doc.createElement('div');
+    wrap.className = 'sbe-toolbar-overflow';
+    wrap.hidden = true;
+
+    const button = doc.createElement('button');
+    button.type = 'button';
+    button.className = 'sbe-tb-btn';
+    button.dataset.testid = 'tb-more';
+    button.innerHTML = icons.more ?? '•••';
+    button.title = 'More tools';
+    button.setAttribute('aria-label', 'More tools');
+    button.setAttribute('aria-haspopup', 'true');
+    button.setAttribute('aria-expanded', 'false');
+    button.addEventListener('mousedown', (e) => e.preventDefault());
+
+    const panel = doc.createElement('div');
+    panel.className = 'sbe-toolbar-overflow-panel';
+    panel.dataset.testid = 'toolbar-more-panel';
+    panel.setAttribute('role', 'group');
+    panel.setAttribute('aria-label', 'More editor tools');
+    panel.addEventListener('mousedown', (e) => e.preventDefault());
+
+    const close = (): void => {
+      panel.classList.remove('sbe-open');
+      panel
+        .querySelectorAll('.sbe-tb-dd.sbe-open')
+        .forEach((item) => item.classList.remove('sbe-open'));
+      button.setAttribute('aria-expanded', 'false');
+    };
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = !panel.classList.contains('sbe-open');
+      close();
+      if (open) {
+        panel.classList.add('sbe-open');
+        button.setAttribute('aria-expanded', 'true');
+      }
+    });
+    const onDocumentClick = (): void => close();
+    doc.addEventListener('click', onDocumentClick);
+
+    wrap.append(button, panel);
+    this.container.appendChild(wrap);
+    this.moreWrap = wrap;
+    this.morePanel = panel;
+    this.buttons.push(button);
+
+    const refresh = (): void => this.refreshOverflow();
+    const observer = view?.ResizeObserver ? new view.ResizeObserver(refresh) : null;
+    observer?.observe(this.container);
+    view?.addEventListener('resize', refresh);
+    this.editor.events.on('destroy', () => {
+      observer?.disconnect();
+      view?.removeEventListener('resize', refresh);
+      doc.removeEventListener('click', onDocumentClick);
+    });
+
+    if (view?.requestAnimationFrame) view.requestAnimationFrame(refresh);
+    else queueMicrotask(refresh);
+  }
+
+  private refreshOverflow(): void {
+    const wrap = this.moreWrap;
+    const panel = this.morePanel;
+    if (!wrap || !panel) return;
+
+    // Restore the source order before recalculating available space.
+    for (const section of this.sections) {
+      for (const item of section) this.container.insertBefore(item, wrap);
+    }
+    panel.replaceChildren();
+    panel.classList.remove('sbe-open');
+    wrap.hidden = true;
+    const moreButton = wrap.querySelector('button');
+    moreButton?.setAttribute('aria-expanded', 'false');
+
+    // Measure the actual children instead of scrollWidth. Inline-size containment keeps
+    // the editor shrinkable inside grids/flex layouts, so overflowing paint is not
+    // guaranteed to be represented by scrollWidth in every browser.
+    const view = this.container.ownerDocument.defaultView;
+    const styles = view?.getComputedStyle(this.container);
+    const padding =
+      Number.parseFloat(styles?.paddingLeft ?? '0') +
+      Number.parseFloat(styles?.paddingRight ?? '0');
+    const gap = Number.parseFloat(styles?.columnGap ?? styles?.gap ?? '0');
+    const availableWidth = this.container.clientWidth - padding;
+    const occupiedWidth = (): number => {
+      const children = Array.from(this.container.children).filter(
+        (child): child is HTMLElement => !(child as HTMLElement).hidden
+      );
+      return (
+        children.reduce((width, child) => width + child.getBoundingClientRect().width, 0) +
+        Math.max(0, children.length - 1) * gap
+      );
+    };
+
+    // jsdom and detached editors have no measurable width.
+    if (availableWidth <= 0 || occupiedWidth() <= availableWidth) return;
+
+    wrap.hidden = false;
+    for (let i = this.sections.length - 1; i >= 0; i--) {
+      if (occupiedWidth() <= availableWidth) break;
+      panel.prepend(...this.sections[i]!);
+    }
   }
 
   refresh(): void {
@@ -108,15 +228,21 @@ export class Toolbar {
     this.buttons.forEach((b, i) => (b.tabIndex = i === 0 ? 0 : -1));
     this.container.addEventListener('keydown', (e) => {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-      const idx = this.buttons.findIndex((b) => b === this.container.ownerDocument.activeElement);
+      const available = this.buttons.filter((button) => {
+        if (button.hidden || button.closest('[hidden]')) return false;
+        const overflow = button.closest('.sbe-toolbar-overflow-panel');
+        return !overflow || overflow.classList.contains('sbe-open');
+      });
+      const idx = available.findIndex((b) => b === this.container.ownerDocument.activeElement);
       if (idx === -1) return;
       e.preventDefault();
       const next =
         e.key === 'ArrowRight'
-          ? (idx + 1) % this.buttons.length
-          : (idx - 1 + this.buttons.length) % this.buttons.length;
-      this.buttons.forEach((b, i) => (b.tabIndex = i === next ? 0 : -1));
-      this.buttons[next]?.focus();
+          ? (idx + 1) % available.length
+          : (idx - 1 + available.length) % available.length;
+      this.buttons.forEach((b) => (b.tabIndex = -1));
+      available[next]!.tabIndex = 0;
+      available[next]!.focus();
     });
   }
 }

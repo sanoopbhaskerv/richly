@@ -16,6 +16,8 @@ export interface EditorConfig {
   initialContent?: string;
   /** Toolbar spec, e.g. "undo redo | bold italic underline strikethrough | h1 h2 paragraph blockquote | removeformat" */
   toolbar?: string;
+  /** Keep the toolbar on one row and move extra groups into More. Defaults to false (wrap). */
+  toolbarOverflow?: boolean;
   /** Set false to hide the menubar. */
   menubar?: boolean;
   statusbar?: boolean;
@@ -39,7 +41,7 @@ export interface EditorEvents extends Record<string, unknown> {
 }
 
 const DEFAULT_TOOLBAR =
-  'undo redo | bold italic underline strikethrough | h1 h2 paragraph blockquote | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink table image | code fullscreen removeformat';
+  'undo redo | selectall copy cut paste | bold italic underline strikethrough | h1 h2 paragraph blockquote | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink table image | code fullscreen removeformat';
 
 export class Editor {
   readonly events = new Emitter<EditorEvents>();
@@ -73,7 +75,12 @@ export class Editor {
       new Menubar(this, this.root.querySelector<HTMLElement>('.sbe-menubar')!);
     }
     const toolbarEl = this.root.querySelector<HTMLElement>('.sbe-toolbar')!;
-    new Toolbar(this, toolbarEl, config.toolbar ?? DEFAULT_TOOLBAR);
+    new Toolbar(
+      this,
+      toolbarEl,
+      config.toolbar ?? DEFAULT_TOOLBAR,
+      config.toolbarOverflow ?? false
+    );
     if (config.statusbar !== false) {
       new Statusbar(
         this,

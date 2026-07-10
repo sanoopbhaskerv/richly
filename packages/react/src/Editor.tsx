@@ -8,6 +8,7 @@ export interface EditorProps {
   onChange?: (html: string) => void;
   onInit?: (editor: CoreEditor) => void;
   toolbar?: string;
+  toolbarOverflow?: boolean;
   menubar?: boolean;
   statusbar?: boolean;
   resize?: boolean;
@@ -45,6 +46,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(prop
       target: hostRef.current!,
       initialContent: props.value ?? props.initialValue ?? '',
       toolbar: props.toolbar,
+      toolbarOverflow: props.toolbarOverflow,
       menubar: props.menubar,
       statusbar: props.statusbar,
       resize: props.resize,

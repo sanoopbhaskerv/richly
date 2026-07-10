@@ -81,6 +81,17 @@ export class EditorPage {
     await this.page.keyboard.press('ControlOrMeta+a');
   }
 
+  async placeCursorAtEnd(): Promise<void> {
+    await this.content.evaluate((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el.lastElementChild ?? el);
+      range.collapse(false);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    });
+  }
+
   async clickButton(name: string): Promise<void> {
     await this.button(name).click();
   }
