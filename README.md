@@ -2,8 +2,8 @@
 
 A dependency-free, framework-agnostic rich text editor for the web. SB Editor
 provides a TypeScript core for direct DOM use and a small React wrapper, with
-tables, links, images, source editing, undo/redo, keyboard shortcuts, and a
-themeable editor UI included.
+advanced tables, search and replace, preview, links, images, source editing,
+undo/redo, keyboard shortcuts, and a themeable editor UI included.
 
 ## Why SB Editor
 
@@ -13,7 +13,11 @@ themeable editor UI included.
 - Responsive, accessible toolbar with automatic overflow, clipboard actions,
   menus, dialogs, keyboard shortcuts, and light/dark themes.
 - Productive table editing: contextual actions, right-click menu, properties,
-  column resizing, and whole-table resize handles.
+  multi-cell selection, merge/split, column resizing, and whole-table resize
+  handles.
+- IME-aware input and sanitized rich-text/plain-text paste handling.
+- Search and replace, visual block outlines, document preview, and configurable
+  word/character counts.
 
 ## Packages
 
@@ -72,6 +76,17 @@ Use `initialValue` for an uncontrolled editor. The component accepts `toolbar`,
 `toolbarOverflow`, `menubar`, `statusbar`, and `resize` options from the core
 configuration. Tool groups wrap onto additional rows by default; set
 `toolbarOverflow: true` to keep one row and move extra groups into a More menu.
+
+Word counting can be disabled with `wordCount: false`, or configured in either
+API:
+
+```ts
+wordCount: { words: true, characters: true, selection: true }
+```
+
+Hold Shift while clicking a second table cell—or drag across cells—to select a
+rectangular range for Merge cells. Search and replace is available from the
+Edit menu or `Mod+F`; preview and visual blocks are in the View menu.
 
 ## Development
 

@@ -20,6 +20,13 @@ export const icons: Record<string, string> = {
   more: svg(
     '<circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/>'
   ),
+  search: svg('<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>'),
+  preview: svg(
+    '<path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/>'
+  ),
+  visualblocks: svg(
+    '<rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="8" height="6" rx="1"/><rect x="14" y="14" width="7" height="6" rx="1"/>'
+  ),
   bold: svg('<path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/>'),
   italic: svg('<path d="M11 5h6M7 19h6M14 5l-4 14"/>'),
   underline: svg('<path d="M7 4v7a5 5 0 0 0 10 0V4M6 20h12"/>'),

@@ -21,11 +21,20 @@ export interface EditorConfig {
   /** Set false to hide the menubar. */
   menubar?: boolean;
   statusbar?: boolean;
+  /** Word-count display. True/default shows words; false hides it. */
+  wordCount?: boolean | WordCountOptions;
   /** Set false to remove the statusbar resize grip. */
   resize?: boolean;
   plugins?: Plugin[];
   /** Prefix for chrome data-testids (default "editor"): editor-root, editor-toolbar, editor-content, editor-statusbar. */
   testIdPrefix?: string;
+}
+
+export interface WordCountOptions {
+  words?: boolean;
+  characters?: boolean;
+  /** Show counts for a non-collapsed selection instead of the whole document. */
+  selection?: boolean;
 }
 
 export interface EditorEvents extends Record<string, unknown> {
@@ -41,7 +50,7 @@ export interface EditorEvents extends Record<string, unknown> {
 }
 
 const DEFAULT_TOOLBAR =
-  'undo redo | selectall copy cut paste | bold italic underline strikethrough | h1 h2 paragraph blockquote | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink table image | code fullscreen removeformat';
+  'undo redo | selectall copy cut paste | bold italic underline strikethrough | h1 h2 paragraph blockquote | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink table image | findreplace preview visualblocks | code fullscreen removeformat';
 
 export class Editor {
   readonly events = new Emitter<EditorEvents>();
@@ -53,6 +62,7 @@ export class Editor {
   private root!: HTMLElement;
   private body!: HTMLElement;
   private cleanups: (() => void)[] = [];
+  private composing = false;
 
   static init(config: EditorConfig): Editor {
     return new Editor(config);
@@ -85,7 +95,8 @@ export class Editor {
       new Statusbar(
         this,
         this.root.querySelector<HTMLElement>('.sbe-statusbar')!,
-        config.resize !== false
+        config.resize !== false,
+        config.wordCount
       );
     }
 
@@ -133,23 +144,48 @@ export class Editor {
   private bindEvents(): void {
     const doc = this.body.ownerDocument;
 
-    const onInput = (): void => {
+    const commitInput = (coalesce = true): void => {
       this.cleanCaretFiller();
-      this.undoManager.snapshot(true); // coalesced typing
+      this.undoManager.snapshot(coalesce);
       this.events.emit('input', undefined);
       this.events.emit('change', this.getContent());
     };
+    const onInput = (event: Event): void => {
+      if (this.composing || (event as InputEvent).isComposing) {
+        this.events.emit('input', undefined);
+        return;
+      }
+      commitInput();
+    };
+    const onCompositionStart = (): void => {
+      this.composing = true;
+      this.undoManager.snapshot();
+    };
+    const onCompositionEnd = (): void => {
+      this.composing = false;
+      // A completed composition is one distinct undo step, even when it starts
+      // immediately after a coalesced typing burst.
+      commitInput(false);
+    };
     this.body.addEventListener('input', onInput);
-    this.cleanups.push(() => this.body.removeEventListener('input', onInput));
+    this.body.addEventListener('compositionstart', onCompositionStart);
+    this.body.addEventListener('compositionend', onCompositionEnd);
+    this.cleanups.push(() => {
+      this.body.removeEventListener('input', onInput);
+      this.body.removeEventListener('compositionstart', onCompositionStart);
+      this.body.removeEventListener('compositionend', onCompositionEnd);
+    });
 
     const onSel = (): void => {
-      if (this.selection.getRange()) this.events.emit('selectionchange', undefined);
+      if (!this.composing && this.selection.getRange())
+        this.events.emit('selectionchange', undefined);
     };
     doc.addEventListener('selectionchange', onSel);
     this.cleanups.push(() => doc.removeEventListener('selectionchange', onSel));
 
     const onKeydown = (e: KeyboardEvent): void => {
       this.events.emit('keydown', e);
+      if (this.composing || e.isComposing || e.keyCode === 229) return;
 
       // --- Blockquote escape behaviours ---
       if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
@@ -172,6 +208,7 @@ export class Editor {
       else if (key === 'z' && e.shiftKey) run('Redo');
       else if (key === 'z') run('Undo');
       else if (key === 'y') run('Redo');
+      else if (key === 'f') run('FindReplace');
     };
     this.body.addEventListener('keydown', onKeydown);
     this.cleanups.push(() => this.body.removeEventListener('keydown', onKeydown));
@@ -211,7 +248,15 @@ export class Editor {
       range.deleteContents();
       const doc2 = this.body.ownerDocument;
       const template = doc2.createElement('template');
-      template.innerHTML = html ? sanitize(html, doc2) : (text ?? '').replace(/\n/g, '<br>');
+      if (html) {
+        template.innerHTML = sanitize(html, doc2);
+      } else {
+        const lines = (text ?? '').replace(/\r\n?/g, '\n').split('\n');
+        lines.forEach((line, index) => {
+          if (index) template.content.appendChild(doc2.createElement('br'));
+          template.content.appendChild(doc2.createTextNode(line));
+        });
+      }
       const frag = template.content;
       const last = frag.lastChild;
       range.insertNode(frag);
@@ -378,6 +423,10 @@ export class Editor {
   getContent(): string {
     // Serialize without caret-container artifacts (U+FEFF fillers, empty format wrappers).
     const clone = this.body.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('.sbe-cell-selected').forEach((cell) => {
+      cell.classList.remove('sbe-cell-selected');
+      if (!cell.classList.length) cell.removeAttribute('class');
+    });
     clone.querySelectorAll('strong,b,em,i,u,s,code,sub,sup,span').forEach((el) => {
       if ((el.textContent ?? '').replace(/﻿/g, '') === '' && !el.querySelector('img,br'))
         el.remove();

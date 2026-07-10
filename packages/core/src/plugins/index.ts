@@ -12,6 +12,7 @@ import { hrPlugin } from './hr';
 import { sourceCodePlugin } from './sourcecode';
 import { fullscreenPlugin } from './fullscreen';
 import { clipboardPlugin } from './clipboard';
+import { documentToolsPlugin } from './documenttools';
 
 export type { Plugin } from './types';
 
@@ -19,6 +20,7 @@ export type { Plugin } from './types';
 export const corePlugins: Plugin[] = [
   historyPlugin,
   clipboardPlugin,
+  documentToolsPlugin,
   formatsPlugin,
   blocksPlugin,
   alignPlugin,

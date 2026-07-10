@@ -14,4 +14,8 @@ export function App() {
 Toolbar groups wrap by default. Pass `toolbarOverflow` to keep one row and move
 extra groups into a More menu.
 
+Use the `wordCount` prop to disable counts or show words, characters, and the
+current selection. The React wrapper exposes the same search, preview, visual
+blocks, safe paste, and table merge/split features as the core package.
+
 See the repository README for the full API and contributor workflow.

@@ -17,6 +17,7 @@ on a narrow editor the panel's left edge spills off the viewport.
 
 An earlier attempted fix used `max-width` + `transform: translateX(…)` to nudge the element.
 **This did not work** because:
+
 - `max-width` shrinks the container but the inner grid still has fixed column widths (`174px 292px`),
   so content inside overflowed/was clipped rather than reflowing.
 - `translateX` shifts a visually painted element but does not change its layout rect — content
@@ -71,9 +72,9 @@ btn.addEventListener('click', (e) => {
     if (view) {
       requestAnimationFrame(() => {
         const panelRect = dd.getBoundingClientRect();
-        const wrapRect  = wrap.getBoundingClientRect();
-        const margin    = 8;
-        const vpWidth   = view.innerWidth;
+        const wrapRect = wrap.getBoundingClientRect();
+        const margin = 8;
+        const vpWidth = view.innerWidth;
 
         // Right-align panel to the button wrap, then clamp to viewport.
         const naturalLeft = wrapRect.right - panelRect.width;
@@ -82,7 +83,7 @@ btn.addEventListener('click', (e) => {
           Math.min(vpWidth - panelRect.width - margin, naturalLeft)
         );
         // Convert from viewport coords → local coords (wrap is the containing block).
-        dd.style.left  = `${clampedLeft - wrapRect.left}px`;
+        dd.style.left = `${clampedLeft - wrapRect.left}px`;
         dd.style.right = 'auto';
       });
     }
@@ -153,18 +154,18 @@ has not yet run or has been reset), with a comment pointing to the JS for the ac
 
 ## What was removed
 
-| Removed | Reason |
-|---------|--------|
+| Removed                                                       | Reason                                                                                |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `max-width: min(466px, calc(100vw - 16px))` on table dropdown | Did not help — inner grid columns are fixed width, content clipped rather than reflow |
-| `transform: translateX(-50%)` in media query | CSS transforms shift visual paint only; do not fix layout clipping |
-| `left: 50%` in media query | Superseded by JS dynamic positioning |
+| `transform: translateX(-50%)` in media query                  | CSS transforms shift visual paint only; do not fix layout clipping                    |
+| `left: 50%` in media query                                    | Superseded by JS dynamic positioning                                                  |
 
 ---
 
 ## Summary
 
-| # | File | Change | Effect |
-|---|------|--------|--------|
-| 1 | `Toolbar.ts` | `rAF` measures panel + wrap rects, sets `dd.style.left` exactly so panel stays within 8 px of both viewport edges | Panel repositioned in the DOM, not just visually shifted — fully fixes the left-overflow bug |
-| 2 | `theme.css` | `@media ≤640px`: `grid-template-columns: 1fr; grid-template-rows: auto auto` | "Edit current table" section stacks below grid picker instead of being clipped |
-| 3 | `theme.css` | Removed `max-width` / `transform` / `left: 50%` hacks | Eliminated conflicting static overrides that were interfering with the JS fix |
+| #   | File         | Change                                                                                                            | Effect                                                                                       |
+| --- | ------------ | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 1   | `Toolbar.ts` | `rAF` measures panel + wrap rects, sets `dd.style.left` exactly so panel stays within 8 px of both viewport edges | Panel repositioned in the DOM, not just visually shifted — fully fixes the left-overflow bug |
+| 2   | `theme.css`  | `@media ≤640px`: `grid-template-columns: 1fr; grid-template-rows: auto auto`                                      | "Edit current table" section stacks below grid picker instead of being clipped               |
+| 3   | `theme.css`  | Removed `max-width` / `transform` / `left: 50%` hacks                                                             | Eliminated conflicting static overrides that were interfering with the JS fix                |

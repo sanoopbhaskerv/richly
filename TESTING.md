@@ -46,6 +46,7 @@ expect(ed.getContent()).toBe('<p><strong>hello</strong> world</p>');
   - `history.spec.ts` — undo/redo via button and ⌘Z/⌘⇧Z, typing coalescing
   - `shortcuts.spec.ts` — all keyboard shortcuts, Alt+F10 toolbar focus, roving tabindex
   - `paste.spec.ts` — clipboard paste sanitization (Word/GDocs fixtures)
+  - `advanced-editing.spec.ts` — IME undo grouping, safe plain-text paste, table merge/split, search/replace, preview, and visual blocks
   - `lists.spec.ts`, `link.spec.ts`, `table.spec.ts`, `image.spec.ts` — as those plugins land (Milestone 2)
   - `react.spec.ts` — React demo pane behaves identically to vanilla pane (both are on the demo page)
 - Artifacts: screenshots + traces on failure (`trace: 'on-first-retry'`).
@@ -61,6 +62,7 @@ Pattern: kebab-case, stable, semantic. Never derive from labels/i18n. One editor
 | Menubar / toolbar / content / statusbar | `editor-menubar`, `editor-toolbar`, `editor-content`, `editor-statusbar` |
 | Toolbar button                          | `tb-<name>` (e.g. `tb-bold`, `tb-undo`, `tb-h1`)                         |
 | Toolbar overflow                        | `tb-more`, `toolbar-more-panel`                                          |
+| Preview                                 | `preview-overlay`, `preview-frame`, `preview-close`                      |
 | Toolbar select (blocks/fonts)           | `tb-select-<name>`                                                       |
 | Menubar menu button                     | `menu-<name>` (e.g. `menu-file`)                                         |
 | Menu item                               | `menuitem-<id>`                                                          |

@@ -1,5 +1,10 @@
 import { useEffect, useImperativeHandle, useRef, forwardRef } from 'react';
-import { Editor as CoreEditor, type EditorConfig, type Plugin } from '@sb/editor-core';
+import {
+  Editor as CoreEditor,
+  type EditorConfig,
+  type Plugin,
+  type WordCountOptions
+} from '@sb/editor-core';
 
 export interface EditorProps {
   /** Controlled value. Prefer `initialValue` unless you need two-way binding. */
@@ -11,6 +16,7 @@ export interface EditorProps {
   toolbarOverflow?: boolean;
   menubar?: boolean;
   statusbar?: boolean;
+  wordCount?: boolean | WordCountOptions;
   resize?: boolean;
   plugins?: Plugin[];
   testIdPrefix?: string;
@@ -49,6 +55,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(prop
       toolbarOverflow: props.toolbarOverflow,
       menubar: props.menubar,
       statusbar: props.statusbar,
+      wordCount: props.wordCount,
       resize: props.resize,
       plugins: props.plugins,
       testIdPrefix: props.testIdPrefix

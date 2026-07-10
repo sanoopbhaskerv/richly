@@ -13,16 +13,16 @@ export default defineConfig({
       // Using regex with $ anchor to prevent prefix-matching bleed-through.
       {
         find: /^@sb\/editor-core\/theme\.css$/,
-        replacement: path.resolve(__dirname, '../core/src/ui/theme.css'),
+        replacement: path.resolve(__dirname, '../core/src/ui/theme.css')
       },
       {
         find: /^@sb\/editor-core$/,
-        replacement: path.resolve(__dirname, '../core/src/index.ts'),
+        replacement: path.resolve(__dirname, '../core/src/index.ts')
       },
       {
         find: /^@sb\/editor-react$/,
-        replacement: path.resolve(__dirname, '../react/src/index.ts'),
-      },
+        replacement: path.resolve(__dirname, '../react/src/index.ts')
+      }
     ]
   }
 });

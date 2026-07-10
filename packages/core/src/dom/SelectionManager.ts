@@ -18,11 +18,18 @@ export class SelectionManager {
     const sel = this.doc.getSelection();
     if (!sel || sel.rangeCount === 0) return null;
     const range = sel.getRangeAt(0);
-    if (!this.root.contains(range.commonAncestorContainer)) return null;
+    if (
+      !this.root.contains(range.startContainer) ||
+      !this.root.contains(range.endContainer) ||
+      !this.root.contains(range.commonAncestorContainer)
+    )
+      return null;
     return range;
   }
 
   setRange(range: Range): void {
+    if (!this.root.contains(range.startContainer) || !this.root.contains(range.endContainer))
+      return;
     const sel = this.doc.getSelection();
     if (!sel) return;
     sel.removeAllRanges();
@@ -39,16 +46,16 @@ export class SelectionManager {
     this.doc.getSelection()?.collapseToEnd();
   }
 
-  private pathTo(node: Node): number[] {
+  private pathTo(node: Node): number[] | null {
     const path: number[] = [];
     let n: Node | null = node;
     while (n && n !== this.root) {
       const parent: Node | null = n.parentNode;
-      if (!parent) return path; // detached
+      if (!parent) return null;
       path.unshift(Array.prototype.indexOf.call(parent.childNodes, n));
       n = parent;
     }
-    return path;
+    return n === this.root ? path : null;
   }
 
   private nodeAt(path: number[]): Node | null {
@@ -64,10 +71,13 @@ export class SelectionManager {
   getBookmark(): Bookmark | null {
     const range = this.getRange();
     if (!range) return null;
+    const start = this.pathTo(range.startContainer);
+    const end = this.pathTo(range.endContainer);
+    if (!start || !end) return null;
     return {
-      start: this.pathTo(range.startContainer),
+      start,
       startOffset: range.startOffset,
-      end: this.pathTo(range.endContainer),
+      end,
       endOffset: range.endOffset
     };
   }

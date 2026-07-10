@@ -55,6 +55,7 @@ the pull-request checks. See [TESTING.md](./TESTING.md) and
 
 ## Known boundaries
 
-Browser selection, IME composition, and clipboard normalization require ongoing
-cross-browser testing. Multi-cell table selection and merge/split operations
-are planned but are not yet included.
+Browser selection, IME composition, and clipboard normalization have dedicated
+unit and browser coverage, including undo grouping and safe plain-text paste.
+Table ranges support rectangular Shift/drag selection and merge/split; complex
+pre-existing span grids remain an area for expanded fixture coverage.

@@ -1,4 +1,4 @@
-import type { Editor } from '../editor/Editor';
+import type { Editor, WordCountOptions } from '../editor/Editor';
 
 /** Element path + word count. data-testids: status-elpath, status-wordcount. */
 export class Statusbar {
@@ -8,7 +8,8 @@ export class Statusbar {
   constructor(
     private editor: Editor,
     container: HTMLElement,
-    resizable = true
+    resizable = true,
+    wordCount: boolean | WordCountOptions = true
   ) {
     const doc = container.ownerDocument;
     this.elpath = doc.createElement('div');
@@ -20,8 +21,14 @@ export class Statusbar {
 
     this.wordcount = doc.createElement('div');
     this.wordcount.dataset.testid = 'status-wordcount';
+    const countOptions: WordCountOptions =
+      typeof wordCount === 'object' ? wordCount : { words: wordCount !== false };
+    this.wordcount.dataset.words = String(countOptions.words !== false);
+    this.wordcount.dataset.characters = String(countOptions.characters === true);
+    this.wordcount.dataset.selection = String(countOptions.selection === true);
 
-    container.append(this.elpath, grow, this.wordcount);
+    container.append(this.elpath, grow);
+    if (wordCount !== false) container.append(this.wordcount);
     if (resizable) container.append(this.buildResizeGrip(doc));
 
     editor.events.on('selectionchange', () => this.refresh());
@@ -68,7 +75,19 @@ export class Statusbar {
     }
     this.elpath.textContent = path.join(' › ') || 'p';
 
-    const words = (body.textContent ?? '').trim().split(/\s+/).filter(Boolean).length;
-    this.wordcount.textContent = `${words} ${words === 1 ? 'word' : 'words'}`;
+    if (!this.wordcount.isConnected) return;
+    const useSelection =
+      this.wordcount.dataset.selection === 'true' && range && !range.collapsed && range.toString();
+    const text = String(useSelection || body.textContent || '').replace(/\uFEFF/g, '');
+    const parts: string[] = [];
+    if (this.wordcount.dataset.words === 'true') {
+      const words = text.trim().split(/\s+/).filter(Boolean).length;
+      parts.push(`${words} ${words === 1 ? 'word' : 'words'}`);
+    }
+    if (this.wordcount.dataset.characters === 'true') {
+      const characters = text.length;
+      parts.push(`${characters} ${characters === 1 ? 'character' : 'characters'}`);
+    }
+    this.wordcount.textContent = `${useSelection ? 'Selection: ' : ''}${parts.join(' · ')}`;
   }
 }

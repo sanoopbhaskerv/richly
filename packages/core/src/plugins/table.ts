@@ -5,8 +5,27 @@ import { openDialog } from '../ui/Dialog';
 
 const GRID_ROWS = 6;
 const GRID_COLS = 8;
+const cellSelections = new WeakMap<Editor, HTMLTableCellElement[]>();
+
+function selectedCells(editor: Editor): HTMLTableCellElement[] {
+  return (cellSelections.get(editor) ?? []).filter((cell) => cell.isConnected);
+}
+
+function clearCellSelection(editor: Editor): void {
+  selectedCells(editor).forEach((cell) => cell.classList.remove('sbe-cell-selected'));
+  cellSelections.delete(editor);
+}
+
+function setSelectedCells(editor: Editor, cells: HTMLTableCellElement[]): void {
+  clearCellSelection(editor);
+  cells.forEach((cell) => cell.classList.add('sbe-cell-selected'));
+  cellSelections.set(editor, cells);
+  editor.events.emit('selectionchange', undefined);
+}
 
 function currentCell(editor: Editor): HTMLTableCellElement | null {
+  const selected = selectedCells(editor);
+  if (selected.length) return selected[0] ?? null;
   const range = editor.selection.getRange();
   if (!range) return null;
   return (closestTag(range.startContainer, 'td', editor.getBody()) ??
@@ -18,6 +37,8 @@ function currentRow(editor: Editor): HTMLTableRowElement | null {
 }
 
 function currentTable(editor: Editor): HTMLTableElement | null {
+  const selected = selectedCells(editor);
+  if (selected.length) return selected[0]?.closest('table') ?? null;
   const range = editor.selection.getRange();
   if (!range) return null;
   // Resolve from anywhere inside the table — including the <caption>.
@@ -152,6 +173,136 @@ function deleteTable(editor: Editor): void {
   }
   placeCaretIn(editor, target);
   editor.events.emit('change', editor.getContent());
+}
+
+function rectangularCells(
+  table: HTMLTableElement,
+  start: HTMLTableCellElement,
+  end: HTMLTableCellElement
+): HTMLTableCellElement[] {
+  const rows = Array.from(table.rows);
+  const startRow = rows.indexOf(start.parentElement as HTMLTableRowElement);
+  const endRow = rows.indexOf(end.parentElement as HTMLTableRowElement);
+  const minRow = Math.min(startRow, endRow);
+  const maxRow = Math.max(startRow, endRow);
+  const minCol = Math.min(start.cellIndex, end.cellIndex);
+  const maxCol = Math.max(start.cellIndex, end.cellIndex);
+  const cells: HTMLTableCellElement[] = [];
+  for (let row = minRow; row <= maxRow; row++) {
+    for (let col = minCol; col <= maxCol; col++) {
+      const cell = rows[row]?.cells[col];
+      if (cell) cells.push(cell);
+    }
+  }
+  return cells;
+}
+
+function mergeSelectedCells(editor: Editor): void {
+  const cells = selectedCells(editor);
+  if (cells.length < 2 || cells.some((cell) => cell.rowSpan !== 1 || cell.colSpan !== 1)) return;
+  const table = cells[0]?.closest('table');
+  if (!table || cells.some((cell) => cell.closest('table') !== table)) return;
+  const rows = Array.from(table.rows);
+  const rowIndexes = [
+    ...new Set(cells.map((cell) => rows.indexOf(cell.parentElement as HTMLTableRowElement)))
+  ].sort((a, b) => a - b);
+  const colIndexes = [...new Set(cells.map((cell) => cell.cellIndex))].sort((a, b) => a - b);
+  if (cells.length !== rowIndexes.length * colIndexes.length) return;
+  const master = rows[rowIndexes[0]!]?.cells[colIndexes[0]!];
+  if (!master) return;
+
+  for (const cell of cells) {
+    if (cell === master) continue;
+    const hasContent = (cell.textContent ?? '').trim() || cell.querySelector('img,table');
+    if (hasContent) {
+      if ((master.textContent ?? '').trim() || master.querySelector('img,table'))
+        master.appendChild(master.ownerDocument.createElement('br'));
+      while (cell.firstChild) master.appendChild(cell.firstChild);
+    }
+    cell.remove();
+  }
+  master.rowSpan = rowIndexes.length;
+  master.colSpan = colIndexes.length;
+  setSelectedCells(editor, [master]);
+  placeCaretIn(editor, master);
+  editor.events.emit('change', editor.getContent());
+}
+
+function splitCurrentCell(editor: Editor): void {
+  const cell = currentCell(editor);
+  const table = cell?.closest('table');
+  if (!cell || !table || (cell.rowSpan === 1 && cell.colSpan === 1)) return;
+  const rows = Array.from(table.rows);
+  const rowIndex = rows.indexOf(cell.parentElement as HTMLTableRowElement);
+  const colIndex = cell.cellIndex;
+  const rowSpan = cell.rowSpan;
+  const colSpan = cell.colSpan;
+  const tag = cell.tagName.toLowerCase() as 'td' | 'th';
+  cell.removeAttribute('rowspan');
+  cell.removeAttribute('colspan');
+
+  for (let rowOffset = 0; rowOffset < rowSpan; rowOffset++) {
+    const row = rows[rowIndex + rowOffset];
+    if (!row) continue;
+    const count = rowOffset === 0 ? colSpan - 1 : colSpan;
+    const insertionIndex = rowOffset === 0 ? colIndex + 1 : colIndex;
+    for (let colOffset = 0; colOffset < count; colOffset++) {
+      row.insertBefore(
+        makeCell(cell.ownerDocument, tag),
+        row.cells[insertionIndex + colOffset] ?? null
+      );
+    }
+  }
+  setSelectedCells(editor, [cell]);
+  placeCaretIn(editor, cell);
+  editor.events.emit('change', editor.getContent());
+}
+
+function installMultiCellSelection(editor: Editor): void {
+  const body = editor.getBody();
+  const doc = body.ownerDocument;
+  let anchor: HTMLTableCellElement | null = null;
+  let dragging = false;
+
+  const onMouseDown = (event: MouseEvent): void => {
+    if (event.button !== 0) return;
+    const cell = (event.target as HTMLElement).closest?.('td,th') as HTMLTableCellElement | null;
+    if (!cell || !body.contains(cell)) {
+      anchor = null;
+      clearCellSelection(editor);
+      return;
+    }
+    if (!event.shiftKey || !anchor || anchor.closest('table') !== cell.closest('table'))
+      anchor = cell;
+    dragging = true;
+    if (event.shiftKey && anchor !== cell) {
+      event.preventDefault();
+      setSelectedCells(editor, rectangularCells(cell.closest('table')!, anchor, cell));
+    } else {
+      clearCellSelection(editor);
+    }
+  };
+  const onMouseOver = (event: MouseEvent): void => {
+    if (!dragging || !anchor || event.buttons !== 1) return;
+    const cell = (event.target as HTMLElement).closest?.('td,th') as HTMLTableCellElement | null;
+    const table = anchor.closest('table');
+    if (!cell || !table || cell.closest('table') !== table || cell === anchor) return;
+    setSelectedCells(editor, rectangularCells(table, anchor, cell));
+  };
+  const onMouseUp = (): void => {
+    dragging = false;
+    const cells = selectedCells(editor);
+    if (cells.length > 1 && anchor) placeCaretIn(editor, anchor);
+  };
+  body.addEventListener('mousedown', onMouseDown);
+  body.addEventListener('mouseover', onMouseOver);
+  doc.addEventListener('mouseup', onMouseUp);
+  editor.events.on('destroy', () => {
+    body.removeEventListener('mousedown', onMouseDown);
+    body.removeEventListener('mouseover', onMouseOver);
+    doc.removeEventListener('mouseup', onMouseUp);
+    clearCellSelection(editor);
+  });
 }
 
 // ---------- table / cell properties ----------
@@ -807,11 +958,15 @@ function buildTableContext(
     return btn;
   };
 
+  const mergeButton = action('merge-cells', 'Merge cells', '⊞', 'TableMergeCells');
+  const splitButton = action('split-cell', 'Split cell', '⊟', 'TableSplitCell');
   quick.append(
     action('row-before', 'Row above', '↑', 'TableInsertRowBefore'),
     action('row-after', 'Row below', '↓', 'TableInsertRowAfter'),
     action('col-before', 'Column left', '←', 'TableInsertColBefore'),
-    action('col-after', 'Column right', '→', 'TableInsertColAfter')
+    action('col-after', 'Column right', '→', 'TableInsertColAfter'),
+    mergeButton,
+    splitButton
   );
   propertyGrid.append(
     action('table-props', 'Table', '▦', 'TableProps', 'property'),
@@ -831,9 +986,17 @@ function buildTableContext(
     const table = currentTable(editor);
     context.classList.toggle('sbe-disabled', !table);
     actions.forEach((btn) => (btn.disabled = !table));
-    badge.textContent = table
-      ? `${table.rows.length} × ${table.rows[0]?.cells.length ?? 0}`
-      : 'Select a table';
+    const selection = selectedCells(editor);
+    mergeButton.disabled =
+      selection.length < 2 || selection.some((cell) => cell.rowSpan !== 1 || cell.colSpan !== 1);
+    const cell = currentCell(editor);
+    splitButton.disabled = !cell || (cell.rowSpan === 1 && cell.colSpan === 1);
+    badge.textContent =
+      selection.length > 1
+        ? `${selection.length} cells`
+        : table
+          ? `${table.rows.length} × ${table.rows[0]?.cells.length ?? 0}`
+          : 'Select a table';
   };
   editor.events.on('selectionchange', refresh);
   editor.events.on('change', refresh);
@@ -939,6 +1102,17 @@ export const tablePlugin: Plugin = {
     editor.commands.register('TableDelete', {
       execute: (ed) => deleteTable(ed)
     });
+    editor.commands.register('TableMergeCells', {
+      execute: mergeSelectedCells,
+      queryState: (ed) => selectedCells(ed).length > 1
+    });
+    editor.commands.register('TableSplitCell', {
+      execute: splitCurrentCell,
+      queryState: (ed) => {
+        const cell = currentCell(ed);
+        return !!cell && (cell.rowSpan > 1 || cell.colSpan > 1);
+      }
+    });
     editor.commands.register('TableProps', {
       execute: (ed, args) => {
         if (args) applyTableProps(ed, args as TablePropsArgs);
@@ -1004,6 +1178,16 @@ export const tablePlugin: Plugin = {
       text: 'Delete row',
       command: 'TableDeleteRow'
     });
+    editor.ui.addMenuItem('mergecells', {
+      menu: 'table',
+      text: 'Merge selected cells',
+      command: 'TableMergeCells'
+    });
+    editor.ui.addMenuItem('splitcell', {
+      menu: 'table',
+      text: 'Split cell',
+      command: 'TableSplitCell'
+    });
 
     editor.ui.addMenuItem('tableprops', {
       menu: 'table',
@@ -1023,6 +1207,7 @@ export const tablePlugin: Plugin = {
 
     installColumnResize(editor);
     installTableSelection(editor);
+    installMultiCellSelection(editor);
     installTableContextMenu(editor);
 
     // Tab / Shift+Tab cell navigation; Tab on the last cell appends a row.
