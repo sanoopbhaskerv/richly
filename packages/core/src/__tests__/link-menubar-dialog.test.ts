@@ -53,7 +53,9 @@ describe('link plugin', () => {
     range.collapse(true);
     ed.selection.setRange(range);
     ed.getBody().dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
-    expect(ed.getContent()).toBe('<p>see <a href="https://example.com/docs">https://example.com/docs</a></p>');
+    expect(ed.getContent()).toBe(
+      '<p>see <a href="https://example.com/docs">https://example.com/docs</a></p>'
+    );
   });
 
   it('autolink does not fire inside an existing link', () => {

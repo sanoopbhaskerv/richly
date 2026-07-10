@@ -40,9 +40,13 @@ describe('table plugin', () => {
     ed = createTestEditor('<table><tbody><tr><td>a</td></tr><tr><td>b</td></tr></tbody></table>');
     placeCursor(ed, 'a', 0);
     ed.execCommand('TableInsertColAfter');
-    ed.getBody().querySelectorAll('tr').forEach((tr) => expect(tr.children.length).toBe(2));
+    ed.getBody()
+      .querySelectorAll('tr')
+      .forEach((tr) => expect(tr.children.length).toBe(2));
     ed.execCommand('TableDeleteCol');
-    ed.getBody().querySelectorAll('tr').forEach((tr) => expect(tr.children.length).toBe(1));
+    ed.getBody()
+      .querySelectorAll('tr')
+      .forEach((tr) => expect(tr.children.length).toBe(1));
   });
 
   it('deleting the last row removes the table', () => {
@@ -86,7 +90,8 @@ describe('image plugin', () => {
     ed.execCommand('InsertImage');
     const dialog = document.querySelector<HTMLElement>('[data-testid="dialog-image"]')!;
     expect(dialog).toBeTruthy();
-    dialog.querySelector<HTMLInputElement>('[data-testid="dialog-field-src"]')!.value = 'https://x.com/b.png';
+    dialog.querySelector<HTMLInputElement>('[data-testid="dialog-field-src"]')!.value =
+      'https://x.com/b.png';
     dialog.querySelector<HTMLButtonElement>('[data-testid="dialog-submit"]')!.click();
     await tick();
     expect(ed.getContent()).toContain('<img src="https://x.com/b.png"');

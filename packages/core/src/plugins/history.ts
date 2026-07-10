@@ -11,9 +11,29 @@ export const historyPlugin: Plugin = {
       execute: (ed) => ed.undoManager.redo(),
       skipUndo: true
     });
-    editor.ui.addButton('undo', { icon: 'undo', tooltip: 'Undo', command: 'Undo', shortcut: 'Mod+Z' });
-    editor.ui.addButton('redo', { icon: 'redo', tooltip: 'Redo', command: 'Redo', shortcut: 'Mod+Shift+Z' });
-    editor.ui.addMenuItem('undo', { menu: 'edit', text: 'Undo', command: 'Undo', shortcut: 'Mod+Z' });
-    editor.ui.addMenuItem('redo', { menu: 'edit', text: 'Redo', command: 'Redo', shortcut: 'Mod+Shift+Z' });
+    editor.ui.addButton('undo', {
+      icon: 'undo',
+      tooltip: 'Undo',
+      command: 'Undo',
+      shortcut: 'Mod+Z'
+    });
+    editor.ui.addButton('redo', {
+      icon: 'redo',
+      tooltip: 'Redo',
+      command: 'Redo',
+      shortcut: 'Mod+Shift+Z'
+    });
+    editor.ui.addMenuItem('undo', {
+      menu: 'edit',
+      text: 'Undo',
+      command: 'Undo',
+      shortcut: 'Mod+Z'
+    });
+    editor.ui.addMenuItem('redo', {
+      menu: 'edit',
+      text: 'Redo',
+      command: 'Redo',
+      shortcut: 'Mod+Shift+Z'
+    });
   }
 };

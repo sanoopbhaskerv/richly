@@ -26,6 +26,10 @@ export const hrPlugin: Plugin = {
         ed.events.emit('change', ed.getContent());
       }
     });
-    editor.ui.addMenuItem('hr', { menu: 'insert', text: 'Horizontal rule', command: 'InsertHorizontalRule' });
+    editor.ui.addMenuItem('hr', {
+      menu: 'insert',
+      text: 'Horizontal rule',
+      command: 'InsertHorizontalRule'
+    });
   }
 };

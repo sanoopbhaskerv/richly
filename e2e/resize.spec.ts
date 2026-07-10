@@ -107,4 +107,29 @@ test.describe('editor + table resize, table/cell properties (vanilla instance)',
     await expect(editor.content.locator('thead th')).toHaveCount(2);
     await editor.expectContentMatches(/height:\s*52px/);
   });
+
+  test('right-click opens the same table actions at the pointer', async ({ page }) => {
+    await editor.clickButton('table');
+    await editor.root.getByTestId('dd-table').getByTestId('grid-cell-1-1').click();
+    const firstCell = editor.content.locator('td').first();
+
+    await firstCell.click({ button: 'right' });
+    const menu = editor.root.getByTestId('table-context-menu');
+    await expect(menu).toBeVisible();
+    const box = (await menu.boundingBox())!;
+    const viewport = page.viewportSize()!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+
+    await menu.getByTestId('context-table-action-row-after').click();
+    await expect(editor.content.locator('tr')).toHaveCount(3);
+    await expect(menu).toBeHidden();
+
+    await firstCell.click({ button: 'right' });
+    await menu.getByTestId('context-table-action-table-props').click();
+    await expect(page.getByTestId('dialog-tableprops')).toBeVisible();
+    await page.getByTestId('dialog-cancel').click();
+  });
 });

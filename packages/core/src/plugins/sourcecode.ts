@@ -18,7 +18,11 @@ export const sourceCodePlugin: Plugin = {
     editor.commands.register('SourceCode', {
       execute: (ed) => void openSourceDialog(ed)
     });
-    editor.ui.addButton('code', { icon: 'sourcecode', tooltip: 'Source code', command: 'SourceCode' });
+    editor.ui.addButton('code', {
+      icon: 'sourcecode',
+      tooltip: 'Source code',
+      command: 'SourceCode'
+    });
     editor.ui.addMenuItem('code', { menu: 'view', text: 'Source code', command: 'SourceCode' });
   }
 };

@@ -3,7 +3,9 @@ import { sanitize } from '../model/Sanitizer';
 
 describe('Sanitizer', () => {
   it('drops script/style/iframe entirely', () => {
-    expect(sanitize('<p>ok</p><script>alert(1)</script><style>p{}</style><iframe src="x"></iframe>')).toBe('<p>ok</p>');
+    expect(
+      sanitize('<p>ok</p><script>alert(1)</script><style>p{}</style><iframe src="x"></iframe>')
+    ).toBe('<p>ok</p>');
   });
 
   it('strips on* event handler attributes', () => {
@@ -12,7 +14,9 @@ describe('Sanitizer', () => {
 
   it('blocks javascript: URLs', () => {
     expect(sanitize('<a href="javascript:alert(1)">x</a>')).toBe('<a>x</a>');
-    expect(sanitize('<a href="https://example.com">x</a>')).toBe('<a href="https://example.com">x</a>');
+    expect(sanitize('<a href="https://example.com">x</a>')).toBe(
+      '<a href="https://example.com">x</a>'
+    );
   });
 
   it('unwraps unknown tags but keeps content (Word paste)', () => {
@@ -24,7 +28,9 @@ describe('Sanitizer', () => {
   });
 
   it('whitelists style declarations', () => {
-    expect(sanitize('<span style="color: red; position: fixed">x</span>')).toBe('<span style="color: red">x</span>');
+    expect(sanitize('<span style="color: red; position: fixed">x</span>')).toBe(
+      '<span style="color: red">x</span>'
+    );
   });
 
   it('keeps allowed structural content intact', () => {

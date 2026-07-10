@@ -1,10 +1,47 @@
 /** Whitelist-based HTML sanitizer. ALL inbound HTML (setContent, paste) passes through here. */
 
 const ALLOWED_TAGS = new Set([
-  'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'div', 'br', 'hr',
-  'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'del', 'code', 'sub', 'sup', 'span',
-  'ul', 'ol', 'li', 'a', 'img',
-  'table', 'colgroup', 'col', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th', 'caption', 'figure', 'figcaption'
+  'p',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'blockquote',
+  'pre',
+  'div',
+  'br',
+  'hr',
+  'strong',
+  'b',
+  'em',
+  'i',
+  'u',
+  's',
+  'strike',
+  'del',
+  'code',
+  'sub',
+  'sup',
+  'span',
+  'ul',
+  'ol',
+  'li',
+  'a',
+  'img',
+  'table',
+  'colgroup',
+  'col',
+  'thead',
+  'tbody',
+  'tfoot',
+  'tr',
+  'td',
+  'th',
+  'caption',
+  'figure',
+  'figcaption'
 ]);
 
 const ALLOWED_ATTRS: Record<string, Set<string>> = {
@@ -16,10 +53,25 @@ const ALLOWED_ATTRS: Record<string, Set<string>> = {
 };
 
 const ALLOWED_STYLES = new Set([
-  'color', 'background-color', 'text-align', 'text-decoration',
-  'font-weight', 'font-style', 'font-size', 'font-family', 'line-height',
-  'margin-left', 'margin-right', 'padding-left', // indent + table alignment
-  'width', 'height', 'vertical-align', 'border-width', 'border-color', 'padding', 'table-layout' // table/cell props & resize
+  'color',
+  'background-color',
+  'text-align',
+  'text-decoration',
+  'font-weight',
+  'font-style',
+  'font-size',
+  'font-family',
+  'line-height',
+  'margin-left',
+  'margin-right',
+  'padding-left', // indent + table alignment
+  'width',
+  'height',
+  'vertical-align',
+  'border-width',
+  'border-color',
+  'padding',
+  'table-layout' // table/cell props & resize
 ]);
 
 const URL_SCHEME_BLOCKLIST = /^\s*(javascript|vbscript|data(?!:image\/(png|gif|jpe?g|webp)))\s*:/i;
@@ -62,7 +114,18 @@ export function sanitize(html: string, doc: Document = document): string {
   const root = template.content;
 
   // Remove disallowed elements (keep children for unknown wrappers, drop dangerous subtrees)
-  const DROP_ENTIRELY = new Set(['script', 'style', 'iframe', 'object', 'embed', 'form', 'meta', 'link', 'head', 'title']);
+  const DROP_ENTIRELY = new Set([
+    'script',
+    'style',
+    'iframe',
+    'object',
+    'embed',
+    'form',
+    'meta',
+    'link',
+    'head',
+    'title'
+  ]);
   const walker = (node: Element): void => {
     for (const child of Array.from(node.children)) walker(child);
     const tag = node.tagName.toLowerCase();

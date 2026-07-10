@@ -45,7 +45,9 @@ test.describe('table, image, source view, fullscreen (vanilla instance)', () => 
     await page.getByTestId('dialog-field-src').fill('https://example.com/pic.png');
     await page.getByTestId('dialog-field-alt').fill('a picture');
     await page.getByTestId('dialog-submit').click();
-    await editor.expectContentMatches(/<img src="https:\/\/example\.com\/pic\.png" alt="a picture">/);
+    await editor.expectContentMatches(
+      /<img src="https:\/\/example\.com\/pic\.png" alt="a picture">/
+    );
   });
 
   test('source code view edits raw HTML', async ({ page }) => {

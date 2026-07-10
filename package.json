@@ -9,11 +9,27 @@
     "dev": "yarn workspace @sb/demo dev",
     "build": "yarn workspace @sb/editor-core build && yarn workspace @sb/editor-react build",
     "test": "yarn workspace @sb/editor-core test",
-    "e2e": "playwright test"
+    "test:coverage": "yarn workspace @sb/editor-core test:coverage",
+    "e2e": "playwright test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --check .",
+    "format:write": "prettier --write ."
+  },
+  "packageManager": "yarn@1.22.22",
+  "engines": {
+    "node": ">=18.18"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.45.0",
+    "eslint": "^10.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.7.0",
     "playwright": "^1.61.1",
-    "typescript": "^5.5.0"
+    "prettier": "^3.9.5",
+    "tsup": "^8.5.1",
+    "typescript": "^5.5.0",
+    "typescript-eslint": "^8.63.0"
   }
 }

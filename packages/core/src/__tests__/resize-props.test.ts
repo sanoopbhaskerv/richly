@@ -33,12 +33,18 @@ describe('editor resize grip', () => {
 });
 
 describe('TableProps command', () => {
-  const TABLE = '<table><tbody><tr><td>a</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></tbody></table>';
+  const TABLE =
+    '<table><tbody><tr><td>a</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></tbody></table>';
 
   it('applies width, alignment, border and padding', () => {
     ed = createTestEditor(TABLE);
     placeCursor(ed, 'a', 0);
-    ed.execCommand('TableProps', { width: '50%', align: 'center', borderWidth: '2', cellPadding: '12' });
+    ed.execCommand('TableProps', {
+      width: '50%',
+      align: 'center',
+      borderWidth: '2',
+      cellPadding: '12'
+    });
     const table = ed.getBody().querySelector('table')!;
     expect(table.style.width).toBe('50%');
     expect(table.style.marginLeft).toBe('auto');
@@ -94,7 +100,9 @@ describe('TableProps command', () => {
     ed.execCommand('TableProps');
     const dialog = document.querySelector<HTMLElement>('[data-testid="dialog-tableprops"]')!;
     expect(dialog).toBeTruthy();
-    expect(dialog.querySelector<HTMLInputElement>('[data-testid="dialog-field-width"]')!.value).toBe('80%');
+    expect(
+      dialog.querySelector<HTMLInputElement>('[data-testid="dialog-field-width"]')!.value
+    ).toBe('80%');
     dialog.querySelector<HTMLButtonElement>('[data-testid="dialog-cancel"]')!.click();
     await tick();
   });
@@ -135,9 +143,16 @@ describe('CellProps command', () => {
 
 describe('RowProps command', () => {
   it('moves a row into the header and preserves semantic cells', () => {
-    ed = createTestEditor('<table><tbody><tr><td>head</td><td>value</td></tr><tr><td>a</td><td>b</td></tr></tbody></table>');
+    ed = createTestEditor(
+      '<table><tbody><tr><td>head</td><td>value</td></tr><tr><td>a</td><td>b</td></tr></tbody></table>'
+    );
     placeCursor(ed, 'head', 0);
-    ed.execCommand('RowProps', { section: 'head', height: '48', align: 'center', valign: 'middle' });
+    ed.execCommand('RowProps', {
+      section: 'head',
+      height: '48',
+      align: 'center',
+      valign: 'middle'
+    });
     const row = ed.getBody().querySelector('thead tr')! as HTMLTableRowElement;
     expect(row.style.height).toBe('48px');
     expect(row.style.textAlign).toBe('center');
@@ -149,7 +164,9 @@ describe('RowProps command', () => {
     ed = createTestEditor('<table><tbody><tr><td>cell</td></tr></tbody></table>');
     placeCursor(ed, 'cell', 0);
     ed.getRoot().querySelector<HTMLButtonElement>('[data-testid="tb-table"]')!.click();
-    const button = ed.getRoot().querySelector<HTMLButtonElement>('[data-testid="table-action-row-props"]')!;
+    const button = ed
+      .getRoot()
+      .querySelector<HTMLButtonElement>('[data-testid="table-action-row-props"]')!;
     expect(button.disabled).toBe(false);
     button.click();
     expect(document.querySelector('[data-testid="dialog-rowprops"]')).toBeTruthy();
@@ -162,8 +179,50 @@ describe('table selection frame', () => {
     ed = createTestEditor('<table><tbody><tr><td>x</td></tr></tbody></table>');
     const cell = ed.getBody().querySelector('td')!;
     cell.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-    expect(ed.getRoot().querySelector('[data-testid="table-selection"]')?.classList.contains('sbe-show')).toBe(true);
+    expect(
+      ed.getRoot().querySelector('[data-testid="table-selection"]')?.classList.contains('sbe-show')
+    ).toBe(true);
     expect(ed.getContent()).not.toContain('table-selection');
     expect(ed.getContent()).not.toContain('table-resize');
+  });
+});
+
+describe('table right-click menu', () => {
+  it('opens on the clicked cell and runs the same row actions', () => {
+    ed = createTestEditor('<table><tbody><tr><td>x</td><td>y</td></tr></tbody></table>');
+    const cell = ed.getBody().querySelector('td')!;
+    const event = new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      clientX: 80,
+      clientY: 90
+    });
+    cell.dispatchEvent(event);
+
+    const menu = ed.getRoot().querySelector<HTMLElement>('[data-testid="table-context-menu"]')!;
+    expect(event.defaultPrevented).toBe(true);
+    expect(menu.classList.contains('sbe-open')).toBe(true);
+    const addRow = menu.querySelector<HTMLButtonElement>(
+      '[data-testid="context-table-action-row-after"]'
+    )!;
+    expect(addRow.disabled).toBe(false);
+    addRow.click();
+
+    expect(ed.getBody().querySelectorAll('tr')).toHaveLength(2);
+    expect(menu.classList.contains('sbe-open')).toBe(false);
+  });
+
+  it('dismisses with Escape and does not replace the browser menu outside tables', () => {
+    ed = createTestEditor('<p>outside</p><table><tbody><tr><td>x</td></tr></tbody></table>');
+    const cell = ed.getBody().querySelector('td')!;
+    cell.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+    const menu = ed.getRoot().querySelector<HTMLElement>('[data-testid="table-context-menu"]')!;
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(menu.classList.contains('sbe-open')).toBe(false);
+
+    const paragraph = ed.getBody().querySelector('p')!;
+    const outsideEvent = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+    paragraph.dispatchEvent(outsideEvent);
+    expect(outsideEvent.defaultPrevented).toBe(false);
   });
 });

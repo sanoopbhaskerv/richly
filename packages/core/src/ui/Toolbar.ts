@@ -42,10 +42,12 @@ export class Toolbar {
         btn.className = 'sbe-tb-btn';
         btn.dataset.testid = `tb-${name}`;
         btn.setAttribute('aria-label', buttonSpec.tooltip);
-        btn.title = buttonSpec.shortcut ? `${buttonSpec.tooltip} (${buttonSpec.shortcut})` : buttonSpec.tooltip;
+        btn.title = buttonSpec.shortcut
+          ? `${buttonSpec.tooltip} (${buttonSpec.shortcut})`
+          : buttonSpec.tooltip;
         btn.innerHTML = icons[buttonSpec.icon] ?? buttonSpec.icon;
         if (buttonSpec.toggle) btn.setAttribute('aria-pressed', 'false');
-        // preventDefault on mousedown keeps the content selection (HANDOFF.md §6)
+        // Preventing mousedown focus loss keeps the content selection intact.
         btn.addEventListener('mousedown', (e) => e.preventDefault());
 
         if (buttonSpec.panel) {
@@ -66,7 +68,9 @@ export class Toolbar {
             doc.querySelectorAll('.sbe-tb-dd').forEach((p) => p.classList.remove('sbe-open'));
             if (!wasOpen) {
               dd.classList.add('sbe-open');
-              dd.firstElementChild?.dispatchEvent(new (doc.defaultView?.Event ?? Event)('sbe-panel-open'));
+              dd.firstElementChild?.dispatchEvent(
+                new (doc.defaultView?.Event ?? Event)('sbe-panel-open')
+              );
             }
           });
           doc.addEventListener('click', close);
@@ -107,7 +111,10 @@ export class Toolbar {
       const idx = this.buttons.findIndex((b) => b === this.container.ownerDocument.activeElement);
       if (idx === -1) return;
       e.preventDefault();
-      const next = e.key === 'ArrowRight' ? (idx + 1) % this.buttons.length : (idx - 1 + this.buttons.length) % this.buttons.length;
+      const next =
+        e.key === 'ArrowRight'
+          ? (idx + 1) % this.buttons.length
+          : (idx - 1 + this.buttons.length) % this.buttons.length;
       this.buttons.forEach((b, i) => (b.tabIndex = i === next ? 0 : -1));
       this.buttons[next]?.focus();
     });

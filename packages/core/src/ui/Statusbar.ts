@@ -62,7 +62,8 @@ export class Statusbar {
     const path: string[] = [];
     let node: Node | null = range ? range.startContainer : null;
     while (node && node !== body) {
-      if (node.nodeType === Node.ELEMENT_NODE) path.unshift((node as HTMLElement).tagName.toLowerCase());
+      if (node.nodeType === Node.ELEMENT_NODE)
+        path.unshift((node as HTMLElement).tagName.toLowerCase());
       node = node.parentNode;
     }
     this.elpath.textContent = path.join(' › ') || 'p';

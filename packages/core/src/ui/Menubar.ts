@@ -26,7 +26,10 @@ export class Menubar {
     container.setAttribute('role', 'menubar');
 
     // Group registered items by menu, preserving registration order.
-    const groups = new Map<string, { id: string; text: string; command: string; args?: unknown; shortcut?: string }[]>();
+    const groups = new Map<
+      string,
+      { id: string; text: string; command: string; args?: unknown; shortcut?: string }[]
+    >();
     editor.ui.menuItems.forEach((spec, id) => {
       if (!groups.has(spec.menu)) groups.set(spec.menu, []);
       groups.get(spec.menu)!.push({ id, ...spec });
@@ -100,7 +103,9 @@ export class Menubar {
 
   private closeAll(): void {
     this.container.querySelectorAll('.sbe-menu-dd').forEach((p) => p.classList.remove('sbe-open'));
-    this.container.querySelectorAll('.sbe-menu-btn').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+    this.container
+      .querySelectorAll('.sbe-menu-btn')
+      .forEach((b) => b.setAttribute('aria-expanded', 'false'));
     this.openPanel = null;
   }
 }

@@ -29,7 +29,7 @@ test.describe('lists, indent, alignment (vanilla instance)', () => {
     await editor.expectContentMatches(/<ul><li>alpha<\/li><li>beta<\/li><\/ul>/);
   });
 
-  test('numbered list toggle and switch', async ({ page }) => {
+  test('numbered list toggle and switch', async () => {
     await editor.type('one');
     await editor.selectWord('one');
     await editor.clickButton('numlist');

@@ -9,17 +9,51 @@ import {
   CARET_FILLER
 } from '../dom/DomUtils';
 
-const INLINE_FORMATS: { name: string; command: string; tag: string; icon: string; tooltip: string; shortcut?: string }[] = [
-  { name: 'bold', command: 'Bold', tag: 'strong', icon: 'bold', tooltip: 'Bold', shortcut: 'Mod+B' },
-  { name: 'italic', command: 'Italic', tag: 'em', icon: 'italic', tooltip: 'Italic', shortcut: 'Mod+I' },
-  { name: 'underline', command: 'Underline', tag: 'u', icon: 'underline', tooltip: 'Underline', shortcut: 'Mod+U' },
-  { name: 'strikethrough', command: 'Strikethrough', tag: 's', icon: 'strikethrough', tooltip: 'Strikethrough' }
+const INLINE_FORMATS: {
+  name: string;
+  command: string;
+  tag: string;
+  icon: string;
+  tooltip: string;
+  shortcut?: string;
+}[] = [
+  {
+    name: 'bold',
+    command: 'Bold',
+    tag: 'strong',
+    icon: 'bold',
+    tooltip: 'Bold',
+    shortcut: 'Mod+B'
+  },
+  {
+    name: 'italic',
+    command: 'Italic',
+    tag: 'em',
+    icon: 'italic',
+    tooltip: 'Italic',
+    shortcut: 'Mod+I'
+  },
+  {
+    name: 'underline',
+    command: 'Underline',
+    tag: 'u',
+    icon: 'underline',
+    tooltip: 'Underline',
+    shortcut: 'Mod+U'
+  },
+  {
+    name: 'strikethrough',
+    command: 'Strikethrough',
+    tag: 's',
+    icon: 'strikethrough',
+    tooltip: 'Strikethrough'
+  }
 ];
 
 /**
  * Collapsed cursor: create a "caret container" — an (in)active format element
  * holding a U+FEFF filler — so text typed next is (un)formatted. Same approach
- * as TinyMCE. getContent() strips the fillers and empty containers.
+ * as common rich-text editors. getContent() strips the fillers and empty containers.
  */
 function toggleInlineCollapsed(editor: Editor, tag: string): void {
   const range = editor.selection.getRange();
@@ -43,7 +77,10 @@ function toggleInlineCollapsed(editor: Editor, tag: string): void {
 
     const parent = ancestor.parentNode!;
     parent.insertBefore(caret, ancestor.nextSibling);
-    if ((rightFrag.textContent ?? '').replace(new RegExp(CARET_FILLER, 'g'), '') !== '' || rightFrag.querySelector('img,br')) {
+    if (
+      (rightFrag.textContent ?? '').replace(new RegExp(CARET_FILLER, 'g'), '') !== '' ||
+      rightFrag.querySelector('img,br')
+    ) {
       const rightEl = ancestor.cloneNode(false) as HTMLElement;
       rightEl.appendChild(rightFrag);
       parent.insertBefore(rightEl, caret.nextSibling);
@@ -65,7 +102,9 @@ function toggleInline(editor: Editor, tag: string): void {
     return;
   }
   const body = editor.getBody();
-  const active = !!closestTag(range.commonAncestorContainer, tag, body) || !!closestTag(range.startContainer, tag, body);
+  const active =
+    !!closestTag(range.commonAncestorContainer, tag, body) ||
+    !!closestTag(range.startContainer, tag, body);
   const out = active ? removeInline(range, tag, body) : applyInline(range, tag);
   editor.selection.setRange(out);
   body.normalize();
@@ -92,7 +131,12 @@ export const formatsPlugin: Plugin = {
         command: f.command,
         shortcut: f.shortcut
       });
-      editor.ui.addMenuItem(f.name, { menu: 'format', text: f.tooltip, command: f.command, shortcut: f.shortcut });
+      editor.ui.addMenuItem(f.name, {
+        menu: 'format',
+        text: f.tooltip,
+        command: f.command,
+        shortcut: f.shortcut
+      });
     }
 
     editor.commands.register('RemoveFormat', {
@@ -104,7 +148,15 @@ export const formatsPlugin: Plugin = {
         ed.events.emit('change', ed.getContent());
       }
     });
-    editor.ui.addButton('removeformat', { icon: 'removeformat', tooltip: 'Clear formatting', command: 'RemoveFormat' });
-    editor.ui.addMenuItem('removeformat', { menu: 'format', text: 'Clear formatting', command: 'RemoveFormat' });
+    editor.ui.addButton('removeformat', {
+      icon: 'removeformat',
+      tooltip: 'Clear formatting',
+      command: 'RemoveFormat'
+    });
+    editor.ui.addMenuItem('removeformat', {
+      menu: 'format',
+      text: 'Clear formatting',
+      command: 'RemoveFormat'
+    });
   }
 };

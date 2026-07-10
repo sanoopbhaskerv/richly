@@ -23,7 +23,15 @@ async function openLinkDialog(editor: Editor): Promise<void> {
   const result = await openDialog(editor, {
     name: 'link',
     title: existing ? 'Edit link' : 'Insert link',
-    fields: [{ name: 'href', label: 'URL', type: 'url', placeholder: 'https://example.com', value: existing?.getAttribute('href') ?? '' }],
+    fields: [
+      {
+        name: 'href',
+        label: 'URL',
+        type: 'url',
+        placeholder: 'https://example.com',
+        value: existing?.getAttribute('href') ?? ''
+      }
+    ],
     submitText: existing ? 'Update' : 'Insert'
   });
   if (result?.href) editor.execCommand('InsertLink', { href: result.href });
@@ -112,9 +120,19 @@ export const linkPlugin: Plugin = {
       }
     });
 
-    editor.ui.addToggleButton('link', { icon: 'link', tooltip: 'Insert link', command: 'InsertLink', shortcut: 'Mod+K' });
+    editor.ui.addToggleButton('link', {
+      icon: 'link',
+      tooltip: 'Insert link',
+      command: 'InsertLink',
+      shortcut: 'Mod+K'
+    });
     editor.ui.addButton('unlink', { icon: 'unlink', tooltip: 'Remove link', command: 'Unlink' });
-    editor.ui.addMenuItem('link', { menu: 'insert', text: 'Link…', command: 'InsertLink', shortcut: 'Mod+K' });
+    editor.ui.addMenuItem('link', {
+      menu: 'insert',
+      text: 'Link…',
+      command: 'InsertLink',
+      shortcut: 'Mod+K'
+    });
 
     editor.on('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {

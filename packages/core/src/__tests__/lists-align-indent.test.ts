@@ -108,7 +108,9 @@ describe('alignment', () => {
     range.setEnd(ed.getBody().querySelectorAll('p')[1]!.firstChild!, 3);
     ed.selection.setRange(range);
     ed.execCommand('JustifyRight');
-    expect(ed.getContent()).toBe('<p style="text-align: right;">aaa</p><p style="text-align: right;">bbb</p>');
+    expect(ed.getContent()).toBe(
+      '<p style="text-align: right;">aaa</p><p style="text-align: right;">bbb</p>'
+    );
   });
 });
 

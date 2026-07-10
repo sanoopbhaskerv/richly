@@ -28,7 +28,10 @@ export interface DialogSpec {
  * data-testids (TESTING.md §4): dialog-<name>, dialog-field-<name>, dialog-submit, dialog-cancel.
  * Resolves with the field values, or null on cancel.
  */
-export function openDialog(editor: Editor, spec: DialogSpec): Promise<Record<string, string> | null> {
+export function openDialog(
+  editor: Editor,
+  spec: DialogSpec
+): Promise<Record<string, string> | null> {
   const doc = editor.getRoot().ownerDocument;
   const bookmark = editor.selection.getBookmark();
 
@@ -66,7 +69,8 @@ export function openDialog(editor: Editor, spec: DialogSpec): Promise<Record<str
     dialog.appendChild(header);
 
     const fields = doc.createElement('div');
-    fields.className = spec.layout === 'grid' ? 'sbe-dialog-fields sbe-dialog-fields-grid' : 'sbe-dialog-fields';
+    fields.className =
+      spec.layout === 'grid' ? 'sbe-dialog-fields sbe-dialog-fields-grid' : 'sbe-dialog-fields';
 
     type FieldEl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
     const inputs = new Map<string, FieldEl>();
@@ -145,7 +149,9 @@ export function openDialog(editor: Editor, spec: DialogSpec): Promise<Record<str
       const values: Record<string, string> = {};
       inputs.forEach((input, name) => {
         values[name] =
-          input instanceof HTMLInputElement && input.type === 'checkbox' ? String(input.checked) : input.value;
+          input instanceof HTMLInputElement && input.type === 'checkbox'
+            ? String(input.checked)
+            : input.value;
       });
       close(values);
     };
@@ -162,7 +168,11 @@ export function openDialog(editor: Editor, spec: DialogSpec): Promise<Record<str
         e.preventDefault();
         e.stopPropagation();
         close(null);
-      } else if (e.key === 'Enter' && doc.activeElement?.tagName === 'INPUT' && dialog.contains(doc.activeElement)) {
+      } else if (
+        e.key === 'Enter' &&
+        doc.activeElement?.tagName === 'INPUT' &&
+        dialog.contains(doc.activeElement)
+      ) {
         // Enter submits from single-line inputs only (textarea needs newlines).
         e.preventDefault();
         submit();

@@ -48,7 +48,7 @@ test.describe('link plugin + menubar (vanilla instance)', () => {
     await page.keyboard.press('Escape');
   });
 
-  test('autolink fires when typing a URL followed by space', async ({ page }) => {
+  test('autolink fires when typing a URL followed by space', async () => {
     await editor.type('go to https://cool.dev now');
     await editor.expectContentMatches(/<a href="https:\/\/cool\.dev">https:\/\/cool\.dev<\/a>/);
   });
@@ -67,7 +67,7 @@ test.describe('link plugin + menubar (vanilla instance)', () => {
     expect(html).not.toContain('<a');
   });
 
-  test('menubar: Format > Bold applies to selection', async ({ page }) => {
+  test('menubar: Format > Bold applies to selection', async () => {
     await editor.type('menu driven');
     await editor.selectWord('driven');
     await editor.root.getByTestId('menu-format').click();

@@ -79,7 +79,10 @@ export class SelectionManager {
     if (!start || !end) return;
     const range = this.doc.createRange();
     const clamp = (node: Node, offset: number) =>
-      Math.min(offset, node.nodeType === Node.TEXT_NODE ? (node.textContent?.length ?? 0) : node.childNodes.length);
+      Math.min(
+        offset,
+        node.nodeType === Node.TEXT_NODE ? (node.textContent?.length ?? 0) : node.childNodes.length
+      );
     try {
       range.setStart(start, clamp(start, bm.startOffset));
       range.setEnd(end, clamp(end, bm.endOffset));

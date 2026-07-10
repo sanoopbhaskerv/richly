@@ -3,7 +3,7 @@ import type { Editor } from '../editor/Editor';
 import { blocksInRange } from '../dom/DomUtils';
 import { selectedListItems, nestListItem, unnestListItem } from './lists';
 
-const STEP_PX = 40; // TinyMCE default indent step
+const STEP_PX = 40; // Consistent visual indent step.
 
 function changeIndent(editor: Editor, delta: 1 | -1): void {
   const range = editor.selection.getRange();
@@ -45,7 +45,15 @@ export const indentPlugin: Plugin = {
   init(editor) {
     editor.commands.register('Indent', { execute: (ed) => changeIndent(ed, 1) });
     editor.commands.register('Outdent', { execute: (ed) => changeIndent(ed, -1) });
-    editor.ui.addButton('outdent', { icon: 'outdent', tooltip: 'Decrease indent', command: 'Outdent' });
-    editor.ui.addButton('indent', { icon: 'indent', tooltip: 'Increase indent', command: 'Indent' });
+    editor.ui.addButton('outdent', {
+      icon: 'outdent',
+      tooltip: 'Decrease indent',
+      command: 'Outdent'
+    });
+    editor.ui.addButton('indent', {
+      icon: 'indent',
+      tooltip: 'Increase indent',
+      command: 'Indent'
+    });
   }
 };

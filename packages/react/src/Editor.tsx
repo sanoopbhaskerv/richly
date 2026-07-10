@@ -8,7 +8,9 @@ export interface EditorProps {
   onChange?: (html: string) => void;
   onInit?: (editor: CoreEditor) => void;
   toolbar?: string;
+  menubar?: boolean;
   statusbar?: boolean;
+  resize?: boolean;
   plugins?: Plugin[];
   testIdPrefix?: string;
   className?: string;
@@ -28,14 +30,24 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(prop
   const onChangeRef = useRef(props.onChange);
   onChangeRef.current = props.onChange;
 
-  useImperativeHandle(ref, () => ({ get editor() { return editorRef.current; } }), []);
+  useImperativeHandle(
+    ref,
+    () => ({
+      get editor() {
+        return editorRef.current;
+      }
+    }),
+    []
+  );
 
   useEffect(() => {
     const config: EditorConfig = {
       target: hostRef.current!,
       initialContent: props.value ?? props.initialValue ?? '',
       toolbar: props.toolbar,
+      menubar: props.menubar,
       statusbar: props.statusbar,
+      resize: props.resize,
       plugins: props.plugins,
       testIdPrefix: props.testIdPrefix
     };
@@ -47,7 +59,6 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(prop
       editor.destroy();
       editorRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- init exactly once
   }, []);
 
   // Controlled mode: push external value changes into the editor.

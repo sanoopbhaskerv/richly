@@ -1,17 +1,51 @@
 {
   "name": "@sb/editor-core",
   "version": "0.1.0",
+  "description": "A dependency-free WYSIWYG HTML editor engine for JavaScript and React.",
+  "license": "MIT",
+  "keywords": [
+    "rich-text-editor",
+    "wysiwyg",
+    "wysiwyg-editor",
+    "contenteditable",
+    "html-editor",
+    "vanilla-javascript",
+    "typescript",
+    "react-editor"
+  ],
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": [
+    "./dist/theme.css"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "exports": {
-    ".": "./src/index.ts",
-    "./theme.css": "./src/ui/theme.css"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./theme.css": "./dist/theme.css",
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=18.18"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json --noEmit",
+    "build": "tsup && node scripts/copy-theme.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepack": "yarn build"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.0.0",

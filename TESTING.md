@@ -4,11 +4,11 @@ Authoritative test strategy. All UI code MUST carry `data-testid` attributes per
 
 ## 1. Strategy (test pyramid)
 
-| Layer | Tool | Runs | Covers |
-|---|---|---|---|
-| Unit | **Vitest + jsdom** | every save / CI on push | commands, schema, undo, emitter, selection bookmarks — fast, no browser |
-| E2E | **Playwright** (chromium, firefox, webkit) | CI on PR + nightly | real selection/typing/paste/shortcuts, toolbar UX, cross-browser quirks |
-| Manual smoke | checklist in HANDOFF.md §7 | before each milestone sign-off | feel, IME, edge cases not yet automated |
+| Layer        | Tool                                       | Runs                    | Covers                                                                  |
+| ------------ | ------------------------------------------ | ----------------------- | ----------------------------------------------------------------------- |
+| Unit         | **Vitest + jsdom**                         | every save / CI on push | commands, schema, undo, emitter, selection bookmarks — fast, no browser |
+| E2E          | **Playwright** (chromium, firefox, webkit) | CI on PR + nightly      | real selection/typing/paste/shortcuts, toolbar UX, cross-browser quirks |
+| Manual smoke | feature checklist in the pull request      | before each release     | feel, IME, edge cases not yet automated                                 |
 
 Rule of thumb: **logic → unit test; anything touching real Selection/IME/clipboard → Playwright.**
 
@@ -18,8 +18,8 @@ Rule of thumb: **logic → unit test; anything touching real Selection/IME/clipb
 - The command layer is the seam. Canonical pattern:
 
 ```ts
-const ed = createTestEditor('<p>hello world</p>');   // test-utils.ts
-selectText(ed, 'hello');                              // programmatic Range
+const ed = createTestEditor('<p>hello world</p>'); // test-utils.ts
+selectText(ed, 'hello'); // programmatic Range
 ed.execCommand('Bold');
 expect(ed.getContent()).toBe('<p><strong>hello</strong> world</p>');
 ```
@@ -55,20 +55,20 @@ expect(ed.getContent()).toBe('<p><strong>hello</strong> world</p>');
 
 Pattern: kebab-case, stable, semantic. Never derive from labels/i18n. One editor per testid scope; for multi-instance pages scope queries by root.
 
-| Element | data-testid |
-|---|---|
-| Editor root wrapper | `editor-root` |
+| Element                                 | data-testid                                                              |
+| --------------------------------------- | ------------------------------------------------------------------------ |
+| Editor root wrapper                     | `editor-root`                                                            |
 | Menubar / toolbar / content / statusbar | `editor-menubar`, `editor-toolbar`, `editor-content`, `editor-statusbar` |
-| Toolbar button | `tb-<name>` (e.g. `tb-bold`, `tb-undo`, `tb-h1`) |
-| Toolbar select (blocks/fonts) | `tb-select-<name>` |
-| Menubar menu button | `menu-<name>` (e.g. `menu-file`) |
-| Menu item | `menuitem-<id>` |
-| Dropdown panel | `dd-<name>` (e.g. `dd-table`, `dd-forecolor`) |
-| Table grid cell | `grid-cell-<row>-<col>` |
-| Color swatch | `swatch-<hex-no-hash>` |
-| Dialog / field / actions | `dialog-<name>`, `dialog-field-<name>`, `dialog-submit`, `dialog-cancel` |
-| Statusbar parts | `status-elpath`, `status-wordcount`, `status-resize` |
-| Context toolbar | `ctx-toolbar`, buttons reuse `tb-<name>` |
+| Toolbar button                          | `tb-<name>` (e.g. `tb-bold`, `tb-undo`, `tb-h1`)                         |
+| Toolbar select (blocks/fonts)           | `tb-select-<name>`                                                       |
+| Menubar menu button                     | `menu-<name>` (e.g. `menu-file`)                                         |
+| Menu item                               | `menuitem-<id>`                                                          |
+| Dropdown panel                          | `dd-<name>` (e.g. `dd-table`, `dd-forecolor`)                            |
+| Table grid cell                         | `grid-cell-<row>-<col>`                                                  |
+| Color swatch                            | `swatch-<hex-no-hash>`                                                   |
+| Dialog / field / actions                | `dialog-<name>`, `dialog-field-<name>`, `dialog-submit`, `dialog-cancel` |
+| Statusbar parts                         | `status-elpath`, `status-wordcount`, `status-resize`                     |
+| Context toolbar                         | `ctx-toolbar`, buttons reuse `tb-<name>`                                 |
 
 Implementation rule: testids are attached in core UI components (`ui/`), driven by the registered button/dialog name — plugin authors get them for free.
 
@@ -76,7 +76,7 @@ Implementation rule: testids are attached in core UI components (`ui/`), driven 
 
 ```bash
 yarn test              # unit (vitest)
-yarn test --coverage   # with coverage gate
+yarn test:coverage     # coverage report
 yarn e2e               # playwright, all browsers
 yarn e2e --project=chromium --headed   # debug one browser
 ```

@@ -73,7 +73,8 @@ function insertRow(editor: Editor, where: 'before' | 'after'): void {
   const doc = row.ownerDocument;
   const clone = doc.createElement('tr');
   for (let i = 0; i < row.cells.length; i++) clone.appendChild(makeCell(doc));
-  where === 'before' ? row.before(clone) : row.after(clone);
+  if (where === 'before') row.before(clone);
+  else row.after(clone);
   placeCaretIn(editor, clone.cells[0]!);
   editor.events.emit('change', editor.getContent());
 }
@@ -94,7 +95,8 @@ function insertCol(editor: Editor, where: 'before' | 'after'): void {
   const colgroup = table.querySelector(':scope > colgroup');
   if (colgroup) {
     const col = doc.createElement('col');
-    const neighbor = (colgroup.children[Math.min(idx, colgroup.children.length - 1)] as HTMLElement | undefined);
+    const neighbor = colgroup.children[Math.min(idx, colgroup.children.length - 1)] as
+      HTMLElement | undefined;
     const width = parseFloat(neighbor?.style.width ?? '') || 80;
     col.style.width = `${Math.round(width)}px`;
     colgroup.insertBefore(col, colgroup.children[idx] ?? null);
@@ -250,15 +252,32 @@ async function openTablePropsDialog(editor: Editor): Promise<void> {
   const table = currentTable(editor);
   if (!table) return;
   const firstCell = table.querySelector<HTMLElement>('td,th');
-  const align = table.style.marginLeft === 'auto' ? (table.style.marginRight === 'auto' ? 'center' : 'right') : 'none';
+  const align =
+    table.style.marginLeft === 'auto'
+      ? table.style.marginRight === 'auto'
+        ? 'center'
+        : 'right'
+      : 'none';
   const result = await openDialog(editor, {
     name: 'tableprops',
     title: 'Table properties',
     description: 'Tune the table layout and visual hierarchy without touching its content.',
     layout: 'grid',
     fields: [
-      { name: 'width', label: 'Width', value: table.style.width, placeholder: '100% or 640px', hint: 'Use px or %' },
-      { name: 'height', label: 'Height', value: table.style.height, placeholder: 'Auto or 240px', hint: 'Leave blank for automatic height' },
+      {
+        name: 'width',
+        label: 'Width',
+        value: table.style.width,
+        placeholder: '100% or 640px',
+        hint: 'Use px or %'
+      },
+      {
+        name: 'height',
+        label: 'Height',
+        value: table.style.height,
+        placeholder: 'Auto or 240px',
+        hint: 'Leave blank for automatic height'
+      },
       {
         name: 'align',
         label: 'Alignment',
@@ -270,12 +289,44 @@ async function openTablePropsDialog(editor: Editor): Promise<void> {
           { value: 'right', label: 'Right' }
         ]
       },
-      { name: 'cellPadding', label: 'Cell padding', value: firstCell?.style.padding.replace('px', '') ?? '', placeholder: '10', hint: 'Pixels' },
-      { name: 'borderWidth', label: 'Border width', value: firstCell?.style.borderWidth.replace('px', '') ?? '', placeholder: '1', hint: 'Pixels' },
-      { name: 'borderColor', label: 'Border color', value: firstCell?.style.borderColor ?? '', placeholder: '#d7dce3' },
-      { name: 'striped', label: 'Striped rows', type: 'checkbox', value: String(table.classList.contains('sbe-striped')) },
-      { name: 'headerRow', label: 'Header row', type: 'checkbox', value: String(!!table.tHead || table.rows[0]?.cells[0]?.tagName === 'TH') },
-      { name: 'caption', label: 'Show caption', type: 'checkbox', value: String(!!table.querySelector('caption')) }
+      {
+        name: 'cellPadding',
+        label: 'Cell padding',
+        value: firstCell?.style.padding.replace('px', '') ?? '',
+        placeholder: '10',
+        hint: 'Pixels'
+      },
+      {
+        name: 'borderWidth',
+        label: 'Border width',
+        value: firstCell?.style.borderWidth.replace('px', '') ?? '',
+        placeholder: '1',
+        hint: 'Pixels'
+      },
+      {
+        name: 'borderColor',
+        label: 'Border color',
+        value: firstCell?.style.borderColor ?? '',
+        placeholder: '#d7dce3'
+      },
+      {
+        name: 'striped',
+        label: 'Striped rows',
+        type: 'checkbox',
+        value: String(table.classList.contains('sbe-striped'))
+      },
+      {
+        name: 'headerRow',
+        label: 'Header row',
+        type: 'checkbox',
+        value: String(!!table.tHead || table.rows[0]?.cells[0]?.tagName === 'TH')
+      },
+      {
+        name: 'caption',
+        label: 'Show caption',
+        type: 'checkbox',
+        value: String(!!table.querySelector('caption'))
+      }
     ]
   });
   if (result) editor.execCommand('TableProps', result);
@@ -319,7 +370,13 @@ async function openCellPropsDialog(editor: Editor): Promise<void> {
     description: 'Control the selected cell’s semantics, size, and alignment.',
     layout: 'grid',
     fields: [
-      { name: 'width', label: 'Width', value: cell.style.width, placeholder: '25% or 160px', hint: 'Use px or %' },
+      {
+        name: 'width',
+        label: 'Width',
+        value: cell.style.width,
+        placeholder: '25% or 160px',
+        hint: 'Use px or %'
+      },
       {
         name: 'type',
         label: 'Cell type',
@@ -365,7 +422,12 @@ async function openCellPropsDialog(editor: Editor): Promise<void> {
           { value: 'bottom', label: 'Bottom' }
         ]
       },
-      { name: 'bg', label: 'Background color', value: cell.style.backgroundColor, placeholder: '#fef3c7' }
+      {
+        name: 'bg',
+        label: 'Background color',
+        value: cell.style.backgroundColor,
+        placeholder: '#fef3c7'
+      }
     ]
   });
   if (result) editor.execCommand('CellProps', result);
@@ -392,10 +454,10 @@ function applyRowProps(editor: Editor, args: RowPropsArgs): void {
   if (args.section && rowSection(row) !== args.section) {
     const section =
       args.section === 'head'
-        ? table.tHead ?? table.createTHead()
+        ? (table.tHead ?? table.createTHead())
         : args.section === 'foot'
-          ? table.tFoot ?? table.createTFoot()
-          : table.tBodies[0] ?? table.createTBody();
+          ? (table.tFoot ?? table.createTFoot())
+          : (table.tBodies[0] ?? table.createTBody());
     section.appendChild(row);
     Array.from(row.cells).forEach((cell) => {
       const fresh = replaceCellTag(cell, args.section === 'head' ? 'th' : 'td');
@@ -434,7 +496,13 @@ async function openRowPropsDialog(editor: Editor): Promise<void> {
           { value: 'foot', label: 'Footer' }
         ]
       },
-      { name: 'height', label: 'Height', value: row.style.height, placeholder: '44', hint: 'Pixels, or a CSS size' },
+      {
+        name: 'height',
+        label: 'Height',
+        value: row.style.height,
+        placeholder: '44',
+        hint: 'Pixels, or a CSS size'
+      },
       {
         name: 'align',
         label: 'Horizontal align',
@@ -459,7 +527,12 @@ async function openRowPropsDialog(editor: Editor): Promise<void> {
           { value: 'bottom', label: 'Bottom' }
         ]
       },
-      { name: 'bg', label: 'Background color', value: row.style.backgroundColor, placeholder: '#f8fafc' }
+      {
+        name: 'bg',
+        label: 'Background color',
+        value: row.style.backgroundColor,
+        placeholder: '#f8fafc'
+      }
     ]
   });
   if (result) editor.execCommand('RowProps', result);
@@ -505,7 +578,8 @@ function installColumnResize(editor: Editor): void {
         colgroup.appendChild(col);
       }
       const caption = table.querySelector(':scope > caption');
-      caption ? caption.after(colgroup) : table.prepend(colgroup);
+      if (caption) caption.after(colgroup);
+      else table.prepend(colgroup);
     }
     const colIdx = cell.cellIndex;
     const target = colgroup.children[colIdx] as HTMLElement | undefined;
@@ -515,7 +589,9 @@ function installColumnResize(editor: Editor): void {
     // Inner border: transfer width to the neighbor (table width constant).
     // Last column: grow/shrink the table itself.
     const next = (colgroup.children[colIdx + 1] as HTMLElement | undefined) ?? null;
-    const startNextW = next ? parseFloat(next.style.width) || next.getBoundingClientRect().width : 0;
+    const startNextW = next
+      ? parseFloat(next.style.width) || next.getBoundingClientRect().width
+      : 0;
     const startTableW = table.getBoundingClientRect().width;
 
     const onMove = (ev: MouseEvent): void => {
@@ -576,7 +652,10 @@ function installTableSelection(editor: Editor): void {
     handle.className = `sbe-table-handle sbe-table-handle-${axis}`;
     handle.dataset.axis = axis;
     handle.dataset.testid = `table-resize-${axis}`;
-    handle.setAttribute('aria-label', axis === 'x' ? 'Resize table width' : axis === 'y' ? 'Resize table height' : 'Resize table');
+    handle.setAttribute(
+      'aria-label',
+      axis === 'x' ? 'Resize table width' : axis === 'y' ? 'Resize table height' : 'Resize table'
+    );
     handle.addEventListener('mousedown', (e) => {
       if (!selected) return;
       e.preventDefault();
@@ -590,8 +669,10 @@ function installTableSelection(editor: Editor): void {
       if (axis !== 'x') table.style.height = `${Math.round(startRect.height)}px`;
 
       const onMove = (ev: MouseEvent): void => {
-        if (axis !== 'y') table.style.width = `${Math.round(Math.max(120, startRect.width + ev.clientX - startX))}px`;
-        if (axis !== 'x') table.style.height = `${Math.round(Math.max(44, startRect.height + ev.clientY - startY))}px`;
+        if (axis !== 'y')
+          table.style.width = `${Math.round(Math.max(120, startRect.width + ev.clientX - startX))}px`;
+        if (axis !== 'x')
+          table.style.height = `${Math.round(Math.max(44, startRect.height + ev.clientY - startY))}px`;
         position();
       };
       const onUp = (): void => {
@@ -665,21 +746,25 @@ function buildGridPanel(editor: Editor, close: () => void): HTMLElement {
     const t = e.target as HTMLElement;
     if (t.tagName !== 'I') return;
     close();
-    editor.execCommand('InsertTable', { rows: Number(t.dataset.r) + 1, cols: Number(t.dataset.c) + 1 });
+    editor.execCommand('InsertTable', {
+      rows: Number(t.dataset.r) + 1,
+      cols: Number(t.dataset.c) + 1
+    });
   });
 
   wrap.append(title, grid, label);
   return wrap;
 }
 
-function buildTablePanel(editor: Editor, close: () => void): HTMLElement {
+function buildTableContext(
+  editor: Editor,
+  close: () => void,
+  options: { testIdPrefix?: string; popup?: boolean } = {}
+): HTMLElement {
   const doc = editor.getBody().ownerDocument;
-  const panel = doc.createElement('div');
-  panel.className = 'sbe-table-panel';
-  panel.appendChild(buildGridPanel(editor, close));
-
   const context = doc.createElement('div');
   context.className = 'sbe-table-context';
+  if (options.popup) context.classList.add('sbe-table-context-popup');
   const header = doc.createElement('div');
   header.className = 'sbe-table-context-header';
   const heading = doc.createElement('span');
@@ -705,7 +790,8 @@ function buildTablePanel(editor: Editor, close: () => void): HTMLElement {
     const btn = doc.createElement('button');
     btn.type = 'button';
     btn.className = `sbe-table-action sbe-table-action-${kind}`;
-    btn.dataset.testid = `table-action-${id}`;
+    btn.dataset.testid = `${options.testIdPrefix ?? ''}table-action-${id}`;
+    if (options.popup) btn.setAttribute('role', 'menuitem');
     const icon = doc.createElement('span');
     icon.className = 'sbe-table-action-icon';
     icon.textContent = glyph;
@@ -737,22 +823,101 @@ function buildTablePanel(editor: Editor, close: () => void): HTMLElement {
   danger.append(
     action('delete-table', 'Delete table', '×', 'TableDelete', 'danger'),
     action('delete-col', 'Delete column', '−', 'TableDeleteCol', 'danger'),
-    action('delete-row', 'Delete row', '−', 'TableDeleteRow', 'danger'),
+    action('delete-row', 'Delete row', '−', 'TableDeleteRow', 'danger')
   );
   context.append(header, quick, propertyGrid, danger);
-  panel.appendChild(context);
 
   const refresh = (): void => {
     const table = currentTable(editor);
     context.classList.toggle('sbe-disabled', !table);
     actions.forEach((btn) => (btn.disabled = !table));
-    badge.textContent = table ? `${table.rows.length} × ${table.rows[0]?.cells.length ?? 0}` : 'Select a table';
+    badge.textContent = table
+      ? `${table.rows.length} × ${table.rows[0]?.cells.length ?? 0}`
+      : 'Select a table';
   };
   editor.events.on('selectionchange', refresh);
   editor.events.on('change', refresh);
-  panel.addEventListener('sbe-panel-open', refresh);
+  context.addEventListener('sbe-panel-open', refresh);
   refresh();
+  return context;
+}
+
+function buildTablePanel(editor: Editor, close: () => void): HTMLElement {
+  const doc = editor.getBody().ownerDocument;
+  const panel = doc.createElement('div');
+  panel.className = 'sbe-table-panel';
+  panel.append(buildGridPanel(editor, close), buildTableContext(editor, close));
+  panel.addEventListener('sbe-panel-open', () => editor.events.emit('selectionchange', undefined));
   return panel;
+}
+
+function installTableContextMenu(editor: Editor): void {
+  const root = editor.getRoot();
+  const body = editor.getBody();
+  const doc = body.ownerDocument;
+  const menu = doc.createElement('div');
+  menu.className = 'sbe-table-context-menu';
+  menu.dataset.testid = 'table-context-menu';
+  menu.setAttribute('role', 'menu');
+  menu.setAttribute('aria-label', 'Table actions');
+  menu.tabIndex = -1;
+
+  const close = (): void => menu.classList.remove('sbe-open');
+  menu.appendChild(buildTableContext(editor, close, { testIdPrefix: 'context-', popup: true }));
+  // Preserve the cell selection while clicking commands in the floating menu.
+  menu.addEventListener('mousedown', (e) => e.preventDefault());
+  root.appendChild(menu);
+
+  const onContextMenu = (e: MouseEvent): void => {
+    const target = e.target as HTMLElement;
+    const table = target.closest?.('table') as HTMLTableElement | null;
+    if (!table || !body.contains(table)) {
+      close();
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+    const cell = target.closest?.('td,th') as HTMLTableCellElement | null;
+    placeCaretIn(editor, cell && table.contains(cell) ? cell : (table.rows[0]?.cells[0] ?? table));
+    editor.events.emit('selectionchange', undefined);
+
+    // The toolbar dropdown and context menu are alternate views of the same actions.
+    root
+      .querySelectorAll('.sbe-tb-dd.sbe-open')
+      .forEach((panel) => panel.classList.remove('sbe-open'));
+    const rootRect = root.getBoundingClientRect();
+    menu.style.left = `${e.clientX - rootRect.left}px`;
+    menu.style.top = `${e.clientY - rootRect.top}px`;
+    menu.classList.add('sbe-open');
+
+    const rect = menu.getBoundingClientRect();
+    const view = doc.defaultView;
+    if (!view) return;
+    const minLeft = 8 - rootRect.left;
+    const minTop = 8 - rootRect.top;
+    const maxLeft = view.innerWidth - rootRect.left - rect.width - 8;
+    const maxTop = view.innerHeight - rootRect.top - rect.height - 8;
+    menu.style.left = `${Math.max(minLeft, Math.min(maxLeft, e.clientX - rootRect.left))}px`;
+    menu.style.top = `${Math.max(minTop, Math.min(maxTop, e.clientY - rootRect.top))}px`;
+  };
+  const onDocumentMouseDown = (e: MouseEvent): void => {
+    if (!menu.contains(e.target as Node)) close();
+  };
+  const onKeyDown = (e: KeyboardEvent): void => {
+    if (e.key === 'Escape') close();
+  };
+  body.addEventListener('contextmenu', onContextMenu);
+  body.addEventListener('scroll', close);
+  doc.addEventListener('mousedown', onDocumentMouseDown);
+  doc.addEventListener('keydown', onKeyDown);
+  editor.events.on('destroy', () => {
+    body.removeEventListener('contextmenu', onContextMenu);
+    body.removeEventListener('scroll', close);
+    doc.removeEventListener('mousedown', onDocumentMouseDown);
+    doc.removeEventListener('keydown', onKeyDown);
+    menu.remove();
+  });
 }
 
 export const tablePlugin: Plugin = {
@@ -793,24 +958,72 @@ export const tablePlugin: Plugin = {
       }
     });
 
-    editor.ui.addButton('table', { icon: 'table', tooltip: 'Insert or edit table', panel: buildTablePanel });
+    editor.ui.addButton('table', {
+      icon: 'table',
+      tooltip: 'Insert or edit table',
+      panel: buildTablePanel
+    });
 
-    editor.ui.addMenuItem('inserttable', { menu: 'table', text: 'Insert table (3×3)', command: 'InsertTable' });
-    editor.ui.addMenuItem('rowabove', { menu: 'table', text: 'Insert row above', command: 'TableInsertRowBefore' });
-    editor.ui.addMenuItem('rowbelow', { menu: 'table', text: 'Insert row below', command: 'TableInsertRowAfter' });
-    editor.ui.addMenuItem('colleft', { menu: 'table', text: 'Insert column left', command: 'TableInsertColBefore' });
-    editor.ui.addMenuItem('colright', { menu: 'table', text: 'Insert column right', command: 'TableInsertColAfter' });
-    editor.ui.addMenuItem('deltable', { menu: 'table', text: 'Delete table', command: 'TableDelete' });
-    editor.ui.addMenuItem('delcol', { menu: 'table', text: 'Delete column', command: 'TableDeleteCol' });
-    editor.ui.addMenuItem('delrow', { menu: 'table', text: 'Delete row', command: 'TableDeleteRow' });
-    
-    
-    editor.ui.addMenuItem('tableprops', { menu: 'table', text: 'Table properties…', command: 'TableProps' });
-    editor.ui.addMenuItem('cellprops', { menu: 'table', text: 'Cell properties…', command: 'CellProps' });
-    editor.ui.addMenuItem('rowprops', { menu: 'table', text: 'Row properties…', command: 'RowProps' });
+    editor.ui.addMenuItem('inserttable', {
+      menu: 'table',
+      text: 'Insert table (3×3)',
+      command: 'InsertTable'
+    });
+    editor.ui.addMenuItem('rowabove', {
+      menu: 'table',
+      text: 'Insert row above',
+      command: 'TableInsertRowBefore'
+    });
+    editor.ui.addMenuItem('rowbelow', {
+      menu: 'table',
+      text: 'Insert row below',
+      command: 'TableInsertRowAfter'
+    });
+    editor.ui.addMenuItem('colleft', {
+      menu: 'table',
+      text: 'Insert column left',
+      command: 'TableInsertColBefore'
+    });
+    editor.ui.addMenuItem('colright', {
+      menu: 'table',
+      text: 'Insert column right',
+      command: 'TableInsertColAfter'
+    });
+    editor.ui.addMenuItem('deltable', {
+      menu: 'table',
+      text: 'Delete table',
+      command: 'TableDelete'
+    });
+    editor.ui.addMenuItem('delcol', {
+      menu: 'table',
+      text: 'Delete column',
+      command: 'TableDeleteCol'
+    });
+    editor.ui.addMenuItem('delrow', {
+      menu: 'table',
+      text: 'Delete row',
+      command: 'TableDeleteRow'
+    });
+
+    editor.ui.addMenuItem('tableprops', {
+      menu: 'table',
+      text: 'Table properties…',
+      command: 'TableProps'
+    });
+    editor.ui.addMenuItem('cellprops', {
+      menu: 'table',
+      text: 'Cell properties…',
+      command: 'CellProps'
+    });
+    editor.ui.addMenuItem('rowprops', {
+      menu: 'table',
+      text: 'Row properties…',
+      command: 'RowProps'
+    });
 
     installColumnResize(editor);
     installTableSelection(editor);
+    installTableContextMenu(editor);
 
     // Tab / Shift+Tab cell navigation; Tab on the last cell appends a row.
     editor.on('keydown', (e) => {

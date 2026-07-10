@@ -10,7 +10,19 @@ export const TAG_ALIASES: Record<string, string[]> = {
   sup: ['sup']
 };
 
-export const BLOCK_TAGS = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'div', 'li'];
+export const BLOCK_TAGS = [
+  'p',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'blockquote',
+  'pre',
+  'div',
+  'li'
+];
 
 const INLINE_FORMAT_TAGS = Object.values(TAG_ALIASES).flat().concat(['span', 'font']);
 

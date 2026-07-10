@@ -75,7 +75,11 @@ export class Editor {
     const toolbarEl = this.root.querySelector<HTMLElement>('.sbe-toolbar')!;
     new Toolbar(this, toolbarEl, config.toolbar ?? DEFAULT_TOOLBAR);
     if (config.statusbar !== false) {
-      new Statusbar(this, this.root.querySelector<HTMLElement>('.sbe-statusbar')!, config.resize !== false);
+      new Statusbar(
+        this,
+        this.root.querySelector<HTMLElement>('.sbe-statusbar')!,
+        config.resize !== false
+      );
     }
 
     this.setContent(config.initialContent ?? '<p><br></p>', { addUndoLevel: false });
@@ -223,7 +227,8 @@ export class Editor {
     // Serialize without caret-container artifacts (U+FEFF fillers, empty format wrappers).
     const clone = this.body.cloneNode(true) as HTMLElement;
     clone.querySelectorAll('strong,b,em,i,u,s,code,sub,sup,span').forEach((el) => {
-      if ((el.textContent ?? '').replace(/﻿/g, '') === '' && !el.querySelector('img,br')) el.remove();
+      if ((el.textContent ?? '').replace(/﻿/g, '') === '' && !el.querySelector('img,br'))
+        el.remove();
     });
     return clone.innerHTML.replace(/﻿/g, '');
   }

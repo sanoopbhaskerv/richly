@@ -1,4 +1,4 @@
-/** Inline SVG icons (17px, stroke-based) — matches mockup.html design language. */
+/** Inline SVG icons (17px, stroke-based) for the default editor theme. */
 const svg = (inner: string): string =>
   `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
 
@@ -14,7 +14,9 @@ export const icons: Record<string, string> = {
   h1: svg('<path d="M4 6v12M11 6v12M4 12h7M16 10l3-2v10" />'),
   h2: svg('<path d="M4 6v12M11 6v12M4 12h7M15.5 10a2.5 2.5 0 0 1 4.3 1.7c0 2-4.3 3.3-4.3 6.3h5"/>'),
   paragraph: svg('<path d="M13 5v14M17 5v14M17 5h-6a4 4 0 0 0 0 8h2"/>'),
-  blockquote: svg('<path d="M8 7c-2 1-3 2.7-3 5v5h5v-5H7c0-1.8.8-3 2.5-3.8zM19 7c-2 1-3 2.7-3 5v5h5v-5h-3c0-1.8.8-3 2.5-3.8z" fill="currentColor" stroke="none"/>'),
+  blockquote: svg(
+    '<path d="M8 7c-2 1-3 2.7-3 5v5h5v-5H7c0-1.8.8-3 2.5-3.8zM19 7c-2 1-3 2.7-3 5v5h5v-5h-3c0-1.8.8-3 2.5-3.8z" fill="currentColor" stroke="none"/>'
+  ),
   removeformat: svg('<path d="M6 5h12M12 5 9 19M6 19h6"/><path d="m16 15 5 5M21 15l-5 5"/>'),
   alignleft: svg('<path d="M4 6h16M4 12h10M4 18h14"/>'),
   aligncenter: svg('<path d="M4 6h16M7 12h10M5 18h14"/>'),
@@ -34,8 +36,12 @@ export const icons: Record<string, string> = {
   unlink: svg(
     '<path d="M10 14a4 4 0 0 0 6 .4l2.6-2.6a4 4 0 1 0-5.7-5.7L11.5 7.5"/><path d="M14 10a4 4 0 0 0-6-.4L5.4 12.2a4 4 0 1 0 5.7 5.7l1.4-1.4"/><path d="m4 4 16 16"/>'
   ),
-  table: svg('<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M4 14.5h16M10 5v14M15 5v14" stroke-width="1.4"/>'),
-  image: svg('<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m5 17 4.5-4.5L14 17l3-3 3 3"/>'),
+  table: svg(
+    '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M4 14.5h16M10 5v14M15 5v14" stroke-width="1.4"/>'
+  ),
+  image: svg(
+    '<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m5 17 4.5-4.5L14 17l3-3 3 3"/>'
+  ),
   sourcecode: svg('<path d="m9 8-4 4 4 4M15 8l4 4-4 4"/>'),
   fullscreen: svg('<path d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/>')
 };

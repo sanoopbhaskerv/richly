@@ -72,7 +72,7 @@ function toggleList(editor: Editor, tag: ListTag): void {
   const li = closestTag(range.startContainer, 'li', body);
   const currentList = li?.parentElement as HTMLElement | undefined;
 
-  let caretTarget: HTMLElement | null = null;
+  let caretTarget: HTMLElement | null;
 
   if (li && currentList) {
     if (currentList.tagName.toLowerCase() === tag) {
@@ -128,8 +128,16 @@ export const listsPlugin: Plugin = {
       execute: (ed) => toggleList(ed, 'ol'),
       queryState: (ed) => listState(ed, 'ol')
     });
-    editor.ui.addToggleButton('bullist', { icon: 'bullist', tooltip: 'Bullet list', command: 'InsertUnorderedList' });
-    editor.ui.addToggleButton('numlist', { icon: 'numlist', tooltip: 'Numbered list', command: 'InsertOrderedList' });
+    editor.ui.addToggleButton('bullist', {
+      icon: 'bullist',
+      tooltip: 'Bullet list',
+      command: 'InsertUnorderedList'
+    });
+    editor.ui.addToggleButton('numlist', {
+      icon: 'numlist',
+      tooltip: 'Numbered list',
+      command: 'InsertOrderedList'
+    });
 
     editor.on('keydown', (e) => {
       const range = editor.selection.getRange();
@@ -141,7 +149,7 @@ export const listsPlugin: Plugin = {
         e.preventDefault();
         editor.execCommand(e.shiftKey ? 'Outdent' : 'Indent');
       } else if (e.key === 'Enter' && !e.shiftKey && isEmptyElement(li)) {
-        // Enter on an empty item exits the list (TinyMCE behavior).
+        // Enter on an empty item exits the list.
         e.preventDefault();
         editor.execCommand('Outdent');
       }

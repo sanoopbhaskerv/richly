@@ -2,10 +2,34 @@ import type { Plugin } from './types';
 import { blocksInRange } from '../dom/DomUtils';
 
 const ALIGNS: { name: string; command: string; value: string; icon: string; tooltip: string }[] = [
-  { name: 'alignleft', command: 'JustifyLeft', value: 'left', icon: 'alignleft', tooltip: 'Align left' },
-  { name: 'aligncenter', command: 'JustifyCenter', value: 'center', icon: 'aligncenter', tooltip: 'Align center' },
-  { name: 'alignright', command: 'JustifyRight', value: 'right', icon: 'alignright', tooltip: 'Align right' },
-  { name: 'alignjustify', command: 'JustifyFull', value: 'justify', icon: 'alignjustify', tooltip: 'Justify' }
+  {
+    name: 'alignleft',
+    command: 'JustifyLeft',
+    value: 'left',
+    icon: 'alignleft',
+    tooltip: 'Align left'
+  },
+  {
+    name: 'aligncenter',
+    command: 'JustifyCenter',
+    value: 'center',
+    icon: 'aligncenter',
+    tooltip: 'Align center'
+  },
+  {
+    name: 'alignright',
+    command: 'JustifyRight',
+    value: 'right',
+    icon: 'alignright',
+    tooltip: 'Align right'
+  },
+  {
+    name: 'alignjustify',
+    command: 'JustifyFull',
+    value: 'justify',
+    icon: 'alignjustify',
+    tooltip: 'Justify'
+  }
 ];
 
 export const alignPlugin: Plugin = {

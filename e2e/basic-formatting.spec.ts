@@ -43,7 +43,7 @@ test.describe('basic formatting (vanilla instance)', () => {
     await editor.expectButtonActive('bold', true);
   });
 
-  test('heading + statusbar element path and word count', async ({ page }) => {
+  test('heading + statusbar element path and word count', async () => {
     await editor.selectWord('hello');
     await editor.clickButton('h1');
     await editor.expectContentContains('<h1>');

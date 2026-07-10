@@ -24,7 +24,13 @@ async function openImageDialog(editor: Editor): Promise<void> {
     name: 'image',
     title: existing ? 'Edit image' : 'Insert image',
     fields: [
-      { name: 'src', label: 'Image URL', type: 'url', placeholder: 'https://…', value: existing?.getAttribute('src') ?? '' },
+      {
+        name: 'src',
+        label: 'Image URL',
+        type: 'url',
+        placeholder: 'https://…',
+        value: existing?.getAttribute('src') ?? ''
+      },
       { name: 'alt', label: 'Alternative description', value: existing?.getAttribute('alt') ?? '' }
     ],
     submitText: existing ? 'Update' : 'Insert'
@@ -64,7 +70,11 @@ export const imagePlugin: Plugin = {
       }
     });
 
-    editor.ui.addButton('image', { icon: 'image', tooltip: 'Insert image', command: 'InsertImage' });
+    editor.ui.addButton('image', {
+      icon: 'image',
+      tooltip: 'Insert image',
+      command: 'InsertImage'
+    });
     editor.ui.addMenuItem('image', { menu: 'insert', text: 'Image…', command: 'InsertImage' });
   }
 };
