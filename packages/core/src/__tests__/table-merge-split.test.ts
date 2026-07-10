@@ -32,7 +32,7 @@ describe('table multi-cell operations', () => {
     expect(merged.colSpan).toBe(2);
     expect(merged.textContent).toBe('ABCD');
     expect(ed.getBody().querySelectorAll('td')).toHaveLength(1);
-    expect(ed.getContent()).not.toContain('sbe-cell-selected');
+    expect(ed.getContent()).not.toContain('rly-cell-selected');
   });
 
   it('splits a merged cell back into its grid slots', () => {

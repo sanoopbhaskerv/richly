@@ -6,4 +6,4 @@ export type {
   FindReplaceArgs,
   Plugin,
   WordCountOptions
-} from '@sb/editor-core';
+} from '@richly/core';

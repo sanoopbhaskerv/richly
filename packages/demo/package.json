@@ -1,5 +1,5 @@
 {
-  "name": "@sb/demo",
+  "name": "@richly/demo",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -8,8 +8,8 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@sb/editor-core": "*",
-    "@sb/editor-react": "*",
+    "@richly/core": "*",
+    "@richly/react": "*",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },

@@ -26,7 +26,7 @@ describe('document tools', () => {
 
     ed.execCommand('VisualBlocks');
     expect(ed.queryCommandState('VisualBlocks')).toBe(true);
-    expect(ed.getBody().classList.contains('sbe-visual-blocks')).toBe(true);
+    expect(ed.getBody().classList.contains('rly-visual-blocks')).toBe(true);
     expect(ed.getContent()).toBe(before);
   });
 

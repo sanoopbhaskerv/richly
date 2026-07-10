@@ -82,9 +82,9 @@ export class Editor {
     for (const plugin of [...corePlugins, ...(config.plugins ?? [])]) plugin.init(this);
 
     if (config.menubar !== false) {
-      new Menubar(this, this.root.querySelector<HTMLElement>('.sbe-menubar')!);
+      new Menubar(this, this.root.querySelector<HTMLElement>('.rly-menubar')!);
     }
-    const toolbarEl = this.root.querySelector<HTMLElement>('.sbe-toolbar')!;
+    const toolbarEl = this.root.querySelector<HTMLElement>('.rly-toolbar')!;
     new Toolbar(
       this,
       toolbarEl,
@@ -94,7 +94,7 @@ export class Editor {
     if (config.statusbar !== false) {
       new Statusbar(
         this,
-        this.root.querySelector<HTMLElement>('.sbe-statusbar')!,
+        this.root.querySelector<HTMLElement>('.rly-statusbar')!,
         config.resize !== false,
         config.wordCount
       );
@@ -111,19 +111,19 @@ export class Editor {
     const p = this.config.testIdPrefix ?? 'editor';
 
     this.root = doc.createElement('div');
-    this.root.className = 'sbe';
+    this.root.className = 'rly';
     this.root.dataset.testid = `${p}-root`;
 
     const menubar = doc.createElement('div');
-    menubar.className = 'sbe-menubar';
+    menubar.className = 'rly-menubar';
     menubar.dataset.testid = `${p}-menubar`;
 
     const toolbar = doc.createElement('div');
-    toolbar.className = 'sbe-toolbar';
+    toolbar.className = 'rly-toolbar';
     toolbar.dataset.testid = `${p}-toolbar`;
 
     this.body = doc.createElement('div');
-    this.body.className = 'sbe-content';
+    this.body.className = 'rly-content';
     this.body.contentEditable = 'true';
     this.body.spellcheck = true;
     this.body.dataset.testid = `${p}-content`;
@@ -132,7 +132,7 @@ export class Editor {
     this.body.setAttribute('aria-label', 'Rich text editor');
 
     const statusbar = doc.createElement('div');
-    statusbar.className = 'sbe-statusbar';
+    statusbar.className = 'rly-statusbar';
     statusbar.dataset.testid = `${p}-statusbar`;
 
     if (this.config.menubar !== false) this.root.append(menubar);
@@ -423,8 +423,8 @@ export class Editor {
   getContent(): string {
     // Serialize without caret-container artifacts (U+FEFF fillers, empty format wrappers).
     const clone = this.body.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll('.sbe-cell-selected').forEach((cell) => {
-      cell.classList.remove('sbe-cell-selected');
+    clone.querySelectorAll('.rly-cell-selected').forEach((cell) => {
+      cell.classList.remove('rly-cell-selected');
       if (!cell.classList.length) cell.removeAttribute('class');
     });
     clone.querySelectorAll('strong,b,em,i,u,s,code,sub,sup,span').forEach((el) => {

@@ -1,4 +1,4 @@
-# SB Editor roadmap
+# Richly roadmap
 
 ## Current release
 

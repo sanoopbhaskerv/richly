@@ -1,5 +1,5 @@
 {
-  "name": "@sb/editor-core",
+  "name": "@richly/core",
   "version": "0.1.0",
   "description": "A dependency-free WYSIWYG HTML editor engine for JavaScript and React.",
   "license": "MIT",

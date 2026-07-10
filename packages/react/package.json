@@ -1,5 +1,5 @@
 {
-  "name": "@sb/editor-react",
+  "name": "@richly/react",
   "version": "0.1.0",
   "description": "React bindings for SB Editor, a dependency-free WYSIWYG HTML editor.",
   "license": "MIT",
@@ -41,7 +41,7 @@
     "prepack": "yarn build"
   },
   "dependencies": {
-    "@sb/editor-core": "^0.1.0"
+    "@richly/core": "^0.1.0"
   },
   "peerDependencies": {
     "react": ">=18",

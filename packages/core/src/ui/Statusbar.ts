@@ -13,11 +13,11 @@ export class Statusbar {
   ) {
     const doc = container.ownerDocument;
     this.elpath = doc.createElement('div');
-    this.elpath.className = 'sbe-elpath';
+    this.elpath.className = 'rly-elpath';
     this.elpath.dataset.testid = 'status-elpath';
 
     const grow = doc.createElement('div');
-    grow.className = 'sbe-grow';
+    grow.className = 'rly-grow';
 
     this.wordcount = doc.createElement('div');
     this.wordcount.dataset.testid = 'status-wordcount';
@@ -40,7 +40,7 @@ export class Statusbar {
   /** Vertical drag grip — resizes the editor's content area (view state, no undo). */
   private buildResizeGrip(doc: Document): HTMLElement {
     const grip = doc.createElement('div');
-    grip.className = 'sbe-resize-grip';
+    grip.className = 'rly-resize-grip';
     grip.dataset.testid = 'status-resize';
     grip.setAttribute('aria-label', 'Resize editor');
     grip.textContent = '⋰';

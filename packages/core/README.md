@@ -1,10 +1,10 @@
-# @sb/editor-core
+# @richly/core
 
-The framework-free SB Editor core package.
+The framework-free Richly core package.
 
 ```ts
-import { Editor } from '@sb/editor-core';
-import '@sb/editor-core/theme.css';
+import { Editor } from '@richly/core';
+import '@richly/core/theme.css';
 
 const editor = Editor.init({ target: document.querySelector('#editor')! });
 ```

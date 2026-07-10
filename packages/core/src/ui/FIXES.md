@@ -10,8 +10,8 @@
 
 ### Problem
 
-Every panel-type toolbar button renders a `div.sbe-tb-dd` that is `position: absolute` relative
-to its `div.sbe-tb-wrap` parent. The table dropdown was styled with `right: 0` (right-aligned to
+Every panel-type toolbar button renders a `div.rly-tb-dd` that is `position: absolute` relative
+to its `div.rly-tb-wrap` parent. The table dropdown was styled with `right: 0` (right-aligned to
 the button). The panel is **466 px wide** (`174 px` grid picker + `292 px` context section), so
 on a narrow editor the panel's left edge spills off the viewport.
 
@@ -49,24 +49,24 @@ const close = (): void => {
   // Clear dynamic positioning so CSS defaults apply on next open.
   dd.style.left = '';
   dd.style.right = '';
-  dd.classList.remove('sbe-open');
+  dd.classList.remove('rly-open');
 };
 
 btn.addEventListener('click', (e) => {
   e.stopPropagation();
-  const wasOpen = dd.classList.contains('sbe-open');
-  doc.querySelectorAll('.sbe-tb-dd').forEach((p) => {
+  const wasOpen = dd.classList.contains('rly-open');
+  doc.querySelectorAll('.rly-tb-dd').forEach((p) => {
     const el = p as HTMLElement;
     el.style.left = '';
     el.style.right = '';
-    el.classList.remove('sbe-open');
+    el.classList.remove('rly-open');
   });
   if (!wasOpen) {
     // Reset to CSS default before measuring.
     dd.style.left = '';
     dd.style.right = '';
-    dd.classList.add('sbe-open');
-    dd.firstElementChild?.dispatchEvent(new (doc.defaultView?.Event ?? Event)('sbe-panel-open'));
+    dd.classList.add('rly-open');
+    dd.firstElementChild?.dispatchEvent(new (doc.defaultView?.Event ?? Event)('rly-panel-open'));
 
     const view = doc.defaultView;
     if (view) {
@@ -93,7 +93,7 @@ btn.addEventListener('click', (e) => {
 
 ### Why `requestAnimationFrame`?
 
-The panel must be visible (`display: block` via `.sbe-open`) before `getBoundingClientRect()`
+The panel must be visible (`display: block` via `.rly-open`) before `getBoundingClientRect()`
 returns a non-zero width. `rAF` fires after the browser has performed layout, guaranteeing
 accurate measurements.
 
@@ -103,10 +103,10 @@ accurate measurements.
 
 ### Problem
 
-The `.sbe-table-panel` used a hard two-column grid:
+The `.rly-table-panel` used a hard two-column grid:
 
 ```css
-.sbe-table-panel {
+.rly-table-panel {
   display: grid;
   grid-template-columns: 174px 292px;
 }
@@ -123,13 +123,13 @@ visible and stacked vertically:
 ```css
 @media (max-width: 640px) {
   /* Stack grid picker above context section instead of side-by-side. */
-  .sbe-table-panel {
+  .rly-table-panel {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
   }
-  .sbe-table-context {
+  .rly-table-context {
     border-left: 0;
-    border-top: 1px solid var(--sbe-border);
+    border-top: 1px solid var(--rly-border);
     padding: 12px 4px 4px;
   }
   /* Dropdown position clamping on narrow screens is handled by JS in Toolbar.ts.
@@ -141,7 +141,7 @@ The base `right: 0` rule on the table dropdown is kept as the **CSS default** (f
 has not yet run or has been reset), with a comment pointing to the JS for the actual clamping:
 
 ```css
-.sbe-tb-dd[data-testid='dd-table'] {
+.rly-tb-dd[data-testid='dd-table'] {
   /* Default: right-align to the button.
      Actual clamped position is computed in Toolbar.ts (requestAnimationFrame)
      and applied as inline left/right style to stay within the viewport. */

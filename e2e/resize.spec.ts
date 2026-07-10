@@ -73,7 +73,7 @@ test.describe('editor + table resize, table/cell properties (vanilla instance)',
     await page.getByTestId('dialog-submit').click();
 
     await editor.expectContentMatches(/width:\s*60%/);
-    await editor.expectContentMatches(/class="sbe-striped"/);
+    await editor.expectContentMatches(/class="rly-striped"/);
     await editor.expectContentContains('<caption>');
   });
 

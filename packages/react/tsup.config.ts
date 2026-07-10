@@ -8,5 +8,5 @@ export default defineConfig({
   sourcemap: true,
   target: 'es2020',
   treeshake: true,
-  external: ['react', 'react-dom', '@sb/editor-core']
+  external: ['react', 'react-dom', '@richly/core']
 });

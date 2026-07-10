@@ -12,13 +12,13 @@ function selectedCells(editor: Editor): HTMLTableCellElement[] {
 }
 
 function clearCellSelection(editor: Editor): void {
-  selectedCells(editor).forEach((cell) => cell.classList.remove('sbe-cell-selected'));
+  selectedCells(editor).forEach((cell) => cell.classList.remove('rly-cell-selected'));
   cellSelections.delete(editor);
 }
 
 function setSelectedCells(editor: Editor, cells: HTMLTableCellElement[]): void {
   clearCellSelection(editor);
-  cells.forEach((cell) => cell.classList.add('sbe-cell-selected'));
+  cells.forEach((cell) => cell.classList.add('rly-cell-selected'));
   cellSelections.set(editor, cells);
   editor.events.emit('selectionchange', undefined);
 }
@@ -366,7 +366,7 @@ function applyTableProps(editor: Editor, args: TablePropsArgs): void {
     table.style.marginRight = args.align === 'center' ? 'auto' : '';
   }
   if (args.striped !== undefined) {
-    table.classList.toggle('sbe-striped', args.striped === true || args.striped === 'true');
+    table.classList.toggle('rly-striped', args.striped === true || args.striped === 'true');
     if (!table.classList.length) table.removeAttribute('class');
   }
   if (args.borderWidth !== undefined || args.cellPadding !== undefined) {
@@ -464,7 +464,7 @@ async function openTablePropsDialog(editor: Editor): Promise<void> {
         name: 'striped',
         label: 'Striped rows',
         type: 'checkbox',
-        value: String(table.classList.contains('sbe-striped'))
+        value: String(table.classList.contains('rly-striped'))
       },
       {
         name: 'headerRow',
@@ -771,7 +771,7 @@ function installTableSelection(editor: Editor): void {
   const body = editor.getBody();
   const doc = body.ownerDocument;
   const frame = doc.createElement('div');
-  frame.className = 'sbe-table-selection';
+  frame.className = 'rly-table-selection';
   frame.dataset.testid = 'table-selection';
   frame.setAttribute('aria-hidden', 'true');
   let selected: HTMLTableElement | null = null;
@@ -779,7 +779,7 @@ function installTableSelection(editor: Editor): void {
   const position = (): void => {
     if (!selected?.isConnected || !body.contains(selected)) {
       selected = null;
-      frame.classList.remove('sbe-show');
+      frame.classList.remove('rly-show');
       return;
     }
     const rootRect = root.getBoundingClientRect();
@@ -788,7 +788,7 @@ function installTableSelection(editor: Editor): void {
     frame.style.top = `${rect.top - rootRect.top}px`;
     frame.style.width = `${rect.width}px`;
     frame.style.height = `${rect.height}px`;
-    frame.classList.add('sbe-show');
+    frame.classList.add('rly-show');
   };
 
   const select = (table: HTMLTableElement | null): void => {
@@ -800,7 +800,7 @@ function installTableSelection(editor: Editor): void {
     const handle = doc.createElement('button');
     handle.type = 'button';
     handle.tabIndex = -1;
-    handle.className = `sbe-table-handle sbe-table-handle-${axis}`;
+    handle.className = `rly-table-handle rly-table-handle-${axis}`;
     handle.dataset.axis = axis;
     handle.dataset.testid = `table-resize-${axis}`;
     handle.setAttribute(
@@ -863,15 +863,15 @@ function installTableSelection(editor: Editor): void {
 function buildGridPanel(editor: Editor, close: () => void): HTMLElement {
   const doc = editor.getBody().ownerDocument;
   const wrap = doc.createElement('div');
-  wrap.className = 'sbe-table-grid-picker';
+  wrap.className = 'rly-table-grid-picker';
   const title = doc.createElement('div');
-  title.className = 'sbe-table-panel-title';
+  title.className = 'rly-table-panel-title';
   title.textContent = 'Insert table';
   const grid = doc.createElement('div');
-  grid.className = 'sbe-grid';
+  grid.className = 'rly-grid';
   grid.style.gridTemplateColumns = `repeat(${GRID_COLS}, 18px)`;
   const label = doc.createElement('div');
-  label.className = 'sbe-grid-label';
+  label.className = 'rly-grid-label';
   label.textContent = '1 × 1';
 
   for (let r = 0; r < GRID_ROWS; r++) {
@@ -889,7 +889,7 @@ function buildGridPanel(editor: Editor, close: () => void): HTMLElement {
     const R = Number(t.dataset.r);
     const C = Number(t.dataset.c);
     grid.querySelectorAll<HTMLElement>('i').forEach((i) => {
-      i.classList.toggle('sbe-on', Number(i.dataset.r) <= R && Number(i.dataset.c) <= C);
+      i.classList.toggle('rly-on', Number(i.dataset.r) <= R && Number(i.dataset.c) <= C);
     });
     label.textContent = `${C + 1} × ${R + 1}`;
   });
@@ -914,21 +914,21 @@ function buildTableContext(
 ): HTMLElement {
   const doc = editor.getBody().ownerDocument;
   const context = doc.createElement('div');
-  context.className = 'sbe-table-context';
-  if (options.popup) context.classList.add('sbe-table-context-popup');
+  context.className = 'rly-table-context';
+  if (options.popup) context.classList.add('rly-table-context-popup');
   const header = doc.createElement('div');
-  header.className = 'sbe-table-context-header';
+  header.className = 'rly-table-context-header';
   const heading = doc.createElement('span');
-  heading.className = 'sbe-table-panel-title';
+  heading.className = 'rly-table-panel-title';
   heading.textContent = 'Edit current table';
   const badge = doc.createElement('span');
-  badge.className = 'sbe-table-context-badge';
+  badge.className = 'rly-table-context-badge';
   header.append(heading, badge);
 
   const quick = doc.createElement('div');
-  quick.className = 'sbe-table-quick-grid';
+  quick.className = 'rly-table-quick-grid';
   const propertyGrid = doc.createElement('div');
-  propertyGrid.className = 'sbe-table-property-grid';
+  propertyGrid.className = 'rly-table-property-grid';
   const actions: HTMLButtonElement[] = [];
 
   const action = (
@@ -940,11 +940,11 @@ function buildTableContext(
   ): HTMLButtonElement => {
     const btn = doc.createElement('button');
     btn.type = 'button';
-    btn.className = `sbe-table-action sbe-table-action-${kind}`;
+    btn.className = `rly-table-action rly-table-action-${kind}`;
     btn.dataset.testid = `${options.testIdPrefix ?? ''}table-action-${id}`;
     if (options.popup) btn.setAttribute('role', 'menuitem');
     const icon = doc.createElement('span');
-    icon.className = 'sbe-table-action-icon';
+    icon.className = 'rly-table-action-icon';
     icon.textContent = glyph;
     const label = doc.createElement('span');
     label.textContent = text;
@@ -952,7 +952,7 @@ function buildTableContext(
     btn.addEventListener('click', () => {
       close();
       editor.execCommand(command);
-      if (!doc.querySelector('.sbe-dialog-overlay')) editor.focus();
+      if (!doc.querySelector('.rly-dialog-overlay')) editor.focus();
     });
     actions.push(btn);
     return btn;
@@ -974,7 +974,7 @@ function buildTableContext(
     action('row-props', 'Row', '═', 'RowProps', 'property')
   );
   const danger = doc.createElement('div');
-  danger.className = 'sbe-table-danger-row';
+  danger.className = 'rly-table-danger-row';
   danger.append(
     action('delete-table', 'Delete table', '×', 'TableDelete', 'danger'),
     action('delete-col', 'Delete column', '−', 'TableDeleteCol', 'danger'),
@@ -984,7 +984,7 @@ function buildTableContext(
 
   const refresh = (): void => {
     const table = currentTable(editor);
-    context.classList.toggle('sbe-disabled', !table);
+    context.classList.toggle('rly-disabled', !table);
     actions.forEach((btn) => (btn.disabled = !table));
     const selection = selectedCells(editor);
     mergeButton.disabled =
@@ -1000,7 +1000,7 @@ function buildTableContext(
   };
   editor.events.on('selectionchange', refresh);
   editor.events.on('change', refresh);
-  context.addEventListener('sbe-panel-open', refresh);
+  context.addEventListener('rly-panel-open', refresh);
   refresh();
   return context;
 }
@@ -1008,9 +1008,9 @@ function buildTableContext(
 function buildTablePanel(editor: Editor, close: () => void): HTMLElement {
   const doc = editor.getBody().ownerDocument;
   const panel = doc.createElement('div');
-  panel.className = 'sbe-table-panel';
+  panel.className = 'rly-table-panel';
   panel.append(buildGridPanel(editor, close), buildTableContext(editor, close));
-  panel.addEventListener('sbe-panel-open', () => editor.events.emit('selectionchange', undefined));
+  panel.addEventListener('rly-panel-open', () => editor.events.emit('selectionchange', undefined));
   return panel;
 }
 
@@ -1019,13 +1019,13 @@ function installTableContextMenu(editor: Editor): void {
   const body = editor.getBody();
   const doc = body.ownerDocument;
   const menu = doc.createElement('div');
-  menu.className = 'sbe-table-context-menu';
+  menu.className = 'rly-table-context-menu';
   menu.dataset.testid = 'table-context-menu';
   menu.setAttribute('role', 'menu');
   menu.setAttribute('aria-label', 'Table actions');
   menu.tabIndex = -1;
 
-  const close = (): void => menu.classList.remove('sbe-open');
+  const close = (): void => menu.classList.remove('rly-open');
   menu.appendChild(buildTableContext(editor, close, { testIdPrefix: 'context-', popup: true }));
   // Preserve the cell selection while clicking commands in the floating menu.
   menu.addEventListener('mousedown', (e) => e.preventDefault());
@@ -1047,12 +1047,12 @@ function installTableContextMenu(editor: Editor): void {
 
     // The toolbar dropdown and context menu are alternate views of the same actions.
     root
-      .querySelectorAll('.sbe-tb-dd.sbe-open')
-      .forEach((panel) => panel.classList.remove('sbe-open'));
+      .querySelectorAll('.rly-tb-dd.rly-open')
+      .forEach((panel) => panel.classList.remove('rly-open'));
     const rootRect = root.getBoundingClientRect();
     menu.style.left = `${e.clientX - rootRect.left}px`;
     menu.style.top = `${e.clientY - rootRect.top}px`;
-    menu.classList.add('sbe-open');
+    menu.classList.add('rly-open');
 
     const rect = menu.getBoundingClientRect();
     const view = doc.defaultView;

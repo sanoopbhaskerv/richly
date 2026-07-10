@@ -1,6 +1,6 @@
-import '@sb/editor-core/theme.css';
-import { Editor as VanillaEditor } from '@sb/editor-core';
-import { Editor as ReactEditor } from '@sb/editor-react';
+import '@richly/core/theme.css';
+import { Editor as VanillaEditor } from '@richly/core';
+import { Editor as ReactEditor } from '@richly/react';
 import { createRoot } from 'react-dom/client';
 import { StrictMode, useState } from 'react';
 

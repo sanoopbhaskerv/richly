@@ -35,18 +35,18 @@ export class Toolbar {
       const section: HTMLElement[] = [];
       if (gi > 0) {
         const sep = doc.createElement('div');
-        sep.className = 'sbe-tb-sep';
+        sep.className = 'rly-tb-sep';
         this.container.appendChild(sep);
         section.push(sep);
       }
       const groupEl = doc.createElement('div');
-      groupEl.className = 'sbe-tb-group';
+      groupEl.className = 'rly-tb-group';
       for (const name of names) {
         const buttonSpec = this.editor.ui.buttons.get(name);
         if (!buttonSpec) continue;
         const btn = doc.createElement('button');
         btn.type = 'button';
-        btn.className = 'sbe-tb-btn';
+        btn.className = 'rly-tb-btn';
         btn.dataset.testid = `tb-${name}`;
         btn.setAttribute('aria-label', buttonSpec.tooltip);
         // data-tooltip drives the CSS ::after tooltip; no native title so the OS
@@ -62,11 +62,11 @@ export class Toolbar {
         if (buttonSpec.panel) {
           // Dropdown button (e.g. table grid picker).
           const wrap = doc.createElement('div');
-          wrap.className = 'sbe-tb-wrap';
+          wrap.className = 'rly-tb-wrap';
           // Tooltip on the wrap so ::after anchors to the full button area.
           wrap.dataset.tooltip = tooltipText;
           const dd = doc.createElement('div');
-          dd.className = 'sbe-tb-dd';
+          dd.className = 'rly-tb-dd';
           dd.dataset.testid = `dd-${name}`;
           // Clicks inside the panel must not steal the content selection.
           dd.addEventListener('mousedown', (e) => e.preventDefault());
@@ -74,27 +74,27 @@ export class Toolbar {
             // Clear any dynamic positioning so CSS defaults apply next time.
             dd.style.left = '';
             dd.style.right = '';
-            dd.classList.remove('sbe-open');
+            dd.classList.remove('rly-open');
           };
           dd.appendChild(buttonSpec.panel(this.editor, close));
           btn.setAttribute('aria-haspopup', 'true');
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const wasOpen = dd.classList.contains('sbe-open');
-            doc.querySelectorAll('.sbe-tb-dd').forEach((p) => {
+            const wasOpen = dd.classList.contains('rly-open');
+            doc.querySelectorAll('.rly-tb-dd').forEach((p) => {
               const el = p as HTMLElement;
               el.style.left = '';
               el.style.right = '';
-              el.classList.remove('sbe-open');
+              el.classList.remove('rly-open');
             });
             if (!wasOpen) {
               // Reset to CSS default so getBoundingClientRect reflects the
               // natural (right: 0) position before we override it.
               dd.style.left = '';
               dd.style.right = '';
-              dd.classList.add('sbe-open');
+              dd.classList.add('rly-open');
               dd.firstElementChild?.dispatchEvent(
-                new (doc.defaultView?.Event ?? Event)('sbe-panel-open')
+                new (doc.defaultView?.Event ?? Event)('rly-panel-open')
               );
               // Dynamically clamp the panel so it never overflows either
               // viewport edge. We measure after a rAF so the browser has
@@ -134,7 +134,7 @@ export class Toolbar {
           btn.addEventListener('click', () => {
             this.editor.execCommand(command, buttonSpec.args);
             // Don't steal focus back if the command opened a modal dialog.
-            if (!doc.querySelector('.sbe-dialog-overlay')) this.editor.focus();
+            if (!doc.querySelector('.rly-dialog-overlay')) this.editor.focus();
           });
           groupEl.appendChild(btn);
           if (buttonSpec.toggle) this.toggles.push({ name, el: btn, command });
@@ -155,14 +155,14 @@ export class Toolbar {
   private installOverflow(): void {
     const doc = this.container.ownerDocument;
     const view = doc.defaultView;
-    this.container.classList.add('sbe-toolbar-overflow-enabled');
+    this.container.classList.add('rly-toolbar-overflow-enabled');
     const wrap = doc.createElement('div');
-    wrap.className = 'sbe-toolbar-overflow';
+    wrap.className = 'rly-toolbar-overflow';
     wrap.hidden = true;
 
     const button = doc.createElement('button');
     button.type = 'button';
-    button.className = 'sbe-tb-btn';
+    button.className = 'rly-tb-btn';
     button.dataset.testid = 'tb-more';
     button.innerHTML = icons.more ?? '•••';
     button.title = 'More tools';
@@ -172,25 +172,25 @@ export class Toolbar {
     button.addEventListener('mousedown', (e) => e.preventDefault());
 
     const panel = doc.createElement('div');
-    panel.className = 'sbe-toolbar-overflow-panel';
+    panel.className = 'rly-toolbar-overflow-panel';
     panel.dataset.testid = 'toolbar-more-panel';
     panel.setAttribute('role', 'group');
     panel.setAttribute('aria-label', 'More editor tools');
     panel.addEventListener('mousedown', (e) => e.preventDefault());
 
     const close = (): void => {
-      panel.classList.remove('sbe-open');
+      panel.classList.remove('rly-open');
       panel
-        .querySelectorAll('.sbe-tb-dd.sbe-open')
-        .forEach((item) => item.classList.remove('sbe-open'));
+        .querySelectorAll('.rly-tb-dd.rly-open')
+        .forEach((item) => item.classList.remove('rly-open'));
       button.setAttribute('aria-expanded', 'false');
     };
     button.addEventListener('click', (e) => {
       e.stopPropagation();
-      const open = !panel.classList.contains('sbe-open');
+      const open = !panel.classList.contains('rly-open');
       close();
       if (open) {
-        panel.classList.add('sbe-open');
+        panel.classList.add('rly-open');
         button.setAttribute('aria-expanded', 'true');
       }
     });
@@ -227,7 +227,7 @@ export class Toolbar {
       for (const item of section) this.container.insertBefore(item, wrap);
     }
     panel.replaceChildren();
-    panel.classList.remove('sbe-open');
+    panel.classList.remove('rly-open');
     wrap.hidden = true;
     const moreButton = wrap.querySelector('button');
     moreButton?.setAttribute('aria-expanded', 'false');
@@ -265,7 +265,7 @@ export class Toolbar {
   refresh(): void {
     for (const t of this.toggles) {
       const active = this.editor.queryCommandState(t.command);
-      t.el.classList.toggle('sbe-active', active);
+      t.el.classList.toggle('rly-active', active);
       t.el.setAttribute('aria-pressed', String(active));
     }
   }
@@ -277,8 +277,8 @@ export class Toolbar {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
       const available = this.buttons.filter((button) => {
         if (button.hidden || button.closest('[hidden]')) return false;
-        const overflow = button.closest('.sbe-toolbar-overflow-panel');
-        return !overflow || overflow.classList.contains('sbe-open');
+        const overflow = button.closest('.rly-toolbar-overflow-panel');
+        return !overflow || overflow.classList.contains('rly-open');
       });
       const idx = available.findIndex((b) => b === this.container.ownerDocument.activeElement);
       if (idx === -1) return;

@@ -122,9 +122,9 @@ describe('hr / source code / fullscreen', () => {
     ed = createTestEditor('<p>x</p>');
     expect(ed.queryCommandState('ToggleFullscreen')).toBe(false);
     ed.execCommand('ToggleFullscreen');
-    expect(ed.getRoot().classList.contains('sbe-fullscreen')).toBe(true);
+    expect(ed.getRoot().classList.contains('rly-fullscreen')).toBe(true);
     expect(ed.queryCommandState('ToggleFullscreen')).toBe(true);
     ed.execCommand('ToggleFullscreen');
-    expect(ed.getRoot().classList.contains('sbe-fullscreen')).toBe(false);
+    expect(ed.getRoot().classList.contains('rly-fullscreen')).toBe(false);
   });
 });

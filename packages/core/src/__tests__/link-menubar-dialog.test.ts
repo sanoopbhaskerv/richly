@@ -119,7 +119,7 @@ describe('menubar', () => {
     const target = document.createElement('div');
     document.body.appendChild(target);
     const ed2 = createTestEditorWithoutMenubar(target);
-    expect(ed2.getRoot().querySelector('.sbe-menubar')).toBeNull();
+    expect(ed2.getRoot().querySelector('.rly-menubar')).toBeNull();
     ed2.destroy();
   });
 });

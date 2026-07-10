@@ -4,7 +4,7 @@ import {
   type EditorConfig,
   type Plugin,
   type WordCountOptions
-} from '@sb/editor-core';
+} from '@richly/core';
 
 export interface EditorProps {
   /** Controlled value. Prefer `initialValue` unless you need two-way binding. */
@@ -28,7 +28,7 @@ export interface EditorHandle {
 }
 
 /**
- * Thin React wrapper over @sb/editor-core (DESIGN.md §2.1).
+ * Thin React wrapper over @richly/core (DESIGN.md §2.1).
  * The core instance is created once; re-renders never re-init it.
  */
 export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(props, ref) {

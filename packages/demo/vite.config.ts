@@ -12,15 +12,15 @@ export default defineConfig({
       // CSS sub-path MUST come before the bare package alias.
       // Using regex with $ anchor to prevent prefix-matching bleed-through.
       {
-        find: /^@sb\/editor-core\/theme\.css$/,
+        find: /^@richly\/core\/theme\.css$/,
         replacement: path.resolve(__dirname, '../core/src/ui/theme.css')
       },
       {
-        find: /^@sb\/editor-core$/,
+        find: /^@richly\/core$/,
         replacement: path.resolve(__dirname, '../core/src/index.ts')
       },
       {
-        find: /^@sb\/editor-react$/,
+        find: /^@richly\/react$/,
         replacement: path.resolve(__dirname, '../react/src/index.ts')
       }
     ]

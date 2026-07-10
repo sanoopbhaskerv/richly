@@ -126,15 +126,15 @@ async function openFindReplace(editor: Editor): Promise<void> {
 function openPreview(editor: Editor): void {
   const doc = editor.getBody().ownerDocument;
   const overlay = doc.createElement('div');
-  overlay.className = 'sbe-preview-overlay';
+  overlay.className = 'rly-preview-overlay';
   overlay.dataset.testid = 'preview-overlay';
   const dialog = doc.createElement('div');
-  dialog.className = 'sbe-preview-dialog';
+  dialog.className = 'rly-preview-dialog';
   dialog.setAttribute('role', 'dialog');
   dialog.setAttribute('aria-modal', 'true');
   dialog.setAttribute('aria-label', 'Document preview');
   const header = doc.createElement('div');
-  header.className = 'sbe-preview-header';
+  header.className = 'rly-preview-header';
   const title = doc.createElement('strong');
   title.textContent = 'Document preview';
   const close = doc.createElement('button');
@@ -143,7 +143,7 @@ function openPreview(editor: Editor): void {
   close.setAttribute('aria-label', 'Close preview');
   close.textContent = '×';
   const frame = doc.createElement('iframe');
-  frame.className = 'sbe-preview-frame';
+  frame.className = 'rly-preview-frame';
   frame.dataset.testid = 'preview-frame';
   frame.title = 'Document preview';
   frame.setAttribute('sandbox', '');
@@ -179,8 +179,8 @@ export const documentToolsPlugin: Plugin = {
     });
     editor.commands.register('Preview', { execute: openPreview, skipUndo: true });
     editor.commands.register('VisualBlocks', {
-      execute: (ed) => ed.getBody().classList.toggle('sbe-visual-blocks'),
-      queryState: (ed) => ed.getBody().classList.contains('sbe-visual-blocks'),
+      execute: (ed) => ed.getBody().classList.toggle('rly-visual-blocks'),
+      queryState: (ed) => ed.getBody().classList.contains('rly-visual-blocks'),
       skipUndo: true
     });
 

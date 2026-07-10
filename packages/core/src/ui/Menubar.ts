@@ -41,20 +41,20 @@ export class Menubar {
 
       const btn = doc.createElement('button');
       btn.type = 'button';
-      btn.className = 'sbe-menu-btn';
+      btn.className = 'rly-menu-btn';
       btn.dataset.testid = `menu-${menu}`;
       btn.textContent = menu[0]!.toUpperCase() + menu.slice(1);
       btn.setAttribute('aria-haspopup', 'true');
       btn.setAttribute('aria-expanded', 'false');
 
       const panel = doc.createElement('div');
-      panel.className = 'sbe-menu-dd';
+      panel.className = 'rly-menu-dd';
       panel.setAttribute('role', 'menu');
 
       for (const item of items) {
         const entry = doc.createElement('button');
         entry.type = 'button';
-        entry.className = 'sbe-menu-item';
+        entry.className = 'rly-menu-item';
         entry.dataset.testid = `menuitem-${item.id}`;
         entry.setAttribute('role', 'menuitem');
         const label = doc.createElement('span');
@@ -62,7 +62,7 @@ export class Menubar {
         entry.appendChild(label);
         if (item.shortcut) {
           const kbd = doc.createElement('span');
-          kbd.className = 'sbe-kbd';
+          kbd.className = 'rly-kbd';
           kbd.textContent = shortcutLabel(item.shortcut, doc);
           entry.appendChild(kbd);
         }
@@ -76,7 +76,7 @@ export class Menubar {
       }
 
       const wrap = doc.createElement('div');
-      wrap.className = 'sbe-menu-wrap';
+      wrap.className = 'rly-menu-wrap';
       wrap.append(btn, panel);
       container.appendChild(wrap);
 
@@ -86,7 +86,7 @@ export class Menubar {
         const wasOpen = this.openPanel === panel;
         this.closeAll();
         if (!wasOpen) {
-          panel.classList.add('sbe-open');
+          panel.classList.add('rly-open');
           btn.setAttribute('aria-expanded', 'true');
           this.openPanel = panel;
         }
@@ -102,9 +102,9 @@ export class Menubar {
   }
 
   private closeAll(): void {
-    this.container.querySelectorAll('.sbe-menu-dd').forEach((p) => p.classList.remove('sbe-open'));
+    this.container.querySelectorAll('.rly-menu-dd').forEach((p) => p.classList.remove('rly-open'));
     this.container
-      .querySelectorAll('.sbe-menu-btn')
+      .querySelectorAll('.rly-menu-btn')
       .forEach((b) => b.setAttribute('aria-expanded', 'false'));
     this.openPanel = null;
   }

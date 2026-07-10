@@ -59,12 +59,12 @@ describe('TableProps command', () => {
     placeCursor(ed, 'a', 0);
     ed.execCommand('TableProps', { striped: 'true', caption: 'true' });
     const table = ed.getBody().querySelector('table')!;
-    expect(table.classList.contains('sbe-striped')).toBe(true);
+    expect(table.classList.contains('rly-striped')).toBe(true);
     expect(table.querySelector('caption')).toBeTruthy();
 
     placeCursor(ed, 'a', 0);
     ed.execCommand('TableProps', { striped: 'false', caption: 'false' });
-    expect(table.classList.contains('sbe-striped')).toBe(false);
+    expect(table.classList.contains('rly-striped')).toBe(false);
     expect(table.querySelector('caption')).toBeNull();
   });
 
@@ -180,7 +180,7 @@ describe('table selection frame', () => {
     const cell = ed.getBody().querySelector('td')!;
     cell.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     expect(
-      ed.getRoot().querySelector('[data-testid="table-selection"]')?.classList.contains('sbe-show')
+      ed.getRoot().querySelector('[data-testid="table-selection"]')?.classList.contains('rly-show')
     ).toBe(true);
     expect(ed.getContent()).not.toContain('table-selection');
     expect(ed.getContent()).not.toContain('table-resize');
@@ -201,7 +201,7 @@ describe('table right-click menu', () => {
 
     const menu = ed.getRoot().querySelector<HTMLElement>('[data-testid="table-context-menu"]')!;
     expect(event.defaultPrevented).toBe(true);
-    expect(menu.classList.contains('sbe-open')).toBe(true);
+    expect(menu.classList.contains('rly-open')).toBe(true);
     const addRow = menu.querySelector<HTMLButtonElement>(
       '[data-testid="context-table-action-row-after"]'
     )!;
@@ -209,7 +209,7 @@ describe('table right-click menu', () => {
     addRow.click();
 
     expect(ed.getBody().querySelectorAll('tr')).toHaveLength(2);
-    expect(menu.classList.contains('sbe-open')).toBe(false);
+    expect(menu.classList.contains('rly-open')).toBe(false);
   });
 
   it('dismisses with Escape and does not replace the browser menu outside tables', () => {
@@ -218,7 +218,7 @@ describe('table right-click menu', () => {
     cell.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     const menu = ed.getRoot().querySelector<HTMLElement>('[data-testid="table-context-menu"]')!;
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    expect(menu.classList.contains('sbe-open')).toBe(false);
+    expect(menu.classList.contains('rly-open')).toBe(false);
 
     const paragraph = ed.getBody().querySelector('p')!;
     const outsideEvent = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });

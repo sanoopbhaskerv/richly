@@ -1,11 +1,11 @@
-# SB Editor
+# Richly
 
-A dependency-free, framework-agnostic rich text editor for the web. SB Editor
+A dependency-free, framework-agnostic rich text editor for the web. Richly
 provides a TypeScript core for direct DOM use and a small React wrapper, with
 advanced tables, search and replace, preview, links, images, source editing,
 undo/redo, keyboard shortcuts, and a themeable editor UI included.
 
-## Why SB Editor
+## Why Richly
 
 - No runtime editor dependencies and no deprecated browser editing commands.
 - A framework-free core with first-class React bindings.
@@ -23,19 +23,19 @@ undo/redo, keyboard shortcuts, and a themeable editor UI included.
 
 | Package            | Purpose                                                             |
 | ------------------ | ------------------------------------------------------------------- |
-| `@sb/editor-core`  | The editor engine and default UI for vanilla TypeScript/JavaScript. |
-| `@sb/editor-react` | React component built on the same core.                             |
+| `@richly/core`  | The editor engine and default UI for vanilla TypeScript/JavaScript. |
+| `@richly/react` | React component built on the same core.                             |
 
 ## Install
 
 ```bash
-npm install @sb/editor-core
+npm install @richly/core
 ```
 
 For React:
 
 ```bash
-npm install @sb/editor-react react react-dom
+npm install @richly/react react react-dom
 ```
 
 > The package scope is currently `@sb`. Before the first public release,
@@ -45,8 +45,8 @@ npm install @sb/editor-react react react-dom
 ## Vanilla JavaScript
 
 ```ts
-import { Editor } from '@sb/editor-core';
-import '@sb/editor-core/theme.css';
+import { Editor } from '@richly/core';
+import '@richly/core/theme.css';
 
 const editor = Editor.init({
   target: document.querySelector('#editor')!,
@@ -62,8 +62,8 @@ editor.on('change', (html) => {
 
 ```tsx
 import { useState } from 'react';
-import { Editor } from '@sb/editor-react';
-import '@sb/editor-core/theme.css';
+import { Editor } from '@richly/react';
+import '@richly/core/theme.css';
 
 export function ArticleEditor() {
   const [value, setValue] = useState('<p>Start writing.</p>');

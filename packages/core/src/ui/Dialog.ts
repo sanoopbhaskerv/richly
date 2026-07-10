@@ -37,31 +37,31 @@ export function openDialog(
 
   return new Promise((resolve) => {
     const overlay = doc.createElement('div');
-    overlay.className = 'sbe-dialog-overlay';
+    overlay.className = 'rly-dialog-overlay';
 
     const dialog = doc.createElement('div');
-    dialog.className = 'sbe-dialog';
+    dialog.className = 'rly-dialog';
     dialog.dataset.testid = `dialog-${spec.name}`;
     dialog.setAttribute('role', 'dialog');
     dialog.setAttribute('aria-modal', 'true');
     dialog.setAttribute('aria-label', spec.title);
 
     const header = doc.createElement('div');
-    header.className = 'sbe-dialog-header';
+    header.className = 'rly-dialog-header';
     const heading = doc.createElement('div');
     const titleEl = doc.createElement('div');
-    titleEl.className = 'sbe-dialog-title';
+    titleEl.className = 'rly-dialog-title';
     titleEl.textContent = spec.title;
     heading.appendChild(titleEl);
     if (spec.description) {
       const description = doc.createElement('div');
-      description.className = 'sbe-dialog-description';
+      description.className = 'rly-dialog-description';
       description.textContent = spec.description;
       heading.appendChild(description);
     }
     const closeBtn = doc.createElement('button');
     closeBtn.type = 'button';
-    closeBtn.className = 'sbe-dialog-close';
+    closeBtn.className = 'rly-dialog-close';
     closeBtn.dataset.testid = 'dialog-close';
     closeBtn.setAttribute('aria-label', 'Close dialog');
     closeBtn.textContent = '×';
@@ -70,13 +70,13 @@ export function openDialog(
 
     const fields = doc.createElement('div');
     fields.className =
-      spec.layout === 'grid' ? 'sbe-dialog-fields sbe-dialog-fields-grid' : 'sbe-dialog-fields';
+      spec.layout === 'grid' ? 'rly-dialog-fields rly-dialog-fields-grid' : 'rly-dialog-fields';
 
     type FieldEl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
     const inputs = new Map<string, FieldEl>();
     for (const field of spec.fields) {
       const row = doc.createElement('label');
-      row.className = 'sbe-dialog-row';
+      row.className = 'rly-dialog-row';
       const labelEl = doc.createElement('span');
       labelEl.textContent = field.label;
       let input: FieldEl;
@@ -85,7 +85,7 @@ export function openDialog(
         input.rows = 12;
         input.placeholder = field.placeholder ?? '';
         input.value = field.value ?? '';
-        dialog.classList.add('sbe-dialog-wide');
+        dialog.classList.add('rly-dialog-wide');
       } else if (field.type === 'select') {
         input = doc.createElement('select');
         for (const opt of field.options ?? []) {
@@ -99,7 +99,7 @@ export function openDialog(
         input = doc.createElement('input');
         input.type = 'checkbox';
         input.checked = field.value === 'true';
-        row.classList.add('sbe-dialog-row-inline');
+        row.classList.add('rly-dialog-row-inline');
       } else {
         input = doc.createElement('input');
         input.type = field.type ?? 'text';
@@ -111,26 +111,26 @@ export function openDialog(
       else row.append(labelEl, input);
       if (field.hint) {
         const hint = doc.createElement('small');
-        hint.className = 'sbe-dialog-hint';
+        hint.className = 'rly-dialog-hint';
         hint.textContent = field.hint;
         row.appendChild(hint);
       }
-      if (field.type === 'textarea') row.classList.add('sbe-dialog-row-span');
+      if (field.type === 'textarea') row.classList.add('rly-dialog-row-span');
       fields.appendChild(row);
       inputs.set(field.name, input);
     }
     dialog.appendChild(fields);
 
     const footer = doc.createElement('div');
-    footer.className = 'sbe-dialog-footer';
+    footer.className = 'rly-dialog-footer';
     const cancelBtn = doc.createElement('button');
     cancelBtn.type = 'button';
-    cancelBtn.className = 'sbe-dialog-btn';
+    cancelBtn.className = 'rly-dialog-btn';
     cancelBtn.dataset.testid = 'dialog-cancel';
     cancelBtn.textContent = 'Cancel';
     const submitBtn = doc.createElement('button');
     submitBtn.type = 'button';
-    submitBtn.className = 'sbe-dialog-btn sbe-dialog-btn-primary';
+    submitBtn.className = 'rly-dialog-btn rly-dialog-btn-primary';
     submitBtn.dataset.testid = 'dialog-submit';
     submitBtn.textContent = spec.submitText ?? 'Save';
     footer.append(cancelBtn, submitBtn);

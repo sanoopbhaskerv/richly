@@ -5,10 +5,10 @@ export const fullscreenPlugin: Plugin = {
   init(editor) {
     editor.commands.register('ToggleFullscreen', {
       execute: (ed) => {
-        ed.getRoot().classList.toggle('sbe-fullscreen');
+        ed.getRoot().classList.toggle('rly-fullscreen');
         ed.focus();
       },
-      queryState: (ed) => ed.getRoot().classList.contains('sbe-fullscreen'),
+      queryState: (ed) => ed.getRoot().classList.contains('rly-fullscreen'),
       skipUndo: true // view state, not content
     });
     editor.ui.addToggleButton('fullscreen', {
@@ -23,7 +23,7 @@ export const fullscreenPlugin: Plugin = {
     });
 
     editor.on('keydown', (e) => {
-      if (e.key === 'Escape' && editor.getRoot().classList.contains('sbe-fullscreen')) {
+      if (e.key === 'Escape' && editor.getRoot().classList.contains('rly-fullscreen')) {
         editor.execCommand('ToggleFullscreen');
       }
     });

@@ -1,6 +1,6 @@
-# Contributing to SB Editor
+# Contributing to Richly
 
-Thanks for helping improve SB Editor.
+Thanks for helping improve Richly.
 
 ## Local setup
 

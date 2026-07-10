@@ -8,9 +8,9 @@ afterEach(() => destroyAll(ed));
 describe('toolbar overflow option', () => {
   it('wraps by default without rendering a More button', () => {
     ed = createTestEditor('<p>content</p>');
-    const toolbar = ed.getBody().parentElement?.querySelector('.sbe-toolbar');
+    const toolbar = ed.getBody().parentElement?.querySelector('.rly-toolbar');
 
-    expect(toolbar?.classList.contains('sbe-toolbar-overflow-enabled')).toBe(false);
+    expect(toolbar?.classList.contains('rly-toolbar-overflow-enabled')).toBe(false);
     expect(toolbar?.querySelector('[data-testid="tb-more"]')).toBeNull();
   });
 
@@ -22,9 +22,9 @@ describe('toolbar overflow option', () => {
       initialContent: '<p>content</p>',
       toolbarOverflow: true
     });
-    const toolbar = ed.getBody().parentElement?.querySelector('.sbe-toolbar');
+    const toolbar = ed.getBody().parentElement?.querySelector('.rly-toolbar');
 
-    expect(toolbar?.classList.contains('sbe-toolbar-overflow-enabled')).toBe(true);
+    expect(toolbar?.classList.contains('rly-toolbar-overflow-enabled')).toBe(true);
     expect(toolbar?.querySelector('[data-testid="tb-more"]')).not.toBeNull();
   });
 });

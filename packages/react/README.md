@@ -1,10 +1,10 @@
-# @sb/editor-react
+# @richly/react
 
-React bindings for SB Editor.
+React bindings for Richly.
 
 ```tsx
-import { Editor } from '@sb/editor-react';
-import '@sb/editor-core/theme.css';
+import { Editor } from '@richly/react';
+import '@richly/core/theme.css';
 
 export function App() {
   return <Editor initialValue="<p>Hello.</p>" />;

@@ -1,5 +1,5 @@
 {
-  "name": "sb-editor-monorepo",
+  "name": "richly-monorepo",
   "private": true,
   "version": "0.1.0",
   "workspaces": [
@@ -7,9 +7,9 @@
   ],
   "scripts": {
     "dev": "yarn workspace @sb/demo dev",
-    "build": "yarn workspace @sb/editor-core build && yarn workspace @sb/editor-react build",
-    "test": "yarn workspace @sb/editor-core test",
-    "test:coverage": "yarn workspace @sb/editor-core test:coverage",
+    "build": "yarn workspace @richly/core build && yarn workspace @richly/react build",
+    "test": "yarn workspace @richly/core test",
+    "test:coverage": "yarn workspace @richly/core test:coverage",
     "e2e": "playwright test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

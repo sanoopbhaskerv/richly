@@ -1,6 +1,6 @@
-# SB Editor architecture
+# Richly architecture
 
-SB Editor is an open, dependency-free rich text editor with a TypeScript core
+Richly is an open, dependency-free rich text editor with a TypeScript core
 and optional React bindings. The editor keeps its document as live DOM and uses
 HTML as its public interchange format.
 
