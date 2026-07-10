@@ -150,6 +150,15 @@ export class Editor {
 
     const onKeydown = (e: KeyboardEvent): void => {
       this.events.emit('keydown', e);
+
+      // --- Blockquote escape behaviours ---
+      if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+        if (this._handleEnterInBlockquote(e)) return;
+      }
+      if (e.key === 'ArrowDown') {
+        if (this._handleArrowDownInBlockquote(e)) return;
+      }
+
       const mod = e.metaKey || e.ctrlKey;
       if (!mod) return;
       const key = e.key.toLowerCase();
@@ -166,6 +175,30 @@ export class Editor {
     };
     this.body.addEventListener('keydown', onKeydown);
     this.cleanups.push(() => this.body.removeEventListener('keydown', onKeydown));
+
+    // --- Click below trailing blockquote ---
+    // On mousedown, if the last child is a blockquote and the click is below it,
+    // we append a <p> so the browser can place the caret there naturally.
+    const onMousedown = (e: MouseEvent): void => {
+      const last = this.body.lastElementChild;
+      if (!last || last.tagName.toLowerCase() !== 'blockquote') return;
+      const bqRect = last.getBoundingClientRect();
+      if (e.clientY > bqRect.bottom) {
+        // Click is in the empty space below the blockquote.
+        e.preventDefault();
+        const doc = this.body.ownerDocument;
+        const p = doc.createElement('p');
+        p.appendChild(doc.createElement('br'));
+        this.body.appendChild(p);
+        const range = doc.createRange();
+        range.setStart(p, 0);
+        range.collapse(true);
+        this.selection.setRange(range);
+        this.body.focus();
+      }
+    };
+    this.body.addEventListener('mousedown', onMousedown);
+    this.cleanups.push(() => this.body.removeEventListener('mousedown', onMousedown));
 
     const onPaste = (e: ClipboardEvent): void => {
       const html = e.clipboardData?.getData('text/html');
@@ -201,6 +234,118 @@ export class Editor {
       this.body.removeEventListener('focus', onFocus);
       this.body.removeEventListener('blur', onBlur);
     });
+  }
+
+  /**
+   * Handle Enter inside a <blockquote>.
+   * - If the current line is empty → remove the empty line and insert a <p> after the blockquote.
+   * - If the caret is at the very end of the blockquote's last block → insert a <p> after the blockquote.
+   * Returns true if the event was handled (caller should return early).
+   */
+  private _handleEnterInBlockquote(e: KeyboardEvent): boolean {
+    const range = this.selection.getRange();
+    if (!range || !range.collapsed) return false;
+
+    // Walk up to find a blockquote ancestor inside the body.
+    let node: Node | null = range.startContainer;
+    let bq: HTMLElement | null = null;
+    while (node && node !== this.body) {
+      if ((node as HTMLElement).tagName?.toLowerCase() === 'blockquote') {
+        bq = node as HTMLElement;
+        break;
+      }
+      node = node.parentNode;
+    }
+    if (!bq) return false;
+
+    // Find the innermost block element the caret sits in.
+    const doc = this.body.ownerDocument;
+    let block: HTMLElement | null = range.startContainer as HTMLElement;
+    while (block && block !== bq) {
+      const tag = (block as HTMLElement).tagName?.toLowerCase();
+      if (tag && ['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre'].includes(tag)) break;
+      block = block.parentNode as HTMLElement;
+    }
+    if (!block || block === bq) block = bq;
+
+    const blockText = block.textContent ?? '';
+    const isEmptyLine = blockText.replace(/\u200B|\uFEFF/g, '').trim() === '';
+
+    // Check if the caret is at the absolute end of the blockquote.
+    const testRange = doc.createRange();
+    testRange.selectNodeContents(bq);
+    const atEnd = range.compareBoundaryPoints(Range.END_TO_END, testRange) >= 0;
+
+    if (!isEmptyLine && !atEnd) return false;
+
+    e.preventDefault();
+    this.undoManager.snapshot();
+
+    if (isEmptyLine && block !== bq) {
+      // Remove the empty block from the blockquote.
+      block.remove();
+      // If blockquote is now empty, remove it too.
+      if ((bq.textContent ?? '').trim() === '') bq.remove();
+    }
+
+    // Insert a <p> after the blockquote.
+    const p = doc.createElement('p');
+    p.appendChild(doc.createElement('br'));
+    bq.after(p);
+
+    const newRange = doc.createRange();
+    newRange.setStart(p, 0);
+    newRange.collapse(true);
+    this.selection.setRange(newRange);
+    this.events.emit('change', this.getContent());
+    return true;
+  }
+
+  /**
+   * Handle ArrowDown when the caret is on the last line of a <blockquote>.
+   * Moves the caret to just after the blockquote (or into the next sibling).
+   * Returns true if the event was handled.
+   */
+  private _handleArrowDownInBlockquote(e: KeyboardEvent): boolean {
+    const range = this.selection.getRange();
+    if (!range || !range.collapsed) return false;
+
+    let node: Node | null = range.startContainer;
+    let bq: HTMLElement | null = null;
+    while (node && node !== this.body) {
+      if ((node as HTMLElement).tagName?.toLowerCase() === 'blockquote') {
+        bq = node as HTMLElement;
+        break;
+      }
+      node = node.parentNode;
+    }
+    if (!bq) return false;
+
+    // Only intercept if we are on the last visual line (caret at or near the end).
+    const doc = this.body.ownerDocument;
+    const testRange = doc.createRange();
+    testRange.selectNodeContents(bq);
+    const atEnd = range.compareBoundaryPoints(Range.END_TO_END, testRange) >= 0;
+    if (!atEnd) return false;
+
+    e.preventDefault();
+
+    const nextSibling = bq.nextElementSibling as HTMLElement | null;
+    const newRange = doc.createRange();
+    if (nextSibling) {
+      // Move into the start of the next block.
+      newRange.setStart(nextSibling, 0);
+    } else {
+      // No next sibling — create a trailing <p> and move there.
+      this.undoManager.snapshot();
+      const p = doc.createElement('p');
+      p.appendChild(doc.createElement('br'));
+      bq.after(p);
+      newRange.setStart(p, 0);
+    }
+    newRange.collapse(true);
+    this.selection.setRange(newRange);
+    return true;
   }
 
   /** Once the user types into a caret container, its U+FEFF filler is no longer needed. */
