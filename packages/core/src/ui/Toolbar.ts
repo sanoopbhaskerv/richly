@@ -49,7 +49,8 @@ export class Toolbar {
         btn.addEventListener('mousedown', (e) => e.preventDefault());
         btn.addEventListener('click', () => {
           this.editor.execCommand(buttonSpec.command, buttonSpec.args);
-          this.editor.focus();
+          // Don't steal focus back if the command opened a modal dialog.
+          if (!doc.querySelector('.sbe-dialog-overlay')) this.editor.focus();
         });
         groupEl.appendChild(btn);
         this.buttons.push(btn);

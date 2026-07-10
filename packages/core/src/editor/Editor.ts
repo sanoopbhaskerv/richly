@@ -4,6 +4,7 @@ import { SelectionManager } from '../dom/SelectionManager';
 import { UndoManager } from '../undo/UndoManager';
 import { UiRegistry } from '../ui/UiRegistry';
 import { Toolbar } from '../ui/Toolbar';
+import { Menubar } from '../ui/Menubar';
 import { Statusbar } from '../ui/Statusbar';
 import { sanitize } from '../model/Sanitizer';
 import { corePlugins, type Plugin } from '../plugins';
@@ -15,6 +16,8 @@ export interface EditorConfig {
   initialContent?: string;
   /** Toolbar spec, e.g. "undo redo | bold italic underline strikethrough | h1 h2 paragraph blockquote | removeformat" */
   toolbar?: string;
+  /** Set false to hide the menubar. */
+  menubar?: boolean;
   statusbar?: boolean;
   plugins?: Plugin[];
   /** Prefix for chrome data-testids (default "editor"): editor-root, editor-toolbar, editor-content, editor-statusbar. */
@@ -34,7 +37,7 @@ export interface EditorEvents extends Record<string, unknown> {
 }
 
 const DEFAULT_TOOLBAR =
-  'undo redo | bold italic underline strikethrough | h1 h2 paragraph blockquote | removeformat';
+  'undo redo | bold italic underline strikethrough | h1 h2 paragraph blockquote | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink | removeformat';
 
 export class Editor {
   readonly events = new Emitter<EditorEvents>();
@@ -64,6 +67,9 @@ export class Editor {
 
     for (const plugin of [...corePlugins, ...(config.plugins ?? [])]) plugin.init(this);
 
+    if (config.menubar !== false) {
+      new Menubar(this, this.root.querySelector<HTMLElement>('.sbe-menubar')!);
+    }
     const toolbarEl = this.root.querySelector<HTMLElement>('.sbe-toolbar')!;
     new Toolbar(this, toolbarEl, config.toolbar ?? DEFAULT_TOOLBAR);
     if (config.statusbar !== false) {
@@ -84,6 +90,10 @@ export class Editor {
     this.root.className = 'sbe';
     this.root.dataset.testid = `${p}-root`;
 
+    const menubar = doc.createElement('div');
+    menubar.className = 'sbe-menubar';
+    menubar.dataset.testid = `${p}-menubar`;
+
     const toolbar = doc.createElement('div');
     toolbar.className = 'sbe-toolbar';
     toolbar.dataset.testid = `${p}-toolbar`;
@@ -101,6 +111,7 @@ export class Editor {
     statusbar.className = 'sbe-statusbar';
     statusbar.dataset.testid = `${p}-statusbar`;
 
+    if (this.config.menubar !== false) this.root.append(menubar);
     this.root.append(toolbar, this.body);
     if (this.config.statusbar !== false) this.root.append(statusbar);
     target.appendChild(this.root);
@@ -110,6 +121,7 @@ export class Editor {
     const doc = this.body.ownerDocument;
 
     const onInput = (): void => {
+      this.cleanCaretFiller();
       this.undoManager.snapshot(true); // coalesced typing
       this.events.emit('input', undefined);
       this.events.emit('change', this.getContent());
@@ -178,6 +190,23 @@ export class Editor {
     });
   }
 
+  /** Once the user types into a caret container, its U+FEFF filler is no longer needed. */
+  private cleanCaretFiller(): void {
+    const range = this.selection.getRange();
+    const node = range?.startContainer;
+    if (!range || !node || node.nodeType !== Node.TEXT_NODE) return;
+    const text = node as Text;
+    const idx = text.data.indexOf('﻿');
+    if (idx === -1 || text.data.length <= 1) return;
+    const offset = range.startOffset;
+    text.deleteData(idx, 1);
+    if (offset > idx) {
+      range.setStart(text, Math.min(offset - 1, text.data.length));
+      range.collapse(true);
+      this.selection.setRange(range);
+    }
+  }
+
   // ---- public API ----
 
   getBody(): HTMLElement {
@@ -189,7 +218,12 @@ export class Editor {
   }
 
   getContent(): string {
-    return this.body.innerHTML;
+    // Serialize without caret-container artifacts (U+FEFF fillers, empty format wrappers).
+    const clone = this.body.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('strong,b,em,i,u,s,code,sub,sup,span').forEach((el) => {
+      if ((el.textContent ?? '').replace(/﻿/g, '') === '' && !el.querySelector('img,br')) el.remove();
+    });
+    return clone.innerHTML.replace(/﻿/g, '');
   }
 
   setContent(html: string, opts: { addUndoLevel?: boolean } = {}): void {

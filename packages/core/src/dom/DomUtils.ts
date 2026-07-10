@@ -56,8 +56,28 @@ export function unwrap(el: Element): void {
   parent.removeChild(el);
 }
 
-function isEmpty(el: Element): boolean {
-  return (el.textContent ?? '') === '' && !el.querySelector('img,br,hr,table');
+/** U+FEFF — used as caret container filler for pending formats (see plugins/formats.ts). */
+export const CARET_FILLER = '﻿';
+
+export function isEmptyElement(el: Element): boolean {
+  return (el.textContent ?? '').replace(/﻿/g, '') === '' && !el.querySelector('img,br,hr,table');
+}
+const isEmpty = isEmptyElement;
+
+/** Leaf block elements intersecting the range (for multi-block commands like align/lists). */
+export function blocksInRange(range: Range, root: HTMLElement): HTMLElement[] {
+  const all = Array.from(root.querySelectorAll<HTMLElement>(BLOCK_TAGS.join(',')));
+  const hits = all.filter((b) => {
+    try {
+      return range.intersectsNode(b);
+    } catch {
+      return false;
+    }
+  });
+  const leaves = hits.filter((b) => !hits.some((other) => other !== b && b.contains(other)));
+  if (leaves.length) return leaves;
+  const b = closestBlock(range.startContainer, root);
+  return b ? [b] : [];
 }
 
 /** Wrap the range contents in `tag`. De-dupes nested same-tags. Selects the result. */

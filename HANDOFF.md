@@ -41,14 +41,22 @@ HTMlEditor/
   packages/demo/     Vite demo: vanilla + React instances side by side, dark mode
 ```
 
-Verified: `yarn test` 25/25 green, `tsc --noEmit` clean for core+react, `vite build` of demo succeeds. **Playwright e2e NOT yet executed** (sandbox couldn't download browsers) — run `npx playwright install && yarn e2e` first.
+Verified: `yarn test` 25/25 green, `tsc --noEmit` clean for core+react, `vite build` of demo succeeds, **Playwright e2e 7/7 green on chromium**. Firefox/webkit not yet run — verify locally with `yarn e2e`. Note: first e2e run exposed two page-object bugs (fixed): `Locator.dblclick()` aims at the element center not the word (use Range.getBoundingClientRect + mouse.dblclick), and Ctrl+A+Delete keeps the first block's tag so `clear()` must reset innerHTML to `<p><br></p>`. Demo/e2e port is **5177**.
 
-Milestone 1 progress (§5): steps 1–3 done; step 4 partial (FormatBlock + justify/indent NOT yet done); step 5 done except Mod+K; step 6 (lists) NOT started; step 7 basic sanitizer+paste done (needs Word fixtures); step 8 done for toolbar+statusbar (no menubar yet); step 9 done; step 10 in place.
+Milestone 1 progress (§5): steps 1–6 DONE (alignment via text-align style, Indent/Outdent = padding on blocks / nest-unnest in lists with Tab/Shift-Tab, Enter-on-empty-li exits list, collapsed-cursor pending formats via U+FEFF caret containers — cleaned on input and in getContent). Verified: 41/41 unit, 12/12 chromium e2e (`e2e/lists.spec.ts` added). Step 7 basic sanitizer+paste done (needs Word fixtures); step 8 toolbar+statusbar done (NO menubar yet); steps 9–10 done.
 
-Known v0 gaps / TODOs in code:
-- Collapsed-cursor formatting (type-after-toggle) is a no-op — needs pending-format state.
+**Milestone 1 COMPLETE + first M2 plugin.** Added since: `ui/Dialog.ts` (declarative modal, selection bookmark save/restore, focus trap, document-level Escape, testids dialog-*), `ui/Menubar.ts` (registry-driven via `ui.addMenuItem`, only non-empty menus render, platform-aware shortcut labels, testids menu-*/menuitem-*), `plugins/link.ts` (InsertLink dialog + args form, Unlink, autolink on space/Enter, Mod+K). Editor chrome now has a menubar (`menubar: false` to hide). Verified: 53/53 unit, 18/18 chromium e2e.
+
+Hard-won e2e lessons (already fixed, don't regress):
+- Toolbar must NOT refocus the editor after a command that opened a dialog (check `.sbe-dialog-overlay`).
+- Dialog Escape must be a document-level capture listener — focus may be in the editor body.
+- In specs, ALWAYS scope `menu-*`/`tb-*` locators via `editor.root.getByTestId(...)` — the demo page has two instances.
+
+Known gaps / TODOs in code:
 - `removeInline` drops nested formatting inside the extracted range (un-bolding `<strong><em>x</em></strong>` loses italics).
-- No lists, alignment, indent, link, color commands yet. No menubar/dialogs/context toolbar yet (mockup shows target UX).
+- Lists: no merging of adjacent lists; list toggle on headings drops the heading tag.
+- Autolink regex is simple (no trailing-punctuation trimming).
+- Next (M2): image plugin (dialog + resize handles), table plugin (grid picker exists in mockup), code source view, search/replace, fullscreen, paste-from-Word fixtures.
 
 ## 4. Target architecture (summary — full detail in DESIGN.md)
 

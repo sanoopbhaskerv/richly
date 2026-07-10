@@ -10,9 +10,19 @@ export interface ButtonSpec {
   shortcut?: string;
 }
 
+export interface MenuItemSpec {
+  /** Which menu it lives in: file | edit | view | insert | format | tools | table | help */
+  menu: string;
+  text: string;
+  command: string;
+  args?: unknown;
+  shortcut?: string;
+}
+
 /** Plugins register UI here; Toolbar/Menubar render from it (testids attached centrally). */
 export class UiRegistry {
   readonly buttons = new Map<string, ButtonSpec>();
+  readonly menuItems = new Map<string, MenuItemSpec>();
 
   addButton(name: string, spec: ButtonSpec): void {
     this.buttons.set(name, spec);
@@ -20,5 +30,9 @@ export class UiRegistry {
 
   addToggleButton(name: string, spec: Omit<ButtonSpec, 'toggle'>): void {
     this.buttons.set(name, { ...spec, toggle: true });
+  }
+
+  addMenuItem(name: string, spec: MenuItemSpec): void {
+    this.menuItems.set(name, spec);
   }
 }

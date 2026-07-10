@@ -15,5 +15,23 @@ export const icons: Record<string, string> = {
   h2: svg('<path d="M4 6v12M11 6v12M4 12h7M15.5 10a2.5 2.5 0 0 1 4.3 1.7c0 2-4.3 3.3-4.3 6.3h5"/>'),
   paragraph: svg('<path d="M13 5v14M17 5v14M17 5h-6a4 4 0 0 0 0 8h2"/>'),
   blockquote: svg('<path d="M8 7c-2 1-3 2.7-3 5v5h5v-5H7c0-1.8.8-3 2.5-3.8zM19 7c-2 1-3 2.7-3 5v5h5v-5h-3c0-1.8.8-3 2.5-3.8z" fill="currentColor" stroke="none"/>'),
-  removeformat: svg('<path d="M6 5h12M12 5 9 19M6 19h6"/><path d="m16 15 5 5M21 15l-5 5"/>')
+  removeformat: svg('<path d="M6 5h12M12 5 9 19M6 19h6"/><path d="m16 15 5 5M21 15l-5 5"/>'),
+  alignleft: svg('<path d="M4 6h16M4 12h10M4 18h14"/>'),
+  aligncenter: svg('<path d="M4 6h16M7 12h10M5 18h14"/>'),
+  alignright: svg('<path d="M4 6h16M10 12h10M6 18h14"/>'),
+  alignjustify: svg('<path d="M4 6h16M4 12h16M4 18h16"/>'),
+  bullist: svg(
+    '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.3" fill="currentColor" stroke="none"/>'
+  ),
+  numlist: svg(
+    '<path d="M10 6h10M10 12h10M10 18h10"/><path d="M4 5.5 5.5 4v5M4 11.5h2.5L4 14.5h2.5M4 17h2a1 1 0 0 1 0 2 1 1 0 0 1 0 2H4" stroke-width="1.4"/>'
+  ),
+  outdent: svg('<path d="M4 6h16M11 12h9M4 18h16M8 10l-3 2 3 2"/>'),
+  indent: svg('<path d="M4 6h16M11 12h9M4 18h16M5 10l3 2-3 2"/>'),
+  link: svg(
+    '<path d="M10 14a4 4 0 0 0 6 .4l2.6-2.6a4 4 0 1 0-5.7-5.7L11.5 7.5"/><path d="M14 10a4 4 0 0 0-6-.4L5.4 12.2a4 4 0 1 0 5.7 5.7l1.4-1.4"/>'
+  ),
+  unlink: svg(
+    '<path d="M10 14a4 4 0 0 0 6 .4l2.6-2.6a4 4 0 1 0-5.7-5.7L11.5 7.5"/><path d="M14 10a4 4 0 0 0-6-.4L5.4 12.2a4 4 0 1 0 5.7 5.7l1.4-1.4"/><path d="m4 4 16 16"/>'
+  )
 };

@@ -36,6 +36,7 @@ export const blocksPlugin: Plugin = {
         skipUndo: true // inner FormatBlock takes the snapshot
       });
       editor.ui.addToggleButton(b.name, { icon: b.icon, tooltip: b.tooltip, command: `FormatBlock:${b.tag}` });
+      editor.ui.addMenuItem(b.name, { menu: 'format', text: b.tooltip, command: `FormatBlock:${b.tag}` });
     }
   }
 };

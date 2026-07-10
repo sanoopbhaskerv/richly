@@ -85,17 +85,18 @@ export class EditorPage {
     await this.button(name).click();
   }
 
+  /** Raw DOM html minus caret-filler chars (U+FEFF) — assertions target content semantics. */
+  private async html(): Promise<string> {
+    return (await this.content.innerHTML()).replace(/﻿/g, '');
+  }
+
   async expectContentContains(html: string): Promise<void> {
-    await expect
-      .poll(async () => this.content.innerHTML())
-      .toContain(html);
+    await expect.poll(async () => this.html()).toContain(html);
   }
 
   /** Regex variant — dblclick word selection may include trailing whitespace in some browsers. */
   async expectContentMatches(pattern: RegExp): Promise<void> {
-    await expect
-      .poll(async () => this.content.innerHTML())
-      .toMatch(pattern);
+    await expect.poll(async () => this.html()).toMatch(pattern);
   }
 
   async expectButtonActive(name: string, active = true): Promise<void> {
