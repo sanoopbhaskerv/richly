@@ -1,0 +1,181 @@
+/** DOM mutation helpers for the command layer. NO document.execCommand anywhere. */
+
+export const TAG_ALIASES: Record<string, string[]> = {
+  strong: ['strong', 'b'],
+  em: ['em', 'i'],
+  u: ['u'],
+  s: ['s', 'strike', 'del'],
+  code: ['code'],
+  sub: ['sub'],
+  sup: ['sup']
+};
+
+export const BLOCK_TAGS = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'div', 'li'];
+
+const INLINE_FORMAT_TAGS = Object.values(TAG_ALIASES).flat().concat(['span', 'font']);
+
+function aliasesFor(tag: string): string[] {
+  return TAG_ALIASES[tag] ?? [tag];
+}
+
+/** Closest ancestor (within root) matching tag or its aliases. */
+export function closestTag(node: Node | null, tag: string, root: HTMLElement): HTMLElement | null {
+  const names = aliasesFor(tag).map((t) => t.toUpperCase());
+  let n: Node | null = node;
+  while (n && n !== root) {
+    if (n.nodeType === Node.ELEMENT_NODE && names.includes((n as HTMLElement).tagName)) {
+      return n as HTMLElement;
+    }
+    n = n.parentNode;
+  }
+  return null;
+}
+
+export function closestBlock(node: Node | null, root: HTMLElement): HTMLElement | null {
+  const names = BLOCK_TAGS.map((t) => t.toUpperCase());
+  let n: Node | null = node;
+  while (n && n !== root) {
+    if (n.nodeType === Node.ELEMENT_NODE && names.includes((n as HTMLElement).tagName)) {
+      return n as HTMLElement;
+    }
+    n = n.parentNode;
+  }
+  return null;
+}
+
+/** Remove all elements matching tag (and aliases) inside fragment, keeping children. */
+export function stripTagInFragment(frag: DocumentFragment | HTMLElement, tag: string): void {
+  const selector = aliasesFor(tag).join(',');
+  frag.querySelectorAll(selector).forEach((el) => unwrap(el));
+}
+
+export function unwrap(el: Element): void {
+  const parent = el.parentNode;
+  if (!parent) return;
+  while (el.firstChild) parent.insertBefore(el.firstChild, el);
+  parent.removeChild(el);
+}
+
+function isEmpty(el: Element): boolean {
+  return (el.textContent ?? '') === '' && !el.querySelector('img,br,hr,table');
+}
+
+/** Wrap the range contents in `tag`. De-dupes nested same-tags. Selects the result. */
+export function applyInline(range: Range, tag: string): Range {
+  const doc = range.startContainer.ownerDocument!;
+  const frag = range.extractContents();
+  stripTagInFragment(frag, tag); // avoid <strong><strong>
+  const el = doc.createElement(tag);
+  el.appendChild(frag);
+  range.insertNode(el);
+  const out = doc.createRange();
+  out.selectNodeContents(el);
+  return out;
+}
+
+/**
+ * Remove `tag` formatting from range contents. Handles the split case:
+ * un-bolding the middle of a larger bold run splits the ancestor.
+ */
+export function removeInline(range: Range, tag: string, root: HTMLElement): Range {
+  const doc = range.startContainer.ownerDocument!;
+  const ancestor =
+    closestTag(range.commonAncestorContainer, tag, root) ??
+    closestTag(range.startContainer, tag, root);
+
+  if (ancestor) {
+    // Split: [left stays in ancestor][mid = unformatted][right = clone of ancestor]
+    const rightRange = doc.createRange();
+    rightRange.setStart(range.endContainer, range.endOffset);
+    rightRange.setEnd(ancestor, ancestor.childNodes.length);
+    const rightFrag = rightRange.extractContents();
+
+    const midFrag = range.extractContents();
+    stripTagInFragment(midFrag, tag);
+
+    const parent = ancestor.parentNode!;
+    const next = ancestor.nextSibling;
+
+    let rightEl: HTMLElement | null = null;
+    if (rightFrag.textContent !== '' || rightFrag.querySelector('img,br')) {
+      rightEl = ancestor.cloneNode(false) as HTMLElement;
+      rightEl.appendChild(rightFrag);
+    }
+
+    const marker = doc.createTextNode('');
+    parent.insertBefore(marker, next);
+    if (rightEl) parent.insertBefore(rightEl, marker);
+
+    const anchorNode: Node = rightEl ?? marker;
+    const midStart = Array.prototype.indexOf.call(parent.childNodes, anchorNode);
+    parent.insertBefore(midFrag, anchorNode);
+
+    if (isEmpty(ancestor)) parent.removeChild(ancestor);
+
+    const out = doc.createRange();
+    const midEnd = Array.prototype.indexOf.call(parent.childNodes, anchorNode);
+    out.setStart(parent, Math.max(0, isEmpty(ancestor) ? midStart - 1 : midStart));
+    out.setEnd(parent, midEnd);
+    marker.remove();
+    return out;
+  }
+
+  // No wrapping ancestor: just strip matching tags inside the selection.
+  const frag = range.extractContents();
+  stripTagInFragment(frag, tag);
+  const first = frag.firstChild;
+  const last = frag.lastChild;
+  range.insertNode(frag);
+  const out = doc.createRange();
+  if (first && last) {
+    out.setStartBefore(first);
+    out.setEndAfter(last);
+  }
+  return out;
+}
+
+/** Replace the closest block of `node` with a new element of `tag`, moving children. */
+export function transformBlock(node: Node, tag: string, root: HTMLElement): HTMLElement | null {
+  const doc = root.ownerDocument;
+  let block = closestBlock(node, root);
+  if (!block) {
+    // Bare text directly under root — wrap it first.
+    const p = doc.createElement('p');
+    let n: Node | null = node;
+    while (n && n.parentNode !== root) n = n.parentNode;
+    if (!n) return null;
+    root.insertBefore(p, n);
+    p.appendChild(n);
+    block = p;
+  }
+  if (block.tagName.toLowerCase() === tag) return block;
+  const el = doc.createElement(tag);
+  while (block.firstChild) el.appendChild(block.firstChild);
+  block.parentNode!.replaceChild(el, block);
+  return el;
+}
+
+/** Strip ALL inline formatting inside the range (RemoveFormat). */
+export function removeAllInline(range: Range, root: HTMLElement): Range {
+  let r = range;
+  // Peel formatting ancestors one at a time — removeInline splits them properly
+  // so text outside the selection keeps its formatting.
+  for (let guard = 0; guard < 20; guard++) {
+    const tag = Object.keys(TAG_ALIASES).find(
+      (t) => closestTag(r.startContainer, t, root) ?? closestTag(r.commonAncestorContainer, t, root)
+    );
+    if (!tag) break;
+    r = removeInline(r, tag, root);
+  }
+  // Then strip any formatting tags fully inside the selection.
+  const frag = r.extractContents();
+  frag.querySelectorAll(INLINE_FORMAT_TAGS.join(',')).forEach((el) => unwrap(el));
+  const first = frag.firstChild;
+  const last = frag.lastChild;
+  r.insertNode(frag);
+  if (first && last) {
+    r.setStartBefore(first);
+    r.setEndAfter(last);
+  }
+  return r;
+}

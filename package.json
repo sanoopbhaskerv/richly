@@ -1,0 +1,19 @@
+{
+  "name": "sb-editor-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "yarn workspace @sb/demo dev",
+    "build": "yarn workspace @sb/editor-core build && yarn workspace @sb/editor-react build",
+    "test": "yarn workspace @sb/editor-core test",
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "playwright": "^1.61.1",
+    "typescript": "^5.5.0"
+  }
+}
