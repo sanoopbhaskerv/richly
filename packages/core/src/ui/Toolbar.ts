@@ -66,18 +66,57 @@ export class Toolbar {
           dd.dataset.testid = `dd-${name}`;
           // Clicks inside the panel must not steal the content selection.
           dd.addEventListener('mousedown', (e) => e.preventDefault());
-          const close = (): void => dd.classList.remove('sbe-open');
+          const close = (): void => {
+            // Clear any dynamic positioning so CSS defaults apply next time.
+            dd.style.left = '';
+            dd.style.right = '';
+            dd.classList.remove('sbe-open');
+          };
           dd.appendChild(buttonSpec.panel(this.editor, close));
           btn.setAttribute('aria-haspopup', 'true');
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const wasOpen = dd.classList.contains('sbe-open');
-            doc.querySelectorAll('.sbe-tb-dd').forEach((p) => p.classList.remove('sbe-open'));
+            doc.querySelectorAll('.sbe-tb-dd').forEach((p) => {
+              const el = p as HTMLElement;
+              el.style.left = '';
+              el.style.right = '';
+              el.classList.remove('sbe-open');
+            });
             if (!wasOpen) {
+              // Reset to CSS default so getBoundingClientRect reflects the
+              // natural (right: 0) position before we override it.
+              dd.style.left = '';
+              dd.style.right = '';
               dd.classList.add('sbe-open');
               dd.firstElementChild?.dispatchEvent(
                 new (doc.defaultView?.Event ?? Event)('sbe-panel-open')
               );
+              // Dynamically clamp the panel so it never overflows either
+              // viewport edge. We measure after a rAF so the browser has
+              // painted the panel at its natural position.
+              const view = doc.defaultView;
+              if (view) {
+                requestAnimationFrame(() => {
+                  const panelRect = dd.getBoundingClientRect();
+                  const wrapRect = wrap.getBoundingClientRect();
+                  const margin = 8;
+                  const vpWidth = view.innerWidth;
+
+                  // Natural desired left in viewport coords: right-align panel to wrap.
+                  const naturalLeft = wrapRect.right - panelRect.width;
+                  // Clamp so the panel stays fully inside the viewport.
+                  const clampedLeft = Math.max(
+                    margin,
+                    Math.min(vpWidth - panelRect.width - margin, naturalLeft)
+                  );
+                  // Convert from viewport coords to local coords
+                  // (relative to the wrap, which is the CSS containing block).
+                  const localLeft = clampedLeft - wrapRect.left;
+                  dd.style.left = `${localLeft}px`;
+                  dd.style.right = 'auto';
+                });
+              }
             }
           });
           doc.addEventListener('click', close);

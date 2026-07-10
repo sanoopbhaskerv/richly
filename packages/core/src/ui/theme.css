@@ -352,6 +352,9 @@
   display: block;
 }
 .sbe-tb-dd[data-testid='dd-table'] {
+  /* Default: right-align the panel to the button.
+     Actual clamped position is computed in Toolbar.ts (requestAnimationFrame)
+     and applied as an inline left/right style to stay within the viewport. */
   left: auto;
   right: 0;
 }
@@ -495,14 +498,18 @@
 }
 
 @media (max-width: 640px) {
+  /* Stack grid picker above the context section instead of side-by-side. */
   .sbe-table-panel {
-    grid-template-columns: 174px;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
   }
   .sbe-table-context {
     border-left: 0;
     border-top: 1px solid var(--sbe-border);
     padding: 12px 4px 4px;
   }
+  /* Dropdown clamping on narrow screens is handled by JS in Toolbar.ts.
+     No static position/transform override needed here. */
 }
 
 .sbe-table-context-menu {
