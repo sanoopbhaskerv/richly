@@ -8,13 +8,21 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: {
-      // Point straight at the TypeScript source so Vite compiles it on-the-fly.
-      // Any edit to packages/core/src/** or packages/react/src/** will hot-reload
-      // instantly — no manual `yarn build` needed during development.
-      '@sb/editor-core': path.resolve(__dirname, '../core/src/index.ts'),
-      '@sb/editor-core/theme.css': path.resolve(__dirname, '../core/src/ui/theme.css'),
-      '@sb/editor-react': path.resolve(__dirname, '../react/src/index.ts'),
-    }
+    alias: [
+      // CSS sub-path MUST come before the bare package alias.
+      // Using regex with $ anchor to prevent prefix-matching bleed-through.
+      {
+        find: /^@sb\/editor-core\/theme\.css$/,
+        replacement: path.resolve(__dirname, '../core/src/ui/theme.css'),
+      },
+      {
+        find: /^@sb\/editor-core$/,
+        replacement: path.resolve(__dirname, '../core/src/index.ts'),
+      },
+      {
+        find: /^@sb\/editor-react$/,
+        replacement: path.resolve(__dirname, '../react/src/index.ts'),
+      },
+    ]
   }
 });
