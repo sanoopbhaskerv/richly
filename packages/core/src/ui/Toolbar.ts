@@ -47,14 +47,42 @@ export class Toolbar {
         if (buttonSpec.toggle) btn.setAttribute('aria-pressed', 'false');
         // preventDefault on mousedown keeps the content selection (HANDOFF.md §6)
         btn.addEventListener('mousedown', (e) => e.preventDefault());
-        btn.addEventListener('click', () => {
-          this.editor.execCommand(buttonSpec.command, buttonSpec.args);
-          // Don't steal focus back if the command opened a modal dialog.
-          if (!doc.querySelector('.sbe-dialog-overlay')) this.editor.focus();
-        });
-        groupEl.appendChild(btn);
+
+        if (buttonSpec.panel) {
+          // Dropdown button (e.g. table grid picker).
+          const wrap = doc.createElement('div');
+          wrap.className = 'sbe-tb-wrap';
+          const dd = doc.createElement('div');
+          dd.className = 'sbe-tb-dd';
+          dd.dataset.testid = `dd-${name}`;
+          // Clicks inside the panel must not steal the content selection.
+          dd.addEventListener('mousedown', (e) => e.preventDefault());
+          const close = (): void => dd.classList.remove('sbe-open');
+          dd.appendChild(buttonSpec.panel(this.editor, close));
+          btn.setAttribute('aria-haspopup', 'true');
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const wasOpen = dd.classList.contains('sbe-open');
+            doc.querySelectorAll('.sbe-tb-dd').forEach((p) => p.classList.remove('sbe-open'));
+            if (!wasOpen) dd.classList.add('sbe-open');
+          });
+          doc.addEventListener('click', close);
+          this.editor.events.on('destroy', () => doc.removeEventListener('click', close));
+          wrap.append(btn, dd);
+          groupEl.appendChild(wrap);
+        } else if (buttonSpec.command) {
+          const command = buttonSpec.command;
+          btn.addEventListener('click', () => {
+            this.editor.execCommand(command, buttonSpec.args);
+            // Don't steal focus back if the command opened a modal dialog.
+            if (!doc.querySelector('.sbe-dialog-overlay')) this.editor.focus();
+          });
+          groupEl.appendChild(btn);
+          if (buttonSpec.toggle) this.toggles.push({ name, el: btn, command });
+        } else {
+          groupEl.appendChild(btn);
+        }
         this.buttons.push(btn);
-        if (buttonSpec.toggle) this.toggles.push({ name, el: btn, command: buttonSpec.command });
       }
       this.container.appendChild(groupEl);
     });

@@ -6,6 +6,11 @@ import { alignPlugin } from './align';
 import { listsPlugin } from './lists';
 import { indentPlugin } from './indent';
 import { linkPlugin } from './link';
+import { tablePlugin } from './table';
+import { imagePlugin } from './image';
+import { hrPlugin } from './hr';
+import { sourceCodePlugin } from './sourcecode';
+import { fullscreenPlugin } from './fullscreen';
 
 export type { Plugin } from './types';
 
@@ -17,5 +22,10 @@ export const corePlugins: Plugin[] = [
   alignPlugin,
   listsPlugin,
   indentPlugin,
-  linkPlugin
+  linkPlugin,
+  tablePlugin,
+  imagePlugin,
+  hrPlugin,
+  sourceCodePlugin,
+  fullscreenPlugin
 ];

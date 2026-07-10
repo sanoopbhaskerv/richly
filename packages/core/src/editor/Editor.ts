@@ -37,7 +37,7 @@ export interface EditorEvents extends Record<string, unknown> {
 }
 
 const DEFAULT_TOOLBAR =
-  'undo redo | bold italic underline strikethrough | h1 h2 paragraph blockquote | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink | removeformat';
+  'undo redo | bold italic underline strikethrough | h1 h2 paragraph blockquote | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink table image | code fullscreen removeformat';
 
 export class Editor {
   readonly events = new Emitter<EditorEvents>();

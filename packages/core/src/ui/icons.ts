@@ -33,5 +33,9 @@ export const icons: Record<string, string> = {
   ),
   unlink: svg(
     '<path d="M10 14a4 4 0 0 0 6 .4l2.6-2.6a4 4 0 1 0-5.7-5.7L11.5 7.5"/><path d="M14 10a4 4 0 0 0-6-.4L5.4 12.2a4 4 0 1 0 5.7 5.7l1.4-1.4"/><path d="m4 4 16 16"/>'
-  )
+  ),
+  table: svg('<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M4 14.5h16M10 5v14M15 5v14" stroke-width="1.4"/>'),
+  image: svg('<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m5 17 4.5-4.5L14 17l3-3 3 3"/>'),
+  sourcecode: svg('<path d="m9 8-4 4 4 4M15 8l4 4-4 4"/>'),
+  fullscreen: svg('<path d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/>')
 };

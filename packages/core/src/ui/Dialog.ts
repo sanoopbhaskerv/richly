@@ -3,7 +3,7 @@ import type { Editor } from '../editor/Editor';
 export interface DialogField {
   name: string;
   label: string;
-  type?: 'text' | 'url';
+  type?: 'text' | 'url' | 'textarea';
   placeholder?: string;
   value?: string;
 }
@@ -41,14 +41,21 @@ export function openDialog(editor: Editor, spec: DialogSpec): Promise<Record<str
     titleEl.textContent = spec.title;
     dialog.appendChild(titleEl);
 
-    const inputs = new Map<string, HTMLInputElement>();
+    const inputs = new Map<string, HTMLInputElement | HTMLTextAreaElement>();
     for (const field of spec.fields) {
       const row = doc.createElement('label');
       row.className = 'sbe-dialog-row';
       const labelEl = doc.createElement('span');
       labelEl.textContent = field.label;
-      const input = doc.createElement('input');
-      input.type = field.type ?? 'text';
+      let input: HTMLInputElement | HTMLTextAreaElement;
+      if (field.type === 'textarea') {
+        input = doc.createElement('textarea');
+        input.rows = 12;
+        dialog.classList.add('sbe-dialog-wide');
+      } else {
+        input = doc.createElement('input');
+        input.type = field.type ?? 'text';
+      }
       input.dataset.testid = `dialog-field-${field.name}`;
       input.placeholder = field.placeholder ?? '';
       input.value = field.value ?? '';
@@ -98,7 +105,8 @@ export function openDialog(editor: Editor, spec: DialogSpec): Promise<Record<str
         e.preventDefault();
         e.stopPropagation();
         close(null);
-      } else if (e.key === 'Enter' && dialog.contains(doc.activeElement)) {
+      } else if (e.key === 'Enter' && doc.activeElement?.tagName === 'INPUT' && dialog.contains(doc.activeElement)) {
+        // Enter submits from single-line inputs only (textarea needs newlines).
         e.preventDefault();
         submit();
       } else if (e.key === 'Tab' && dialog.contains(doc.activeElement)) {

@@ -1,13 +1,21 @@
+import type { Editor } from '../editor/Editor';
+
 export interface ButtonSpec {
   /** Icon key (ui/icons.ts) or raw SVG/text. */
   icon: string;
   tooltip: string;
-  command: string;
+  /** Command to execute on click. Omit when `panel` is set. */
+  command?: string;
   args?: unknown;
   /** Toggle buttons reflect queryCommandState as active/aria-pressed. */
   toggle?: boolean;
   /** Optional shortcut label appended to tooltip, e.g. "Mod+B". */
   shortcut?: string;
+  /**
+   * Dropdown button: builds the panel content (e.g. table grid picker).
+   * The panel gets data-testid dd-<buttonName>; call close() to dismiss.
+   */
+  panel?: (editor: Editor, close: () => void) => HTMLElement;
 }
 
 export interface MenuItemSpec {
