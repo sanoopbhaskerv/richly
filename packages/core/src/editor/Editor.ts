@@ -19,6 +19,8 @@ export interface EditorConfig {
   /** Set false to hide the menubar. */
   menubar?: boolean;
   statusbar?: boolean;
+  /** Set false to remove the statusbar resize grip. */
+  resize?: boolean;
   plugins?: Plugin[];
   /** Prefix for chrome data-testids (default "editor"): editor-root, editor-toolbar, editor-content, editor-statusbar. */
   testIdPrefix?: string;
@@ -73,7 +75,7 @@ export class Editor {
     const toolbarEl = this.root.querySelector<HTMLElement>('.sbe-toolbar')!;
     new Toolbar(this, toolbarEl, config.toolbar ?? DEFAULT_TOOLBAR);
     if (config.statusbar !== false) {
-      new Statusbar(this, this.root.querySelector<HTMLElement>('.sbe-statusbar')!);
+      new Statusbar(this, this.root.querySelector<HTMLElement>('.sbe-statusbar')!, config.resize !== false);
     }
 
     this.setContent(config.initialContent ?? '<p><br></p>', { addUndoLevel: false });

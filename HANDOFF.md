@@ -52,13 +52,13 @@ Hard-won e2e lessons (already fixed, don't regress):
 - Dialog Escape must be a document-level capture listener — focus may be in the editor body.
 - In specs, ALWAYS scope `menu-*`/`tb-*` locators via `editor.root.getByTestId(...)` — the demo page has two instances.
 
-**M2 progress:** `plugins/table.ts` (grid-picker dropdown via new `ButtonSpec.panel` API, InsertTable + row/col insert/delete + TableDelete, Table menu, Tab/Shift-Tab cell nav, Tab-on-last-cell appends a row), `plugins/image.ts` (dialog src+alt, edit-in-place), `plugins/hr.ts`, `plugins/sourcecode.ts` (textarea dialog → setContent through sanitizer), `plugins/fullscreen.ts` (root class toggle, Esc exits, skipUndo). Dialog supports `type: 'textarea'` (Enter submits from INPUTs only). Toolbar supports dropdown panels (`dd-<name>` testid); panels preventDefault mousedown — clicking a panel must never steal the content selection (same rule as buttons). Verified: 65/65 unit, 23/23 chromium e2e.
+**M2 progress:** `plugins/table.ts` now has a combined grid picker + contextual table command center, InsertTable + row/column insert/delete, table/cell/row property dialogs, semantic header/body/footer rows, caption/striped styles, deterministic `<colgroup>` column resizing, a whole-table selection frame with width/height/corner drag handles, Table menu, Tab/Shift-Tab cell navigation, and Tab-on-last-cell row creation. The editor itself also has an optional statusbar height grip (`resize: false` disables it). `plugins/image.ts` (dialog src+alt, edit-in-place), `plugins/hr.ts`, `plugins/sourcecode.ts` (textarea dialog → setContent through sanitizer), `plugins/fullscreen.ts` (root class toggle, Esc exits, skipUndo). Dialog supports text, textarea, select, checkbox, responsive grid layouts, descriptions, hints, and an explicit close button. Toolbar supports dropdown panels (`dd-<name>` testid); panels preventDefault mousedown — clicking a panel must never steal the content selection (same rule as buttons). Verified: **78/78 unit tests, core+React TypeScript builds, 29/29 Chromium e2e**.
 
 Known gaps / TODOs in code:
 - `removeInline` drops nested formatting inside the extracted range (un-bolding `<strong><em>x</em></strong>` loses italics).
 - Lists: no merging of adjacent lists; list toggle on headings drops the heading tag.
 - Autolink regex is simple (no trailing-punctuation trimming).
-- Table: no merge/split cells, no column resize, no header-row toggle yet.
+- Table: no multi-cell selection or merge/split cells yet; row/column clipboard operations are also pending.
 - Image: no resize handles or upload hook yet (URL only).
 - Next (M2 remainder): search/replace, wordcount plugin, preview, visualblocks, paste-from-Word fixtures; then M3 inserts (charmap, emoticons, anchor, datetime, pagebreak, accordion).
 

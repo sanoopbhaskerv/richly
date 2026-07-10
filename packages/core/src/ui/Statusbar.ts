@@ -7,7 +7,8 @@ export class Statusbar {
 
   constructor(
     private editor: Editor,
-    container: HTMLElement
+    container: HTMLElement,
+    resizable = true
   ) {
     const doc = container.ownerDocument;
     this.elpath = doc.createElement('div');
@@ -21,11 +22,38 @@ export class Statusbar {
     this.wordcount.dataset.testid = 'status-wordcount';
 
     container.append(this.elpath, grow, this.wordcount);
+    if (resizable) container.append(this.buildResizeGrip(doc));
 
     editor.events.on('selectionchange', () => this.refresh());
     editor.events.on('change', () => this.refresh());
     editor.events.on('input', () => this.refresh());
     this.refresh();
+  }
+
+  /** Vertical drag grip — resizes the editor's content area (view state, no undo). */
+  private buildResizeGrip(doc: Document): HTMLElement {
+    const grip = doc.createElement('div');
+    grip.className = 'sbe-resize-grip';
+    grip.dataset.testid = 'status-resize';
+    grip.setAttribute('aria-label', 'Resize editor');
+    grip.textContent = '⋰';
+    grip.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      const body = this.editor.getBody();
+      const startY = e.clientY;
+      const startH = body.offsetHeight;
+      body.style.flex = '0 0 auto'; // explicit height takes over from flex sizing
+      const onMove = (ev: MouseEvent): void => {
+        body.style.height = `${Math.max(120, startH + ev.clientY - startY)}px`;
+      };
+      const onUp = (): void => {
+        doc.removeEventListener('mousemove', onMove);
+        doc.removeEventListener('mouseup', onUp);
+      };
+      doc.addEventListener('mousemove', onMove);
+      doc.addEventListener('mouseup', onUp);
+    });
+    return grip;
   }
 
   refresh(): void {

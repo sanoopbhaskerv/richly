@@ -64,7 +64,10 @@ export class Toolbar {
             e.stopPropagation();
             const wasOpen = dd.classList.contains('sbe-open');
             doc.querySelectorAll('.sbe-tb-dd').forEach((p) => p.classList.remove('sbe-open'));
-            if (!wasOpen) dd.classList.add('sbe-open');
+            if (!wasOpen) {
+              dd.classList.add('sbe-open');
+              dd.firstElementChild?.dispatchEvent(new (doc.defaultView?.Event ?? Event)('sbe-panel-open'));
+            }
           });
           doc.addEventListener('click', close);
           this.editor.events.on('destroy', () => doc.removeEventListener('click', close));
