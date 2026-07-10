@@ -49,7 +49,9 @@ export class Toolbar {
         btn.className = 'sbe-tb-btn';
         btn.dataset.testid = `tb-${name}`;
         btn.setAttribute('aria-label', buttonSpec.tooltip);
-        btn.title = buttonSpec.shortcut
+        // data-tooltip drives the CSS ::after tooltip; no native title so the OS
+        // tooltip doesn't double-show.
+        const tooltipText = buttonSpec.shortcut
           ? `${buttonSpec.tooltip} (${buttonSpec.shortcut})`
           : buttonSpec.tooltip;
         btn.innerHTML = icons[buttonSpec.icon] ?? buttonSpec.icon;
@@ -61,6 +63,8 @@ export class Toolbar {
           // Dropdown button (e.g. table grid picker).
           const wrap = doc.createElement('div');
           wrap.className = 'sbe-tb-wrap';
+          // Tooltip on the wrap so ::after anchors to the full button area.
+          wrap.dataset.tooltip = tooltipText;
           const dd = doc.createElement('div');
           dd.className = 'sbe-tb-dd';
           dd.dataset.testid = `dd-${name}`;
@@ -125,6 +129,8 @@ export class Toolbar {
           groupEl.appendChild(wrap);
         } else if (buttonSpec.command) {
           const command = buttonSpec.command;
+          // Plain (non-panel) button gets the tooltip directly.
+          btn.dataset.tooltip = tooltipText;
           btn.addEventListener('click', () => {
             this.editor.execCommand(command, buttonSpec.args);
             // Don't steal focus back if the command opened a modal dialog.
@@ -133,6 +139,8 @@ export class Toolbar {
           groupEl.appendChild(btn);
           if (buttonSpec.toggle) this.toggles.push({ name, el: btn, command });
         } else {
+          // No command, no panel — still show tooltip.
+          btn.dataset.tooltip = tooltipText;
           groupEl.appendChild(btn);
         }
         this.buttons.push(btn);
