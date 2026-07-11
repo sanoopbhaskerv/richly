@@ -19,3 +19,7 @@ with `wordCount: false` or `{ words, characters, selection }`.
 
 See the repository README for configuration, React usage, and contributing
 guidance.
+
+Project policies: [accessibility support](https://github.com/sanoopbhaskerv/richly/blob/main/ACCESSIBILITY.md),
+[changelog](https://github.com/sanoopbhaskerv/richly/blob/main/CHANGELOG.md), and
+[migration policy](https://github.com/sanoopbhaskerv/richly/blob/main/MIGRATING.md).

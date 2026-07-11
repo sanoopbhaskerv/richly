@@ -14,11 +14,22 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
-    "format:write": "prettier --write ."
+    "format:write": "prettier --write .",
+    "release:validate": "node scripts/check-release.mjs",
+    "release:pack": "node scripts/pack-dry-run.mjs",
+    "release:check": "yarn release:validate && yarn lint && yarn format && yarn test && yarn build && yarn release:pack"
   },
   "packageManager": "yarn@1.22.22",
   "engines": {
     "node": ">=18.18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sanoopbhaskerv/richly.git"
+  },
+  "homepage": "https://github.com/sanoopbhaskerv/richly#readme",
+  "bugs": {
+    "url": "https://github.com/sanoopbhaskerv/richly/issues"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

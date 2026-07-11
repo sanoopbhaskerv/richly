@@ -1,8 +1,17 @@
 {
   "name": "@richly/react",
   "version": "0.1.0",
-  "description": "React bindings for SB Editor, a dependency-free WYSIWYG HTML editor.",
+  "description": "React bindings for Richly, a dependency-free WYSIWYG HTML editor.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sanoopbhaskerv/richly.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://github.com/sanoopbhaskerv/richly#readme",
+  "bugs": {
+    "url": "https://github.com/sanoopbhaskerv/richly/issues"
+  },
   "keywords": [
     "react",
     "react-editor",

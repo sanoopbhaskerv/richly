@@ -25,7 +25,10 @@ test.describe('inline table options toolbar (vanilla instance)', () => {
     // Clicking a paragraph outside the table hides the bar. Click near the
     // paragraph's left edge — the bar is centered and click-transparent only
     // in its gaps, so the edge is guaranteed to be clear of its buttons.
-    await editor.content.locator('p').last().click({ position: { x: 5, y: 5 } });
+    await editor.content
+      .locator('p')
+      .last()
+      .click({ position: { x: 5, y: 5 } });
     await expect(bar).toBeHidden();
   });
 

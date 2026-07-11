@@ -319,7 +319,9 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
   z-index: 200;
 }
 .rly-tb-btn[data-tooltip]:not(:disabled):hover::after,
@@ -339,8 +341,6 @@
 .rly-tb-wrap[data-tooltip] {
   position: relative;
 }
-
-
 
 .rly-toolbar-overflow {
   position: relative;
@@ -573,8 +573,12 @@
      for content beneath; only the buttons themselves take the pointer. */
   pointer-events: none;
 }
-.rly-table-inline-toolbar.rly-open { display: flex; }
-.rly-table-inline-toolbar .rly-table-inline-btn { pointer-events: auto; }
+.rly-table-inline-toolbar.rly-open {
+  display: flex;
+}
+.rly-table-inline-toolbar .rly-table-inline-btn {
+  pointer-events: auto;
+}
 /* Notch pointing at the table: top edge by default, bottom edge when flipped above. */
 .rly-table-inline-toolbar::before {
   content: '';
@@ -606,7 +610,10 @@
   cursor: pointer;
   color: var(--rly-text);
 }
-.rly-table-inline-btn:hover { background: var(--rly-hover); color: var(--rly-accent); }
+.rly-table-inline-btn:hover {
+  background: var(--rly-hover);
+  color: var(--rly-accent);
+}
 .rly-table-inline-sep {
   width: 1px;
   height: 22px;

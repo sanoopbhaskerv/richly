@@ -3,6 +3,15 @@
   "version": "0.1.0",
   "description": "A dependency-free WYSIWYG HTML editor engine for JavaScript and React.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sanoopbhaskerv/richly.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/sanoopbhaskerv/richly#readme",
+  "bugs": {
+    "url": "https://github.com/sanoopbhaskerv/richly/issues"
+  },
   "keywords": [
     "rich-text-editor",
     "wysiwyg",

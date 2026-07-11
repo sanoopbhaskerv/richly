@@ -18,7 +18,8 @@ configurable counts, preview, and visual blocks.
 
 ## Before a stable 1.0
 
-- Establish a semantic-versioning and release process.
-- Publish an accessibility support statement.
-- Add a public changelog and migration policy.
-- Expand the paste fixture library with more Word and Google Docs samples.
+- Complete manual assistive-technology testing for the published support
+  matrix.
+- Add keyboard controls and live-region feedback for table range selection and
+  pointer-based resize handles.
+- Grow the real-world paste corpus as browser and office-suite output evolves.

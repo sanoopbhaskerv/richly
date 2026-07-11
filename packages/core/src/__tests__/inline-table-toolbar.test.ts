@@ -49,11 +49,15 @@ describe('inline table options toolbar', () => {
     ed = createTestEditor(TABLE);
     mouseDownOn(ed.getBody().querySelector('td')!);
     placeCursor(ed, 'a', 0); // jsdom: caret must be placed explicitly
-    bar().querySelector<HTMLButtonElement>('[data-testid="inline-table-action-row-after"]')!.click();
+    bar()
+      .querySelector<HTMLButtonElement>('[data-testid="inline-table-action-row-after"]')!
+      .click();
     expect(ed.getBody().querySelectorAll('tr').length).toBe(2);
     expect(bar().classList.contains('rly-open')).toBe(true);
 
-    bar().querySelector<HTMLButtonElement>('[data-testid="inline-table-action-col-after"]')!.click();
+    bar()
+      .querySelector<HTMLButtonElement>('[data-testid="inline-table-action-col-after"]')!
+      .click();
     expect(ed.getBody().querySelectorAll('tr')[0]!.children.length).toBe(3);
   });
 

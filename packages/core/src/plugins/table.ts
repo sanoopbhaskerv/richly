@@ -1025,25 +1025,53 @@ const INLINE_ACTIONS: ({ id: string; command: string; label: string; icon: strin
   { id: 'table-props', command: 'TableProps', label: 'Table properties', icon: 'inlineTableProps' },
   { id: 'delete-table', command: 'TableDelete', label: 'Delete table', icon: 'inlineDeleteTable' },
   null,
-  { id: 'row-before', command: 'TableInsertRowBefore', label: 'Insert row above', icon: 'inlineRowBefore' },
-  { id: 'row-after', command: 'TableInsertRowAfter', label: 'Insert row below', icon: 'inlineRowAfter' },
+  {
+    id: 'row-before',
+    command: 'TableInsertRowBefore',
+    label: 'Insert row above',
+    icon: 'inlineRowBefore'
+  },
+  {
+    id: 'row-after',
+    command: 'TableInsertRowAfter',
+    label: 'Insert row below',
+    icon: 'inlineRowAfter'
+  },
   { id: 'delete-row', command: 'TableDeleteRow', label: 'Delete row', icon: 'inlineDeleteRow' },
   null,
-  { id: 'col-before', command: 'TableInsertColBefore', label: 'Insert column left', icon: 'inlineColBefore' },
-  { id: 'col-after', command: 'TableInsertColAfter', label: 'Insert column right', icon: 'inlineColAfter' },
+  {
+    id: 'col-before',
+    command: 'TableInsertColBefore',
+    label: 'Insert column left',
+    icon: 'inlineColBefore'
+  },
+  {
+    id: 'col-after',
+    command: 'TableInsertColAfter',
+    label: 'Insert column right',
+    icon: 'inlineColAfter'
+  },
   { id: 'delete-col', command: 'TableDeleteCol', label: 'Delete column', icon: 'inlineDeleteCol' }
 ];
 
 /** Stroke-based 24px glyphs for the inline toolbar (kept local — table-specific). */
 const INLINE_ICONS: Record<string, string> = {
-  inlineTableProps: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M4 14.5h16M10 5v14M15 5v14" stroke-width="1.4"/>',
-  inlineDeleteTable: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="m9.5 9.5 5 5M14.5 9.5l-5 5"/>',
-  inlineRowBefore: '<rect x="4" y="12.5" width="16" height="7" rx="1.5"/><path d="M12 3.5v5.5M9.3 6.2h5.4"/>',
-  inlineRowAfter: '<rect x="4" y="4.5" width="16" height="7" rx="1.5"/><path d="M12 15v5.5M9.3 17.8h5.4"/>',
-  inlineDeleteRow: '<rect x="4" y="9" width="16" height="6" rx="1.5"/><path d="m9.8 4 2.2 2.2L14.2 4M9.8 20l2.2-2.2L14.2 20" stroke-width="1.4"/>',
-  inlineColBefore: '<rect x="12.5" y="4" width="7" height="16" rx="1.5"/><path d="M3.5 12H9M6.2 9.3v5.4"/>',
-  inlineColAfter: '<rect x="4.5" y="4" width="7" height="16" rx="1.5"/><path d="M15 12h5.5M17.8 9.3v5.4"/>',
-  inlineDeleteCol: '<rect x="9" y="4" width="6" height="16" rx="1.5"/><path d="m4 9.8 2.2 2.2L4 14.2M20 9.8l-2.2 2.2 2.2 2.2" stroke-width="1.4"/>'
+  inlineTableProps:
+    '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M4 14.5h16M10 5v14M15 5v14" stroke-width="1.4"/>',
+  inlineDeleteTable:
+    '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="m9.5 9.5 5 5M14.5 9.5l-5 5"/>',
+  inlineRowBefore:
+    '<rect x="4" y="12.5" width="16" height="7" rx="1.5"/><path d="M12 3.5v5.5M9.3 6.2h5.4"/>',
+  inlineRowAfter:
+    '<rect x="4" y="4.5" width="16" height="7" rx="1.5"/><path d="M12 15v5.5M9.3 17.8h5.4"/>',
+  inlineDeleteRow:
+    '<rect x="4" y="9" width="16" height="6" rx="1.5"/><path d="m9.8 4 2.2 2.2L14.2 4M9.8 20l2.2-2.2L14.2 20" stroke-width="1.4"/>',
+  inlineColBefore:
+    '<rect x="12.5" y="4" width="7" height="16" rx="1.5"/><path d="M3.5 12H9M6.2 9.3v5.4"/>',
+  inlineColAfter:
+    '<rect x="4.5" y="4" width="7" height="16" rx="1.5"/><path d="M15 12h5.5M17.8 9.3v5.4"/>',
+  inlineDeleteCol:
+    '<rect x="9" y="4" width="6" height="16" rx="1.5"/><path d="m4 9.8 2.2 2.2L4 14.2M20 9.8l-2.2 2.2 2.2 2.2" stroke-width="1.4"/>'
 };
 
 /** Wraps an INLINE_ICONS glyph into a standalone stroke SVG. */

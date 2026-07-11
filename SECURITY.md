@@ -2,9 +2,9 @@
 
 Please do not report security vulnerabilities in public issues.
 
-Until a public security contact is configured, report potential vulnerabilities
-privately to the maintainer through the repository hosting platform. Include a
-minimal reproduction, affected version, and impact assessment.
+Report potential vulnerabilities privately through the repository's
+[GitHub security advisories](https://github.com/sanoopbhaskerv/richly/security/advisories/new).
+Include a minimal reproduction, affected version, and impact assessment.
 
 Richly treats HTML sanitization, paste handling, URL validation, and DOM
 selection handling as security-sensitive areas.

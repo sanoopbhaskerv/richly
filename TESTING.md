@@ -26,7 +26,7 @@ expect(ed.getContent()).toBe('<p><strong>hello</strong> world</p>');
 
 - What must be unit-tested (per module):
   - **commands/**: every command — apply, toggle-off, overlap/nested cases, collapsed-selection behavior, `queryCommandState` truth table.
-  - **model/Sanitizer**: script/event-handler stripping, whitelist enforcement, Word/GDocs paste fixtures (store real pasted HTML in `__fixtures__/`).
+  - **model/Sanitizer**: script/event-handler stripping, whitelist enforcement, and the maintained `word-paragraphs.html`, `word-table.html`, and `google-docs.html` paste fixtures in `src/__tests__/__fixtures__/`.
   - **undo/UndoManager**: snapshot push, typing coalescing window, redo-tail truncation, max-depth cap, selection restore after undo.
   - **dom/SelectionManager**: bookmark → restore round-trip across DOM mutations.
   - **events/Emitter**: on/off/once, unsubscribe fn, emit payloads.
@@ -45,12 +45,11 @@ expect(ed.getContent()).toBe('<p><strong>hello</strong> world</p>');
   - `blocks.spec.ts` — headings, blockquote, element path in statusbar
   - `history.spec.ts` — undo/redo via button and ⌘Z/⌘⇧Z, typing coalescing
   - `shortcuts.spec.ts` — all keyboard shortcuts, Alt+F10 toolbar focus, roving tabindex
-  - `paste.spec.ts` — clipboard paste sanitization (Word/GDocs fixtures)
   - `advanced-editing.spec.ts` — IME undo grouping, safe plain-text paste, table merge/split, search/replace, preview, and visual blocks
   - `lists.spec.ts`, `link.spec.ts`, `table.spec.ts`, `image.spec.ts` — as those plugins land (Milestone 2)
   - `react.spec.ts` — React demo pane behaves identically to vanilla pane (both are on the demo page)
 - Artifacts: screenshots + traces on failure (`trace: 'on-first-retry'`).
-- CI: GitHub Actions — job 1 `vitest run --coverage`, job 2 `playwright test` matrix over browsers. Add when repo gets a remote.
+- CI: GitHub Actions runs coverage/build quality gates and a Playwright matrix over Chromium, Firefox, and WebKit. Version tags additionally run the gated release workflow.
 
 ## 4. data-testid registry (canonical — keep in sync when adding UI)
 
