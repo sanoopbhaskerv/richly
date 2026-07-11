@@ -74,6 +74,26 @@ export class EditorPage {
     }, word);
     if (!point) throw new Error(`selectWord: "${word}" not found in editor content`);
     await this.page.mouse.dblclick(point.x, point.y);
+    // Firefox may aggregate rapid clicks or place selection boundaries around
+    // the inline element. Keep the real double-click path, then normalize only
+    // when it did not select the requested word.
+    await this.content.evaluate((el, w) => {
+      const selection = window.getSelection();
+      if (selection?.toString().trim() === w) return;
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      let node: Node | null;
+      while ((node = walker.nextNode())) {
+        const index = node.textContent?.indexOf(w) ?? -1;
+        if (index === -1) continue;
+        const range = document.createRange();
+        range.setStart(node, index);
+        range.setEnd(node, index + w.length);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        document.dispatchEvent(new Event('selectionchange'));
+        return;
+      }
+    }, word);
   }
 
   async selectAll(): Promise<void> {

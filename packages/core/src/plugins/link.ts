@@ -1,6 +1,6 @@
 import type { Plugin } from './types';
 import type { Editor } from '../editor/Editor';
-import { applyInline, closestTag, unwrap } from '../dom/DomUtils';
+import { applyInline, closestTag, closestTagInRange, unwrap } from '../dom/DomUtils';
 import { openDialog } from '../ui/Dialog';
 
 interface LinkArgs {
@@ -15,7 +15,7 @@ function normalizeHref(href: string): string {
 function currentLink(editor: Editor): HTMLElement | null {
   const range = editor.selection.getRange();
   if (!range) return null;
-  return closestTag(range.startContainer, 'a', editor.getBody());
+  return closestTagInRange(range, 'a', editor.getBody());
 }
 
 async function openLinkDialog(editor: Editor): Promise<void> {

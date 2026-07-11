@@ -20,6 +20,20 @@ describe('inline format commands', () => {
     expect(ed.getContent()).toBe('<p>hello world</p>');
   });
 
+  it('toggles off when browser range boundaries surround the strong element', () => {
+    ed = createTestEditor('<p><strong>hello</strong> world</p>');
+    const p = ed.getBody().querySelector('p')!;
+    const range = document.createRange();
+    range.setStart(p, 0);
+    range.setEnd(p, 1);
+    ed.selection.setRange(range);
+
+    expect(ed.queryCommandState('Bold')).toBe(true);
+    ed.execCommand('Bold');
+    expect(ed.getContent()).toBe('<p>hello world</p>');
+    expect(ed.queryCommandState('Bold')).toBe(false);
+  });
+
   it('un-bolding the middle of a bold run splits it', () => {
     ed = createTestEditor('<p><strong>aaa bbb ccc</strong></p>');
     selectText(ed, 'bbb');

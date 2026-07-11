@@ -43,6 +43,38 @@ export function closestTag(node: Node | null, tag: string, root: HTMLElement): H
   return null;
 }
 
+/**
+ * Resolve an inline element represented by a selection. Firefox may place a
+ * double-click range on the parent element boundaries (for example, P offsets
+ * immediately before/after STRONG) instead of inside the inline text node.
+ */
+export function closestTagInRange(
+  range: Range,
+  tag: string,
+  root: HTMLElement
+): HTMLElement | null {
+  const direct =
+    closestTag(range.startContainer, tag, root) ??
+    closestTag(range.endContainer, tag, root) ??
+    closestTag(range.commonAncestorContainer, tag, root);
+  if (direct || range.collapsed) return direct;
+
+  const selector = aliasesFor(tag).join(',');
+  const selectedText = range.toString().replace(/\s+/g, ' ').trim();
+  const matches = Array.from(root.querySelectorAll<HTMLElement>(selector)).filter((element) => {
+    try {
+      return (
+        range.intersectsNode(element) &&
+        selectedText !== '' &&
+        element.textContent?.replace(/\s+/g, ' ').trim() === selectedText
+      );
+    } catch {
+      return false;
+    }
+  });
+  return matches.length === 1 ? matches[0]! : null;
+}
+
 export function closestBlock(node: Node | null, root: HTMLElement): HTMLElement | null {
   const names = BLOCK_TAGS.map((t) => t.toUpperCase());
   let n: Node | null = node;
@@ -112,8 +144,27 @@ export function applyInline(range: Range, tag: string): Range {
 export function removeInline(range: Range, tag: string, root: HTMLElement): Range {
   const doc = range.startContainer.ownerDocument!;
   const ancestor =
-    closestTag(range.commonAncestorContainer, tag, root) ??
-    closestTag(range.startContainer, tag, root);
+    closestTagInRange(range, tag, root) ?? closestTag(range.startContainer, tag, root);
+
+  // A browser may represent an exact element selection with boundaries in the
+  // parent. In that case the ancestor-splitting algorithm cannot use those
+  // boundary points inside the element; strip the extracted fragment instead.
+  if (
+    ancestor &&
+    (!ancestor.contains(range.startContainer) || !ancestor.contains(range.endContainer))
+  ) {
+    const frag = range.extractContents();
+    stripTagInFragment(frag, tag);
+    const first = frag.firstChild;
+    const last = frag.lastChild;
+    range.insertNode(frag);
+    const out = doc.createRange();
+    if (first && last) {
+      out.setStartBefore(first);
+      out.setEndAfter(last);
+    }
+    return out;
+  }
 
   if (ancestor) {
     // Split: [left stays in ancestor][mid = unformatted][right = clone of ancestor]

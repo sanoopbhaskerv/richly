@@ -5,6 +5,7 @@ import {
   removeInline,
   removeAllInline,
   closestTag,
+  closestTagInRange,
   isEmptyElement,
   CARET_FILLER
 } from '../dom/DomUtils';
@@ -102,9 +103,7 @@ function toggleInline(editor: Editor, tag: string): void {
     return;
   }
   const body = editor.getBody();
-  const active =
-    !!closestTag(range.commonAncestorContainer, tag, body) ||
-    !!closestTag(range.startContainer, tag, body);
+  const active = !!closestTagInRange(range, tag, body);
   const out = active ? removeInline(range, tag, body) : applyInline(range, tag);
   editor.selection.setRange(out);
   body.normalize();
@@ -114,7 +113,7 @@ function toggleInline(editor: Editor, tag: string): void {
 function inlineState(editor: Editor, tag: string): boolean {
   const range = editor.selection.getRange();
   if (!range) return false;
-  return !!closestTag(range.startContainer, tag, editor.getBody());
+  return !!closestTagInRange(range, tag, editor.getBody());
 }
 
 export const formatsPlugin: Plugin = {

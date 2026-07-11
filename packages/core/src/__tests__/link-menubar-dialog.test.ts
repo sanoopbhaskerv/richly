@@ -44,6 +44,19 @@ describe('link plugin', () => {
     expect(ed.getContent()).toBe('<p>go there now</p>');
   });
 
+  it('unlinks when browser range boundaries surround the anchor element', () => {
+    ed = createTestEditor('<p>go <a href="https://x.com">there</a> now</p>');
+    const p = ed.getBody().querySelector('p')!;
+    const range = document.createRange();
+    range.setStart(p, 1);
+    range.setEnd(p, 2);
+    ed.selection.setRange(range);
+
+    expect(ed.queryCommandState('InsertLink')).toBe(true);
+    ed.execCommand('Unlink');
+    expect(ed.getContent()).toBe('<p>go there now</p>');
+  });
+
   it('autolink wraps a typed URL on space', () => {
     ed = createTestEditor('<p>see https://example.com/docs</p>');
     const p = ed.getBody().querySelector('p')!;

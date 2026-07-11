@@ -25,5 +25,10 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Representative Word and Google Docs paste fixtures for sanitizer regression
   coverage.
 
+### Fixed
+
+- Firefox inline-format and link commands now recognize selections whose range
+  boundaries surround the inline element from its parent node.
+
 [Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/sanoopbhaskerv/richly/releases/tag/v0.1.0
