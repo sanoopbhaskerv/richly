@@ -4,9 +4,11 @@
 
 The current package includes a dependency-free editor core, React bindings,
 formatting, lists, links, images, source editing, fullscreen mode, and an
-advanced table experience with multi-cell merge/split, resize handles, and
-right-click actions. It also includes IME-aware editing, safe paste handling,
-search and replace, configurable counts, preview, and visual blocks.
+advanced table experience with multi-cell merge/split, resize handles,
+right-click actions, and an inline options toolbar that floats beneath the
+selected table (`table-inline-toolbar`, actions `inline-table-action-<id>`).
+It also includes IME-aware editing, safe paste handling, search and replace,
+configurable counts, preview, and visual blocks.
 
 ## Next priorities
 

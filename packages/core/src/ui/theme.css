@@ -557,6 +557,63 @@
      No static position/transform override needed here. */
 }
 
+/* ---- inline table options toolbar (floats under the selected table) ---- */
+.rly-table-inline-toolbar {
+  position: absolute;
+  z-index: 40; /* below menu/toolbar dropdowns (50) and the context menu (70) */
+  display: none;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--rly-surface);
+  border: 1px solid var(--rly-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(20, 30, 50, 0.16);
+  /* The container is click-transparent so gaps/padding don't trap clicks meant
+     for content beneath; only the buttons themselves take the pointer. */
+  pointer-events: none;
+}
+.rly-table-inline-toolbar.rly-open { display: flex; }
+.rly-table-inline-toolbar .rly-table-inline-btn { pointer-events: auto; }
+/* Notch pointing at the table: top edge by default, bottom edge when flipped above. */
+.rly-table-inline-toolbar::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--rly-surface);
+  border-left: 1px solid var(--rly-border);
+  border-top: 1px solid var(--rly-border);
+}
+.rly-table-inline-toolbar.rly-flip::before {
+  top: auto;
+  bottom: -5px;
+  border: none;
+  border-right: 1px solid var(--rly-border);
+  border-bottom: 1px solid var(--rly-border);
+}
+.rly-table-inline-btn {
+  width: 34px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--rly-text);
+}
+.rly-table-inline-btn:hover { background: var(--rly-hover); color: var(--rly-accent); }
+.rly-table-inline-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--rly-border);
+  margin: 0 8px;
+}
+
 .rly-table-context-menu {
   position: absolute;
   z-index: 70;

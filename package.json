@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "yarn workspace @sb/demo dev",
+    "dev": "yarn workspace @richly/demo dev",
     "build": "yarn workspace @richly/core build && yarn workspace @richly/react build",
     "test": "yarn workspace @richly/core test",
     "test:coverage": "yarn workspace @richly/core test:coverage",

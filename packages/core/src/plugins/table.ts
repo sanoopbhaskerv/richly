@@ -1014,6 +1014,167 @@ function buildTablePanel(editor: Editor, close: () => void): HTMLElement {
   return panel;
 }
 
+// ---------- inline table options toolbar ----------
+
+/**
+ * Icon-only actions shown in the inline toolbar, in display order.
+ * `null` entries render as group separators. Each action maps 1:1 to an
+ * already-registered table command, so the toolbar carries no logic of its own.
+ */
+const INLINE_ACTIONS: ({ id: string; command: string; label: string; icon: string } | null)[] = [
+  { id: 'table-props', command: 'TableProps', label: 'Table properties', icon: 'inlineTableProps' },
+  { id: 'delete-table', command: 'TableDelete', label: 'Delete table', icon: 'inlineDeleteTable' },
+  null,
+  { id: 'row-before', command: 'TableInsertRowBefore', label: 'Insert row above', icon: 'inlineRowBefore' },
+  { id: 'row-after', command: 'TableInsertRowAfter', label: 'Insert row below', icon: 'inlineRowAfter' },
+  { id: 'delete-row', command: 'TableDeleteRow', label: 'Delete row', icon: 'inlineDeleteRow' },
+  null,
+  { id: 'col-before', command: 'TableInsertColBefore', label: 'Insert column left', icon: 'inlineColBefore' },
+  { id: 'col-after', command: 'TableInsertColAfter', label: 'Insert column right', icon: 'inlineColAfter' },
+  { id: 'delete-col', command: 'TableDeleteCol', label: 'Delete column', icon: 'inlineDeleteCol' }
+];
+
+/** Stroke-based 24px glyphs for the inline toolbar (kept local — table-specific). */
+const INLINE_ICONS: Record<string, string> = {
+  inlineTableProps: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M4 14.5h16M10 5v14M15 5v14" stroke-width="1.4"/>',
+  inlineDeleteTable: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="m9.5 9.5 5 5M14.5 9.5l-5 5"/>',
+  inlineRowBefore: '<rect x="4" y="12.5" width="16" height="7" rx="1.5"/><path d="M12 3.5v5.5M9.3 6.2h5.4"/>',
+  inlineRowAfter: '<rect x="4" y="4.5" width="16" height="7" rx="1.5"/><path d="M12 15v5.5M9.3 17.8h5.4"/>',
+  inlineDeleteRow: '<rect x="4" y="9" width="16" height="6" rx="1.5"/><path d="m9.8 4 2.2 2.2L14.2 4M9.8 20l2.2-2.2L14.2 20" stroke-width="1.4"/>',
+  inlineColBefore: '<rect x="12.5" y="4" width="7" height="16" rx="1.5"/><path d="M3.5 12H9M6.2 9.3v5.4"/>',
+  inlineColAfter: '<rect x="4.5" y="4" width="7" height="16" rx="1.5"/><path d="M15 12h5.5M17.8 9.3v5.4"/>',
+  inlineDeleteCol: '<rect x="9" y="4" width="6" height="16" rx="1.5"/><path d="m4 9.8 2.2 2.2L4 14.2M20 9.8l-2.2 2.2 2.2 2.2" stroke-width="1.4"/>'
+};
+
+/** Wraps an INLINE_ICONS glyph into a standalone stroke SVG. */
+function inlineIconSvg(name: string): string {
+  return (
+    `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" ` +
+    `stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+    `${INLINE_ICONS[name] ?? ''}</svg>`
+  );
+}
+
+/**
+ * Installs the floating "table options" toolbar that appears whenever a table
+ * is selected (caret inside it, or the selection frame is active).
+ *
+ * UX notes:
+ * - Positioned centered *below* the table with a notch pointing at it, and
+ *   flips *above* the table when there is no room in the viewport
+ *   (`rly-flip` class moves the notch to the bottom edge).
+ * - Buttons are icon-only with tooltips; they never steal the content
+ *   selection (mousedown is prevented — same rule as the main toolbar).
+ * - The bar stays open after an action so row/column edits can be chained,
+ *   and hides when the caret leaves the table or focus moves elsewhere.
+ *
+ * data-testids: `table-inline-toolbar` (bar), `inline-table-action-<id>`.
+ */
+function installInlineTableToolbar(editor: Editor): void {
+  const root = editor.getRoot();
+  const body = editor.getBody();
+  const doc = body.ownerDocument;
+
+  const bar = doc.createElement('div');
+  bar.className = 'rly-table-inline-toolbar';
+  bar.dataset.testid = 'table-inline-toolbar';
+  bar.setAttribute('role', 'toolbar');
+  bar.setAttribute('aria-label', 'Table options');
+  // Keep the cell selection while interacting with the bar (HANDOFF.md rule).
+  bar.addEventListener('mousedown', (e) => e.preventDefault());
+
+  for (const entry of INLINE_ACTIONS) {
+    if (entry === null) {
+      const sep = doc.createElement('div');
+      sep.className = 'rly-table-inline-sep';
+      bar.appendChild(sep);
+      continue;
+    }
+    const btn = doc.createElement('button');
+    btn.type = 'button';
+    btn.tabIndex = -1; // the content keeps focus; actions are pointer-driven
+    btn.className = 'rly-table-inline-btn';
+    btn.dataset.testid = `inline-table-action-${entry.id}`;
+    btn.title = entry.label;
+    btn.setAttribute('aria-label', entry.label);
+    btn.innerHTML = inlineIconSvg(entry.icon);
+    btn.addEventListener('click', () => {
+      editor.execCommand(entry.command);
+      // Deleting the table (or its last row/col) removes the anchor element;
+      // `position()` below will hide the bar in that case on the change event.
+      if (!doc.querySelector('.rly-dialog-overlay')) editor.focus();
+    });
+    bar.appendChild(btn);
+  }
+  root.appendChild(bar);
+
+  /** Table the bar is currently anchored to (null = hidden). */
+  let anchor: HTMLTableElement | null = null;
+
+  /** Re-anchor and re-position the bar; hides it when the table is gone. */
+  const position = (): void => {
+    if (!anchor?.isConnected || !body.contains(anchor)) {
+      anchor = null;
+      bar.classList.remove('rly-open');
+      return;
+    }
+    bar.classList.add('rly-open'); // must be visible to measure
+    const rootRect = root.getBoundingClientRect();
+    const tableRect = anchor.getBoundingClientRect();
+    const barRect = bar.getBoundingClientRect();
+    const view = doc.defaultView;
+
+    // Horizontal: centered under the table, clamped inside the editor root.
+    const left = Math.max(
+      8,
+      Math.min(
+        rootRect.width - barRect.width - 8,
+        tableRect.left - rootRect.left + tableRect.width / 2 - barRect.width / 2
+      )
+    );
+
+    // Vertical: below the table by default; flip above when clipped.
+    const GAP = 10;
+    const fitsBelow = !view || tableRect.bottom + GAP + barRect.height + 8 <= view.innerHeight;
+    bar.classList.toggle('rly-flip', !fitsBelow);
+    const top = fitsBelow
+      ? tableRect.bottom - rootRect.top + GAP
+      : tableRect.top - rootRect.top - barRect.height - GAP;
+
+    bar.style.left = `${left}px`;
+    bar.style.top = `${top}px`;
+  };
+
+  const show = (table: HTMLTableElement | null): void => {
+    anchor = table;
+    position();
+  };
+
+  // Same visibility triggers as the selection frame: pointer + caret both count.
+  const onBodyMouseDown = (e: MouseEvent): void => {
+    const table = (e.target as HTMLElement).closest?.('table') as HTMLTableElement | null;
+    show(table && body.contains(table) ? table : null);
+  };
+  const onScroll = (): void => position();
+  body.addEventListener('mousedown', onBodyMouseDown);
+  body.addEventListener('scroll', onScroll);
+  doc.defaultView?.addEventListener('resize', onScroll);
+  editor.events.on('selectionchange', () => show(currentTable(editor)));
+  editor.events.on('change', position); // rows/cols added, table resized or deleted
+  editor.events.on('blur', () => {
+    // Let button clicks land first; hide only if focus truly left the editor.
+    setTimeout(() => {
+      if (!root.contains(doc.activeElement)) show(null);
+    }, 0);
+  });
+  editor.events.on('destroy', () => {
+    body.removeEventListener('mousedown', onBodyMouseDown);
+    body.removeEventListener('scroll', onScroll);
+    doc.defaultView?.removeEventListener('resize', onScroll);
+    bar.remove();
+  });
+}
+
 function installTableContextMenu(editor: Editor): void {
   const root = editor.getRoot();
   const body = editor.getBody();
@@ -1207,6 +1368,7 @@ export const tablePlugin: Plugin = {
 
     installColumnResize(editor);
     installTableSelection(editor);
+    installInlineTableToolbar(editor);
     installMultiCellSelection(editor);
     installTableContextMenu(editor);
 
