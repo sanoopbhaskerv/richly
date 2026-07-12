@@ -17,7 +17,17 @@
     "format:write": "prettier --write .",
     "release:validate": "node scripts/check-release.mjs",
     "release:pack": "node scripts/pack-dry-run.mjs",
-    "release:check": "yarn release:validate && yarn lint && yarn format && yarn test && yarn build && yarn release:pack"
+    "release:check": "yarn release:validate && yarn lint && yarn format && yarn test && yarn build && yarn release:pack",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs}": [
+      "eslint --fix --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{md,json,css,html,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "packageManager": "yarn@1.22.22",
   "engines": {
@@ -37,6 +47,8 @@
     "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.7.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
     "playwright": "^1.61.1",
     "prettier": "^3.9.5",
     "tsup": "^8.5.1",

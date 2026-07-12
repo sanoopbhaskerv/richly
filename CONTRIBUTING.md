@@ -11,6 +11,10 @@ yarn install
 yarn dev
 ```
 
+`yarn install` also activates the pre-commit hook (husky + lint-staged): staged
+files are auto-fixed with ESLint and Prettier on every commit. The hook is a
+convenience — CI remains the enforcement gate — so avoid `--no-verify`.
+
 ## Before opening a pull request
 
 ```bash
