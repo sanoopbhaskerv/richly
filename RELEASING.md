@@ -47,6 +47,27 @@ The `Release` GitHub Actions workflow verifies the tag matches both package
 versions, runs the release checks, publishes core before React with npm
 provenance, and creates a GitHub release from the changelog.
 
+## Repository protection
+
+Releases must not be triggerable by a direct push. Protection has three
+layers, applied once per repository:
+
+1. **Branch ruleset `protect-main`** — main only changes through pull requests
+   with a code-owner review (`.github/CODEOWNERS`) and green CI (quality +
+   browser jobs); force pushes and deletion are blocked.
+2. **Tag ruleset `protect-release-tags`** — only repository admins can create,
+   move, or delete `v*` tags, so only admins can trigger the Release workflow.
+   The workflow additionally refuses tags whose commit is not on `main`.
+3. **`npm` environment approval** — publishing waits for a required reviewer
+   even after a valid tag; the `NPM_TOKEN` secret lives only in this
+   environment.
+
+Apply rulesets 1–2 with `./scripts/apply-repo-protection.sh` (needs an
+admin-authenticated `gh` CLI); the script prints the two settings that must be
+confirmed in the UI. Repository admins currently bypass the branch ruleset so
+a solo maintainer can merge — remove that bypass when a second maintainer
+joins.
+
 ## npm setup
 
 The repository environment named `npm` should require maintainer approval. Add
