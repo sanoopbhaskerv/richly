@@ -38,6 +38,10 @@ For React:
 npm install @richly/react react react-dom
 ```
 
+> The package scope is currently `@sb`. Before the first public release,
+> publish it under an npm scope you own and update package names and imports if
+> that scope is different.
+
 ## Vanilla JavaScript
 
 ```ts
@@ -69,10 +73,9 @@ export function ArticleEditor() {
 ```
 
 Use `initialValue` for an uncontrolled editor. The component accepts `toolbar`,
-`toolbarMode`, `menubar`, `statusbar`, and `resize` options from the core
+`toolbarOverflow`, `menubar`, `statusbar`, and `resize` options from the core
 configuration. Tool groups wrap onto additional rows by default; set
-`toolbarMode: 'more'` to keep one row and move extra groups into a More menu.
-The published `toolbarOverflow` boolean remains supported as a deprecated alias.
+`toolbarOverflow: true` to keep one row and move extra groups into a More menu.
 
 Word counting can be disabled with `wordCount: false`, or configured in either
 API:
@@ -96,7 +99,6 @@ yarn test
 yarn test:coverage
 yarn e2e --project=chromium
 yarn build
-yarn release:check
 ```
 
 The demo runs at `http://localhost:5177` and shows vanilla and React editors
@@ -114,17 +116,6 @@ cd ../react && npm pack --dry-run
 
 Use npm provenance for public releases where your registry and CI setup support
 it.
-
-See [RELEASING.md](./RELEASING.md) for the SemVer and tag-driven release
-process, [CHANGELOG.md](./CHANGELOG.md) for public release notes, and
-[MIGRATING.md](./MIGRATING.md) for compatibility policy.
-
-## Accessibility
-
-Richly provides labelled editor controls, keyboard-operable toolbars and
-dialogs, visible focus states, and semantic table output. Supported behavior
-and current limitations are documented in
-[ACCESSIBILITY.md](./ACCESSIBILITY.md).
 
 ## Contributing
 
