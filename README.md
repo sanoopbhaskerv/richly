@@ -69,9 +69,10 @@ export function ArticleEditor() {
 ```
 
 Use `initialValue` for an uncontrolled editor. The component accepts `toolbar`,
-`toolbarOverflow`, `menubar`, `statusbar`, and `resize` options from the core
+`toolbarMode`, `menubar`, `statusbar`, and `resize` options from the core
 configuration. Tool groups wrap onto additional rows by default; set
-`toolbarOverflow: true` to keep one row and move extra groups into a More menu.
+`toolbarMode: 'more'` to keep one row and move extra groups into a More menu.
+The published `toolbarOverflow` boolean remains supported as a deprecated alias.
 
 Word counting can be disabled with `wordCount: false`, or configured in either
 API:

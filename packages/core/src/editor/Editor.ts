@@ -16,7 +16,9 @@ export interface EditorConfig {
   initialContent?: string;
   /** Toolbar spec, e.g. "undo redo | bold italic underline strikethrough | h1 h2 paragraph blockquote | removeformat" */
   toolbar?: string;
-  /** Keep the toolbar on one row and move extra groups into More. Defaults to false (wrap). */
+  /** Toolbar layout. `wrap` is the default; `more` keeps one row and collapses extra groups. */
+  toolbarMode?: ToolbarMode;
+  /** @deprecated Use `toolbarMode: 'more'` instead. */
   toolbarOverflow?: boolean;
   /** Set false to hide the menubar. */
   menubar?: boolean;
@@ -29,6 +31,8 @@ export interface EditorConfig {
   /** Prefix for chrome data-testids (default "editor"): editor-root, editor-toolbar, editor-content, editor-statusbar. */
   testIdPrefix?: string;
 }
+
+export type ToolbarMode = 'wrap' | 'more';
 
 export interface WordCountOptions {
   words?: boolean;
@@ -85,12 +89,9 @@ export class Editor {
       new Menubar(this, this.root.querySelector<HTMLElement>('.rly-menubar')!);
     }
     const toolbarEl = this.root.querySelector<HTMLElement>('.rly-toolbar')!;
-    new Toolbar(
-      this,
-      toolbarEl,
-      config.toolbar ?? DEFAULT_TOOLBAR,
-      config.toolbarOverflow ?? false
-    );
+    const toolbarMode: ToolbarMode =
+      config.toolbarMode ?? (config.toolbarOverflow ? 'more' : 'wrap');
+    new Toolbar(this, toolbarEl, config.toolbar ?? DEFAULT_TOOLBAR, toolbarMode);
     if (config.statusbar !== false) {
       new Statusbar(
         this,

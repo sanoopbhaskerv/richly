@@ -11,8 +11,9 @@ export function App() {
 }
 ```
 
-Toolbar groups wrap by default. Pass `toolbarOverflow` to keep one row and move
-extra groups into a More menu.
+Toolbar groups wrap by default. Pass `toolbarMode="more"` to keep one row and
+move extra groups into a More menu. The earlier `toolbarOverflow` prop is
+deprecated but remains supported for compatibility.
 
 Use the `wordCount` prop to disable counts or show words, characters, and the
 current selection. The React wrapper exposes the same search, preview, visual

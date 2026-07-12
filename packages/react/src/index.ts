@@ -5,5 +5,6 @@ export type {
   EditorConfig,
   FindReplaceArgs,
   Plugin,
+  ToolbarMode,
   WordCountOptions
 } from '@richly/core';

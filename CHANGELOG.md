@@ -7,6 +7,23 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Added the explicit `toolbarMode: 'wrap' | 'more'` configuration. More mode
+  collapses groups at narrow widths and restores them when space returns.
+
+### Deprecated
+
+- Deprecated `toolbarOverflow` in favor of `toolbarMode`; the boolean alias
+  remains fully supported for backward compatibility.
+
+### Fixed
+
+- Fixed `toolbarMode: 'more'` and the legacy `toolbarOverflow: true` option in
+  constrained consumer flex/grid layouts. Overflow is now measured against the
+  editor host and includes separator margins, keeping both the toolbar and More
+  control contained whenever the full toolbar cannot fit.
+
 ## [0.1.0] - 2026-07-11
 
 ### Added

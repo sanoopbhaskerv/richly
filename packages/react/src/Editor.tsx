@@ -3,6 +3,7 @@ import {
   Editor as CoreEditor,
   type EditorConfig,
   type Plugin,
+  type ToolbarMode,
   type WordCountOptions
 } from '@richly/core';
 
@@ -13,6 +14,8 @@ export interface EditorProps {
   onChange?: (html: string) => void;
   onInit?: (editor: CoreEditor) => void;
   toolbar?: string;
+  toolbarMode?: ToolbarMode;
+  /** @deprecated Use `toolbarMode="more"` instead. */
   toolbarOverflow?: boolean;
   menubar?: boolean;
   statusbar?: boolean;
@@ -52,6 +55,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(prop
       target: hostRef.current!,
       initialContent: props.value ?? props.initialValue ?? '',
       toolbar: props.toolbar,
+      toolbarMode: props.toolbarMode,
       toolbarOverflow: props.toolbarOverflow,
       menubar: props.menubar,
       statusbar: props.statusbar,

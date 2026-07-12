@@ -70,14 +70,34 @@ test.describe('basic formatting (vanilla instance)', () => {
     await expect(editor.button('more')).toHaveCount(0);
   });
 
-  test('toolbar overflow can be enabled to expose a More menu', async ({ page }) => {
+  test('more mode contains the full toolbar and restores it when space permits', async ({
+    page
+  }) => {
     const reactEditor = new EditorPage(page, 'reditor');
-    await page.setViewportSize({ width: 540, height: 760 });
-    const toolbarBox = (await reactEditor.toolbar.boundingBox())!;
-    expect(toolbarBox.height).toBeLessThan(50);
+    await page.setViewportSize({ width: 545, height: 760 });
+    expect((await reactEditor.toolbar.boundingBox())!.height).toBeLessThan(50);
     await expect(reactEditor.button('more')).toBeVisible();
     await reactEditor.clickButton('more');
     await expect(reactEditor.root.getByTestId('toolbar-more-panel')).toBeVisible();
+
+    // Near the fit threshold, separator margins must be included in the
+    // calculation or the More control itself can paint beyond the toolbar.
+    for (const width of [900, 1000, 1100]) {
+      await page.setViewportSize({ width, height: 760 });
+      await expect(reactEditor.button('more')).toBeVisible();
+      const rootBox = (await reactEditor.root.boundingBox())!;
+      const toolbarBox = (await reactEditor.toolbar.boundingBox())!;
+      const moreBox = (await reactEditor.button('more').boundingBox())!;
+      expect(toolbarBox.x).toBeGreaterThanOrEqual(rootBox.x - 1);
+      expect(toolbarBox.x + toolbarBox.width).toBeLessThanOrEqual(rootBox.x + rootBox.width + 1);
+      expect(moreBox.x + moreBox.width).toBeLessThanOrEqual(toolbarBox.x + toolbarBox.width);
+      expect(toolbarBox.height).toBeLessThan(50);
+    }
+
+    await page.setViewportSize({ width: 1500, height: 760 });
+    await expect(reactEditor.button('more')).toBeHidden();
+    await expect(reactEditor.button('removeformat')).toBeVisible();
+    expect((await reactEditor.toolbar.boundingBox())!.height).toBeLessThan(50);
   });
 
   test('copy, cut, paste, and select-all toolbar actions work', async ({ page }) => {

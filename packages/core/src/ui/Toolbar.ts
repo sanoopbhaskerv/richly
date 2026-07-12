@@ -1,4 +1,5 @@
 import type { Editor } from '../editor/Editor';
+import type { ToolbarMode } from '../editor/Editor';
 import { icons } from './icons';
 
 /**
@@ -16,12 +17,12 @@ export class Toolbar {
     private editor: Editor,
     private container: HTMLElement,
     spec: string,
-    overflow = false
+    mode: ToolbarMode = 'wrap'
   ) {
     container.setAttribute('role', 'toolbar');
     container.setAttribute('aria-label', 'Editor toolbar');
     this.render(spec);
-    if (overflow) this.installOverflow();
+    if (mode === 'more') this.installOverflow();
     editor.events.on('selectionchange', () => this.refresh());
     editor.events.on('change', () => this.refresh());
     editor.events.on('execcommand', () => this.refresh());
@@ -206,6 +207,13 @@ export class Toolbar {
     const refresh = (): void => this.refreshOverflow();
     const observer = view?.ResizeObserver ? new view.ResizeObserver(refresh) : null;
     observer?.observe(this.container);
+    // A flex/grid consumer can allow the toolbar to report its intrinsic width
+    // even though the editor host is narrower. Observe both bounds so a host
+    // resize still recalculates the groups that belong in More.
+    if (this.container.parentElement) observer?.observe(this.container.parentElement);
+    if (this.container.parentElement?.parentElement) {
+      observer?.observe(this.container.parentElement.parentElement);
+    }
     view?.addEventListener('resize', refresh);
     this.editor.events.on('destroy', () => {
       observer?.disconnect();
@@ -241,13 +249,31 @@ export class Toolbar {
       Number.parseFloat(styles?.paddingLeft ?? '0') +
       Number.parseFloat(styles?.paddingRight ?? '0');
     const gap = Number.parseFloat(styles?.columnGap ?? styles?.gap ?? '0');
-    const availableWidth = this.container.clientWidth - padding;
+    // Never trust only the toolbar width: in min-content flex/grid layouts it
+    // can grow wider than its editor or consumer host. Use the narrowest
+    // measurable boundary so groups collapse before they paint outside it.
+    const boundaryWidths = [
+      this.container.clientWidth,
+      this.container.parentElement?.clientWidth,
+      this.container.parentElement?.parentElement?.clientWidth
+    ].filter((width): width is number => typeof width === 'number' && width > 0);
+    const availableWidth = Math.min(...boundaryWidths) - padding;
     const occupiedWidth = (): number => {
       const children = Array.from(this.container.children).filter(
         (child): child is HTMLElement => !(child as HTMLElement).hidden
       );
+      const outerWidth = (child: HTMLElement): number => {
+        const childStyles = view?.getComputedStyle(child);
+        const marginLeft = Number.parseFloat(childStyles?.marginLeft ?? '0');
+        const marginRight = Number.parseFloat(childStyles?.marginRight ?? '0');
+        return (
+          child.getBoundingClientRect().width +
+          (Number.isFinite(marginLeft) ? marginLeft : 0) +
+          (Number.isFinite(marginRight) ? marginRight : 0)
+        );
+      };
       return (
-        children.reduce((width, child) => width + child.getBoundingClientRect().width, 0) +
+        children.reduce((width, child) => width + outerWidth(child), 0) +
         Math.max(0, children.length - 1) * gap
       );
     };

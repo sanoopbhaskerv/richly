@@ -43,6 +43,15 @@ test.describe('editor + table resize, table/cell properties (vanilla instance)',
     await editor.clickButton('table');
     await editor.root.getByTestId('dd-table').getByTestId('grid-cell-1-1').click();
     const table = editor.content.locator('table');
+
+    // A newly inserted table fills the editor width. Make it narrower through
+    // the public UI so the corner drag stays inside the viewport in Firefox.
+    await editor.root.getByTestId('menu-table').click();
+    await editor.root.getByTestId('menuitem-tableprops').click();
+    await page.getByTestId('dialog-field-width').fill('600px');
+    await page.getByTestId('dialog-submit').click();
+    await expect(table).toHaveCSS('width', '600px');
+
     const before = (await table.boundingBox())!;
     const handle = editor.root.getByTestId('table-resize-xy');
     await expect(handle).toBeVisible();

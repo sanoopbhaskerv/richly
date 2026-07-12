@@ -29,6 +29,25 @@ Treat changes to these areas as public migrations:
 
 Internal DOM structure and undocumented CSS classes may change without notice.
 
+## Unreleased: toolbar layout naming
+
+`toolbarOverflow` is deprecated because the boolean did not communicate whether
+tools would wrap, clip, or move into a menu. Use the explicit `toolbarMode`
+option instead:
+
+```ts
+// Before — still supported
+toolbarOverflow: true;
+
+// After
+toolbarMode: 'more';
+```
+
+`toolbarOverflow: false` maps to `toolbarMode: 'wrap'`. When both options are
+provided, `toolbarMode` takes precedence. The compatibility alias will remain
+through the 0.x release line and will not be removed without a major-version
+migration notice.
+
 ## 0.1.0
 
 This is the first public Richly release, so no migration is required. Earlier
