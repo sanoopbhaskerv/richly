@@ -19,7 +19,11 @@
     "release:validate": "node scripts/check-release.mjs",
     "release:pack": "node scripts/pack-dry-run.mjs",
     "release:check": "yarn release:validate && yarn lint && yarn format && yarn test && yarn build && yarn release:pack",
-    "prepare": "husky"
+    "prepare": "husky",
+    "graph:check": "graphify check-update .",
+    "graph:update": "graphify update .",
+    "graph:watch": "graphify watch .",
+    "graph:query": "graphify query"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs}": [

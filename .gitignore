@@ -8,3 +8,9 @@ test-results/
 .env
 .env.*
 !.env.example
+.claude/
+.codex/
+graphify-out/
+CLAUDE.md
+.claudeignore
+.graphifyignore

@@ -3,14 +3,18 @@ import type { Editor } from '../editor/Editor';
 export interface DialogField {
   name: string;
   label: string;
-  type?: 'text' | 'url' | 'number' | 'textarea' | 'select' | 'checkbox';
+  type?: 'text' | 'url' | 'number' | 'textarea' | 'select' | 'checkbox' | 'file';
   placeholder?: string;
   hint?: string;
   /** For checkbox: 'true' | 'false'. */
   value?: string;
   /** For type 'select'. */
   options?: { value: string; label: string }[];
+  /** For type 'file'. */
+  accept?: string;
 }
+
+export type DialogResult = Record<string, string> & { files?: Record<string, File> };
 
 export interface DialogSpec {
   name: string;
@@ -28,12 +32,15 @@ export interface DialogSpec {
  * data-testids (TESTING.md §4): dialog-<name>, dialog-field-<name>, dialog-submit, dialog-cancel.
  * Resolves with the field values, or null on cancel.
  */
-export function openDialog(
-  editor: Editor,
-  spec: DialogSpec
-): Promise<Record<string, string> | null> {
+export function openDialog(editor: Editor, spec: DialogSpec): Promise<DialogResult | null> {
   const doc = editor.getRoot().ownerDocument;
   const bookmark = editor.selection.getBookmark();
+
+  const globalObj = globalThis as { process?: { env?: Record<string, string | undefined> } };
+  const isDevMode = globalObj.process?.env?.NODE_ENV !== 'production';
+  if (isDevMode && spec.fields.some((field) => field.name === 'files')) {
+    console.warn('[richly] "files" is a reserved dialog field name');
+  }
 
   return new Promise((resolve) => {
     const overlay = doc.createElement('div');
@@ -100,6 +107,10 @@ export function openDialog(
         input.type = 'checkbox';
         input.checked = field.value === 'true';
         row.classList.add('rly-dialog-row-inline');
+      } else if (field.type === 'file') {
+        input = doc.createElement('input');
+        input.type = 'file';
+        input.accept = field.accept ?? '';
       } else {
         input = doc.createElement('input');
         input.type = field.type ?? 'text';
@@ -138,7 +149,7 @@ export function openDialog(
 
     overlay.appendChild(dialog);
 
-    const close = (result: Record<string, string> | null): void => {
+    const close = (result: DialogResult | null): void => {
       doc.removeEventListener('keydown', keyHandler, true);
       overlay.remove();
       editor.selection.moveToBookmark(bookmark);
@@ -147,13 +158,23 @@ export function openDialog(
     };
     const submit = (): void => {
       const values: Record<string, string> = {};
+      const files: Record<string, File> = {};
       inputs.forEach((input, name) => {
-        values[name] =
-          input instanceof HTMLInputElement && input.type === 'checkbox'
-            ? String(input.checked)
-            : input.value;
+        if (input instanceof HTMLInputElement && input.type === 'checkbox') {
+          values[name] = String(input.checked);
+          return;
+        }
+        if (input instanceof HTMLInputElement && input.type === 'file') {
+          values[name] = '';
+          const file = input.files?.[0];
+          if (file) files[name] = file;
+          return;
+        }
+        values[name] = input.value;
       });
-      close(values);
+      const result = values as DialogResult;
+      if (Object.keys(files).length) result.files = files;
+      close(result);
     };
 
     cancelBtn.addEventListener('click', () => close(null));
@@ -171,6 +192,7 @@ export function openDialog(
       } else if (
         e.key === 'Enter' &&
         doc.activeElement?.tagName === 'INPUT' &&
+        (doc.activeElement as HTMLInputElement).type !== 'file' &&
         dialog.contains(doc.activeElement)
       ) {
         // Enter submits from single-line inputs only (textarea needs newlines).

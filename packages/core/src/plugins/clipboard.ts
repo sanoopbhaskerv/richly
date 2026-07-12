@@ -1,6 +1,8 @@
 import type { Editor } from '../editor/Editor';
 import { sanitize } from '../model/Sanitizer';
 import type { Plugin } from './types';
+import { getEditorConfig } from '../editor/Editor';
+import { matchesAccept, uploadAndInsert } from './image';
 
 interface ClipboardPayload {
   html: string;
@@ -202,10 +204,30 @@ export const clipboardPlugin: Plugin = {
       const payload = selectedPayload(editor);
       if (payload) internalClipboard = payload;
     };
+
+    const uploadableFiles = (files: FileList | null): File[] => {
+      const { upload, accept = 'image/*' } = getEditorConfig(editor).images ?? {};
+      if (!upload || !files?.length) return [];
+      return Array.from(files).filter((file) => matchesAccept(file, accept));
+    };
+
+    const onPasteFiles = (event: ClipboardEvent): void => {
+      const files = uploadableFiles(event.clipboardData?.files ?? null);
+      if (!files.length) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      void (async () => {
+        for (const file of files) await uploadAndInsert(editor, file);
+      })();
+    };
+
     const body = editor.getBody();
+    body.addEventListener('paste', onPasteFiles);
     body.addEventListener('copy', capture);
     body.addEventListener('cut', capture);
     editor.events.on('destroy', () => {
+      body.removeEventListener('paste', onPasteFiles);
       body.removeEventListener('copy', capture);
       body.removeEventListener('cut', capture);
     });

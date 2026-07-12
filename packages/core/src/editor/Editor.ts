@@ -35,6 +35,17 @@ export interface EditorConfig {
     colors?: string[];
     fontSizes?: string[];
   };
+  /** Image upload settings used by the image plugin and clipboard/drop routing. */
+  images?: ImagesConfig;
+}
+
+export interface ImagesConfig {
+  /** Enables file upload in the image dialog and on paste/drop. */
+  upload?: (file: File) => Promise<{ src: string; alt?: string }>;
+  /** Accept filter for pickers and paste/drop validation. Default: image\/* */
+  accept?: string;
+  /** Files larger than this are rejected before upload is called. */
+  maxBytes?: number;
 }
 
 const editorConfigs = new WeakMap<Editor, EditorConfig>();
@@ -64,6 +75,9 @@ export interface EditorEvents extends Record<string, unknown> {
   blur: void;
   keydown: KeyboardEvent;
   execcommand: { name: string; args?: unknown };
+  imageuploadstart: { file: File };
+  imageuploadend: { file: File; src: string };
+  imageuploaderror: { file: File; error: unknown };
   destroy: void;
 }
 
@@ -480,6 +494,7 @@ export class Editor {
       if ((el.textContent ?? '').replace(/﻿/g, '') === '' && !el.querySelector('img,br'))
         el.remove();
     });
+    clone.querySelectorAll('img[data-rly-uploading]').forEach((img) => img.remove());
     return clone.innerHTML.replace(/﻿/g, '');
   }
 

@@ -2,6 +2,7 @@ import { useEffect, useImperativeHandle, useRef, forwardRef } from 'react';
 import {
   Editor as CoreEditor,
   type EditorConfig,
+  type ImagesConfig,
   type Plugin,
   type ToolbarMode,
   type WordCountOptions
@@ -21,6 +22,7 @@ export interface EditorProps {
   statusbar?: boolean;
   wordCount?: boolean | WordCountOptions;
   resize?: boolean;
+  images?: ImagesConfig;
   plugins?: Plugin[];
   testIdPrefix?: string;
   className?: string;
@@ -61,6 +63,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(prop
       statusbar: props.statusbar,
       wordCount: props.wordCount,
       resize: props.resize,
+      images: props.images,
       plugins: props.plugins,
       testIdPrefix: props.testIdPrefix
     };

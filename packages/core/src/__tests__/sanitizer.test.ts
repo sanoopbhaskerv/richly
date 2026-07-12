@@ -45,6 +45,12 @@ describe('Sanitizer', () => {
     expect(sanitize(html)).toBe(html);
   });
 
+  it('strips internal upload marker attributes from images', () => {
+    expect(sanitize('<p><img src="x.png" alt="x" data-rly-uploading="true"></p>')).toBe(
+      '<p><img src="x.png" alt="x"></p>'
+    );
+  });
+
   it('cleans a representative Microsoft Word document while preserving structure', () => {
     const html = sanitize(fixture('word-paragraphs.html'));
 

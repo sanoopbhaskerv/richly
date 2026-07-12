@@ -47,6 +47,7 @@ expect(ed.getContent()).toBe('<p><strong>hello</strong> world</p>');
   - `shortcuts.spec.ts` — all keyboard shortcuts, Alt+F10 toolbar focus, roving tabindex
   - `advanced-editing.spec.ts` — IME undo grouping, safe plain-text paste, table merge/split, search/replace, preview, and visual blocks
   - `lists.spec.ts`, `link.spec.ts`, `table.spec.ts`, `image.spec.ts` — as those plugins land (Milestone 2)
+  - `image-upload.spec.ts` — file upload (dialog/paste), placeholder cleanup, resize frame drag + keyboard
   - `react.spec.ts` — React demo pane behaves identically to vanilla pane (both are on the demo page)
 - Artifacts: screenshots + traces on failure (`trace: 'on-first-retry'`).
 - CI: GitHub Actions runs coverage/build quality gates and a Playwright matrix over Chromium, Firefox, and WebKit. Version tags additionally run the gated release workflow.
@@ -75,6 +76,8 @@ Pattern: kebab-case, stable, semantic. Never derive from labels/i18n. One editor
 | Statusbar parts                         | `status-elpath`, `status-wordcount`, `status-resize`                     |
 | Context toolbar                         | `ctx-toolbar`, buttons reuse `tb-<name>`                                 |
 | Inline text toolbar                     | `text-inline-toolbar`, `inline-text-action-<id>`                         |
+| Image selection frame                   | `image-selection`                                                        |
+| Image resize handles                    | `image-resize-x`, `image-resize-y`, `image-resize-xy`                    |
 
 Implementation rule: testids are attached in core UI components (`ui/`), driven by the registered button/dialog name — plugin authors get them for free.
 

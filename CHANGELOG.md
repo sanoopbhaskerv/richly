@@ -7,6 +7,16 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Added image upload hooks via `images.upload` (dialog file picker, paste-file,
+  and drop-file routing) with `imageuploadstart`, `imageuploadend`, and
+  `imageuploaderror` events.
+- Added dialog `file` field support with a `files` side-channel on dialog
+  results for selected `File` objects.
+- Added image selection/resize frame with drag handles and frame-scoped
+  keyboard resizing.
+
 ## [0.4.0] - 2026-07-12
 
 ## [0.3.0] - 2026-07-12
