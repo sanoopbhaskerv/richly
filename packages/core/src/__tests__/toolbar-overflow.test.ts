@@ -48,4 +48,28 @@ describe('toolbar mode', () => {
 
     expect(ed.getRoot().querySelector('[data-testid="tb-more"]')).toBeNull();
   });
+
+  it('does not intercept arrow keys from a native select in another document realm', () => {
+    const iframe = document.createElement('iframe');
+    document.body.appendChild(iframe);
+    const frameDocument = iframe.contentDocument!;
+    const target = frameDocument.createElement('div');
+    frameDocument.body.appendChild(target);
+    ed = Editor.init({ target, initialContent: '<p>content</p>' });
+    const select = ed
+      .getRoot()
+      .querySelector<HTMLSelectElement>('[data-testid="tb-select-fontsize"]')!;
+    select.focus();
+
+    const frameWindow = iframe.contentWindow as Window & typeof globalThis;
+    const event = new frameWindow.KeyboardEvent('keydown', {
+      key: 'ArrowRight',
+      bubbles: true,
+      cancelable: true
+    });
+    select.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(frameDocument.activeElement).toBe(select);
+  });
 });

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Editor } from '../editor/Editor';
-import { createTestEditor, destroyAll, placeCursor } from './test-utils';
+import { createTestEditor, destroyAll, placeCursor, selectText } from './test-utils';
 
 let ed: Editor;
 afterEach(() => destroyAll(ed));
@@ -68,5 +68,42 @@ describe('editing edge cases', () => {
 
     expect(ed.selection.getRange()).toBeNull();
     expect(ed.selection.getBookmark()).toBeNull();
+  });
+
+  it('preserves styled spans when bold interleaves with colored text', () => {
+    ed = createTestEditor('<p><span style="color: red">abc</span></p>');
+    selectText(ed, 'b');
+
+    ed.execCommand('Bold');
+
+    const content = ed.getContent();
+    expect(content).toContain('color: red');
+    expect(content).toContain('<strong>b</strong>');
+    expect(content).not.toMatch(/style=""|<span[^>]*><span/i);
+  });
+
+  it('does not leak empty styled spans into getContent after a browser-like split', () => {
+    ed = createTestEditor('<p><span style="color: red">ab</span></p>');
+    ed.getBody().innerHTML =
+      '<p><span style="color: red">a</span><span style="color: red"></span><span style="color: red">b</span></p>';
+
+    expect(ed.getContent()).toBe(
+      '<p><span style="color: red">a</span><span style="color: red">b</span></p>'
+    );
+  });
+
+  it('RemoveFormat clears mixed tag and style runs across one selection', () => {
+    ed = createTestEditor(
+      '<p><strong>aa</strong><span style="color: red; font-size: 18px">bb</span><em>cc</em></p>'
+    );
+
+    const paragraph = ed.getBody().querySelector('p')!;
+    const range = document.createRange();
+    range.selectNodeContents(paragraph);
+    ed.selection.setRange(range);
+
+    ed.execCommand('RemoveFormat');
+
+    expect(ed.getContent()).toBe('<p>aabbcc</p>');
   });
 });

@@ -33,8 +33,19 @@ export const icons: Record<string, string> = {
   strikethrough: svg(
     '<path d="M4 12h16M17 6.5C16 5 14.5 4.5 12 4.5c-3 0-4.5 1.4-4.5 3 0 .9.4 1.6 1.2 2.1M7 17.5c1 1.5 2.5 2 5 2 3 0 4.5-1.4 4.5-3 0-.9-.4-1.6-1.2-2.1"/>'
   ),
+  forecolor: svg(
+    '<path d="m7 18 5-14 5 14M9 13h6"/><path class="rly-icon-color-indicator" d="M5 21h14" stroke-width="3"/>'
+  ),
+  backcolor: svg(
+    '<rect class="rly-icon-color-indicator" x="4" y="16" width="16" height="5" rx="1" fill="currentColor" stroke="none"/><path d="m7 15 5-10 5 10M9 11h6"/>'
+  ),
+  superscript: svg('<path d="M3 18 10 8M3 8l7 10"/><path d="M14 7h6M14 12h6M14 7l6 5"/>'),
+  subscript: svg('<path d="M3 16 10 6M3 6l7 10"/><path d="M14 16h6M14 16l3 3h3"/>'),
   h1: svg('<path d="M4 6v12M11 6v12M4 12h7M16 10l3-2v10" />'),
   h2: svg('<path d="M4 6v12M11 6v12M4 12h7M15.5 10a2.5 2.5 0 0 1 4.3 1.7c0 2-4.3 3.3-4.3 6.3h5"/>'),
+  h3: svg(
+    '<path d="M4 6v12M11 6v12M4 12h7M16 9.5h2.5a2 2 0 0 1 0 4H17.5M18 13.5h.5a2 2 0 0 1 0 4H16"/>'
+  ),
   paragraph: svg('<path d="M13 5v14M17 5v14M17 5h-6a4 4 0 0 0 0 8h2"/>'),
   blockquote: svg(
     '<path d="M8 7c-2 1-3 2.7-3 5v5h5v-5H7c0-1.8.8-3 2.5-3.8zM19 7c-2 1-3 2.7-3 5v5h5v-5h-3c0-1.8.8-3 2.5-3.8z" fill="currentColor" stroke="none"/>'

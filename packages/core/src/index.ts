@@ -6,3 +6,4 @@ export type { Command } from './commands/Registry';
 export type { ButtonSpec } from './ui/UiRegistry';
 export type { Bookmark } from './dom/SelectionManager';
 export { sanitize } from './model/Sanitizer';
+export { DEFAULT_COLORS, DEFAULT_FONT_SIZES } from './plugins/textstyle';

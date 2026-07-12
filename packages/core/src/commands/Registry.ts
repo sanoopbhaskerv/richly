@@ -4,6 +4,8 @@ export interface Command {
   execute(editor: Editor, args?: unknown): void;
   /** True when the command's format is active at the cursor (drives toolbar toggle state). */
   queryState?(editor: Editor): boolean;
+  /** Get the current value of the command's format at the cursor (e.g. color hex, font size). */
+  queryValue?(editor: Editor): string;
   /** Skip the automatic undo snapshot (e.g. Undo/Redo themselves). */
   skipUndo?: boolean;
 }
@@ -31,5 +33,9 @@ export class CommandRegistry {
 
   queryState(name: string): boolean {
     return this.commands.get(name.toLowerCase())?.queryState?.(this.editor) ?? false;
+  }
+
+  queryValue(name: string): string {
+    return this.commands.get(name.toLowerCase())?.queryValue?.(this.editor) ?? '';
   }
 }

@@ -33,9 +33,11 @@ describe('Sanitizer', () => {
   });
 
   it('whitelists style declarations', () => {
-    expect(sanitize('<span style="color: red; position: fixed">x</span>')).toBe(
-      '<span style="color: red">x</span>'
-    );
+    expect(
+      sanitize(
+        '<span style="color: red; background-color: yellow; font-size: 18px; position: fixed">x</span>'
+      )
+    ).toBe('<span style="color: red; background-color: yellow; font-size: 18px">x</span>');
   });
 
   it('keeps allowed structural content intact', () => {
@@ -48,7 +50,12 @@ describe('Sanitizer', () => {
 
     expect(html).toContain('Quarterly update');
     expect(html).toContain('<b>');
-    expect(html).toContain('<i>24%</i>');
+    expect(html).toContain(
+      '<i><span style="background-color: #fff2cc; font-size: 12pt">24%</span></i>'
+    );
+    expect(html).toContain('color: #1f4e79');
+    expect(html).toContain('font-size: 16pt');
+    expect(html).toContain('background-color: #fff2cc');
     expect(html).toContain('<ul>');
     expect(html).toContain('<li class="MsoListParagraph">First market</li>');
     expect(html).not.toMatch(/<script|<style|onclick=|mso-pagination/i);
@@ -71,6 +78,9 @@ describe('Sanitizer', () => {
 
     expect(html).toContain('Planning notes');
     expect(html).toContain('Confirm the launch date');
+    expect(html).toContain('color: #0f766e');
+    expect(html).toContain('background-color: #dcfce7');
+    expect(html).toContain('font-size: 11pt');
     expect(html).toContain('<ul');
     expect(html).toContain('href="https://example.com/roadmap"');
     expect(html).not.toContain('href="javascript:');

@@ -8,7 +8,9 @@ import { icons } from './icons';
  */
 export class Toolbar {
   private toggles: { name: string; el: HTMLButtonElement; command: string }[] = [];
-  private buttons: HTMLButtonElement[] = [];
+  private selects: { name: string; el: HTMLSelectElement; command: string }[] = [];
+  private valueIndicators: { el: HTMLButtonElement; command: string }[] = [];
+  private buttons: HTMLElement[] = [];
   private sections: HTMLElement[][] = [];
   private moreWrap: HTMLElement | null = null;
   private morePanel: HTMLElement | null = null;
@@ -45,6 +47,26 @@ export class Toolbar {
       for (const name of names) {
         const buttonSpec = this.editor.ui.buttons.get(name);
         if (!buttonSpec) continue;
+        if (buttonSpec.type === 'select') {
+          const select = doc.createElement('select');
+          select.className = 'rly-tb-select';
+          select.dataset.testid = `tb-select-${name}`;
+          select.setAttribute('aria-label', buttonSpec.tooltip);
+          buttonSpec.options.forEach((optionSpec) => {
+            const option = doc.createElement('option');
+            option.textContent = optionSpec.label;
+            option.value = optionSpec.value;
+            select.appendChild(option);
+          });
+          select.addEventListener('change', () => {
+            this.editor.execCommand(buttonSpec.command, select.value);
+          });
+          groupEl.appendChild(select);
+          this.selects.push({ name, el: select, command: buttonSpec.command });
+          this.buttons.push(select);
+          continue;
+        }
+
         const btn = doc.createElement('button');
         btn.type = 'button';
         btn.className = 'rly-tb-btn';
@@ -56,11 +78,11 @@ export class Toolbar {
           ? `${buttonSpec.tooltip} (${buttonSpec.shortcut})`
           : buttonSpec.tooltip;
         btn.innerHTML = icons[buttonSpec.icon] ?? buttonSpec.icon;
-        if (buttonSpec.toggle) btn.setAttribute('aria-pressed', 'false');
+        if (buttonSpec.type === 'toggle') btn.setAttribute('aria-pressed', 'false');
         // Preventing mousedown focus loss keeps the content selection intact.
         btn.addEventListener('mousedown', (e) => e.preventDefault());
 
-        if (buttonSpec.panel) {
+        if (buttonSpec.type === 'panel') {
           // Dropdown button (e.g. table grid picker).
           const wrap = doc.createElement('div');
           wrap.className = 'rly-tb-wrap';
@@ -76,9 +98,15 @@ export class Toolbar {
             dd.style.left = '';
             dd.style.right = '';
             dd.classList.remove('rly-open');
+            btn.setAttribute('aria-expanded', 'false');
           };
           dd.appendChild(buttonSpec.panel(this.editor, close));
+          if (buttonSpec.valueCommand) {
+            btn.classList.add('rly-value-indicator');
+            this.valueIndicators.push({ el: btn, command: buttonSpec.valueCommand });
+          }
           btn.setAttribute('aria-haspopup', 'true');
+          btn.setAttribute('aria-expanded', 'false');
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const wasOpen = dd.classList.contains('rly-open');
@@ -87,6 +115,9 @@ export class Toolbar {
               el.style.left = '';
               el.style.right = '';
               el.classList.remove('rly-open');
+              el.parentElement
+                ?.querySelector(':scope > button')
+                ?.setAttribute('aria-expanded', 'false');
             });
             if (!wasOpen) {
               // Reset to CSS default so getBoundingClientRect reflects the
@@ -94,6 +125,7 @@ export class Toolbar {
               dd.style.left = '';
               dd.style.right = '';
               dd.classList.add('rly-open');
+              btn.setAttribute('aria-expanded', 'true');
               dd.firstElementChild?.dispatchEvent(
                 new (doc.defaultView?.Event ?? Event)('rly-panel-open')
               );
@@ -128,21 +160,20 @@ export class Toolbar {
           this.editor.events.on('destroy', () => doc.removeEventListener('click', close));
           wrap.append(btn, dd);
           groupEl.appendChild(wrap);
-        } else if (buttonSpec.command) {
-          const command = buttonSpec.command;
-          // Plain (non-panel) button gets the tooltip directly.
+        } else {
+          // Plain button (momentary or toggle) gets the tooltip directly.
           btn.dataset.tooltip = tooltipText;
           btn.addEventListener('click', () => {
-            this.editor.execCommand(command, buttonSpec.args);
+            this.editor.execCommand(
+              buttonSpec.command,
+              buttonSpec.type === 'button' ? buttonSpec.args : undefined
+            );
             // Don't steal focus back if the command opened a modal dialog.
             if (!doc.querySelector('.rly-dialog-overlay')) this.editor.focus();
           });
           groupEl.appendChild(btn);
-          if (buttonSpec.toggle) this.toggles.push({ name, el: btn, command });
-        } else {
-          // No command, no panel — still show tooltip.
-          btn.dataset.tooltip = tooltipText;
-          groupEl.appendChild(btn);
+          if (buttonSpec.type === 'toggle')
+            this.toggles.push({ name, el: btn, command: buttonSpec.command });
         }
         this.buttons.push(btn);
       }
@@ -289,6 +320,24 @@ export class Toolbar {
   }
 
   refresh(): void {
+    for (const indicator of this.valueIndicators) {
+      const value = this.editor.queryCommandValue(indicator.command);
+      if (value) indicator.el.style.setProperty('--rly-control-value', value);
+      else indicator.el.style.removeProperty('--rly-control-value');
+    }
+    for (const s of this.selects) {
+      const value = this.editor.queryCommandValue(s.command);
+      s.el.querySelector('.rly-temp-option')?.remove();
+      const hasPreset = Array.from(s.el.options).some((option) => option.value === value);
+      if (value && !hasPreset) {
+        const opt = this.container.ownerDocument.createElement('option');
+        opt.value = value;
+        opt.textContent = value;
+        opt.className = 'rly-temp-option';
+        s.el.appendChild(opt);
+      }
+      s.el.value = value;
+    }
     for (const t of this.toggles) {
       const active = this.editor.queryCommandState(t.command);
       t.el.classList.toggle('rly-active', active);
@@ -301,6 +350,8 @@ export class Toolbar {
     this.buttons.forEach((b, i) => (b.tabIndex = i === 0 ? 0 : -1));
     this.container.addEventListener('keydown', (e) => {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const activeEl = this.container.ownerDocument.activeElement;
+      if (activeEl?.nodeName === 'SELECT') return;
       const available = this.buttons.filter((button) => {
         if (button.hidden || button.closest('[hidden]')) return false;
         const overflow = button.closest('.rly-toolbar-overflow-panel');

@@ -13,6 +13,8 @@ import { sourceCodePlugin } from './sourcecode';
 import { fullscreenPlugin } from './fullscreen';
 import { clipboardPlugin } from './clipboard';
 import { documentToolsPlugin } from './documenttools';
+import { textStylePlugin } from './textstyle';
+import { textSelectionToolbarPlugin } from './textselectiontoolbar';
 
 export type { Plugin } from './types';
 
@@ -31,5 +33,7 @@ export const corePlugins: Plugin[] = [
   imagePlugin,
   hrPlugin,
   sourceCodePlugin,
-  fullscreenPlugin
+  fullscreenPlugin,
+  textStylePlugin,
+  textSelectionToolbarPlugin
 ];

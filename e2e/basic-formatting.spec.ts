@@ -94,7 +94,13 @@ test.describe('basic formatting (vanilla instance)', () => {
       expect(toolbarBox.height).toBeLessThan(50);
     }
 
-    await page.setViewportSize({ width: 1500, height: 760 });
+    // The expanded 0.5 toolbar is wider than the demo's intentional 1320px
+    // max-width. Remove that demo-only cap to exercise the actual "space permits"
+    // transition rather than assuming every default control fits inside the demo.
+    await page.evaluate(() => {
+      document.querySelector<HTMLElement>('.wrap')!.style.maxWidth = 'none';
+    });
+    await page.setViewportSize({ width: 1800, height: 760 });
     await expect(reactEditor.button('more')).toBeHidden();
     await expect(reactEditor.button('removeformat')).toBeVisible();
     expect((await reactEditor.toolbar.boundingBox())!.height).toBeLessThan(50);

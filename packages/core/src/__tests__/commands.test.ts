@@ -61,7 +61,9 @@ describe('inline format commands', () => {
   });
 
   it('RemoveFormat strips all inline formatting', () => {
-    ed = createTestEditor('<p><strong><em>styled</em></strong> text</p>');
+    ed = createTestEditor(
+      '<p><strong><em><span style="color: red; font-size: 18px">styled</span></em></strong> text</p>'
+    );
     selectText(ed, 'styled');
     ed.execCommand('RemoveFormat');
     expect(ed.getContent()).toBe('<p>styled text</p>');

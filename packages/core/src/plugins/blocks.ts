@@ -4,6 +4,7 @@ import { transformBlock, closestBlock } from '../dom/DomUtils';
 const BLOCK_BUTTONS: { name: string; tag: string; icon: string; tooltip: string }[] = [
   { name: 'h1', tag: 'h1', icon: 'h1', tooltip: 'Heading 1' },
   { name: 'h2', tag: 'h2', icon: 'h2', tooltip: 'Heading 2' },
+  { name: 'h3', tag: 'h3', icon: 'h3', tooltip: 'Heading 3' },
   { name: 'paragraph', tag: 'p', icon: 'paragraph', tooltip: 'Paragraph' },
   { name: 'blockquote', tag: 'blockquote', icon: 'blockquote', tooltip: 'Quote' }
 ];

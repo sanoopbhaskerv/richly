@@ -106,6 +106,35 @@ describe('Styled-span engine', () => {
     );
   });
 
+  it('compares complete style sets independently of declaration order', () => {
+    ed = createTestEditor(
+      '<p><span style="color: red; font-size: 18px">a</span><span style="font-size: 18px; color: red">b</span></p>'
+    );
+    const paragraph = ed.getBody().querySelector('p')!;
+    const range = document.createRange();
+    range.selectNodeContents(paragraph);
+
+    const out = applyStyledSpan(range, 'color', 'red', ed.getBody());
+
+    expect(normalizeHtml(ed.getContent())).toBe(
+      normalizeHtml('<p><span style="color: red; font-size: 18px">ab</span></p>')
+    );
+    expect(out.startContainer.isConnected).toBe(true);
+  });
+
+  it('merges across empty range boundary nodes and returns a connected range', () => {
+    ed = createTestEditor('<p><span style="color: red">a</span>b</p>');
+    selectText(ed, 'b');
+
+    const out = applyStyledSpan(ed.selection.getRange()!, 'color', 'red', ed.getBody());
+
+    expect(normalizeHtml(ed.getContent())).toBe(
+      normalizeHtml('<p><span style="color: red">ab</span></p>')
+    );
+    expect(out.startContainer.isConnected).toBe(true);
+    expect(out.toString()).toBe('ab');
+  });
+
   it('queryStyledValue returns nearest inline-style value', () => {
     ed = createTestEditor('<p><span style="color: red"><strong>hello</strong></span></p>');
     const strong = ed.getBody().querySelector('strong')!;

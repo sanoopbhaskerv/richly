@@ -68,9 +68,13 @@ Pattern: kebab-case, stable, semantic. Never derive from labels/i18n. One editor
 | Dropdown panel                          | `dd-<name>` (e.g. `dd-table`, `dd-forecolor`)                            |
 | Table grid cell                         | `grid-cell-<row>-<col>`                                                  |
 | Color swatch                            | `swatch-<hex-no-hash>`                                                   |
+| WP3 text style dropdowns                | `dd-forecolor`, `dd-backcolor`                                           |
+| WP3 font size select                    | `tb-select-fontsize`                                                     |
+| WP3 clear swatch                        | `swatch-none`                                                            |
 | Dialog / field / actions                | `dialog-<name>`, `dialog-field-<name>`, `dialog-submit`, `dialog-cancel` |
 | Statusbar parts                         | `status-elpath`, `status-wordcount`, `status-resize`                     |
 | Context toolbar                         | `ctx-toolbar`, buttons reuse `tb-<name>`                                 |
+| Inline text toolbar                     | `text-inline-toolbar`, `inline-text-action-<id>`                         |
 
 Implementation rule: testids are attached in core UI components (`ui/`), driven by the registered button/dialog name — plugin authors get them for free.
 

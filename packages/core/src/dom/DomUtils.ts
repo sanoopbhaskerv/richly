@@ -366,6 +366,7 @@ export function removeStyledSpan(range: Range, prop: string, root: HTMLElement):
         }
       }
     });
+    mergeAdjacentStyleChildren(midFrag);
 
     const parent = ancestor.parentNode!;
     const next = ancestor.nextSibling;
@@ -428,6 +429,7 @@ export function removeStyledSpan(range: Range, prop: string, root: HTMLElement):
       }
     }
   });
+  mergeAdjacentStyleChildren(frag);
   const first = frag.firstChild;
   const last = frag.lastChild;
   range.insertNode(frag);
@@ -460,12 +462,25 @@ function getNormalizedStyleText(el: HTMLElement): string {
   return styles.join('; ');
 }
 
-function mergeAdjacentStyleSpans(el: HTMLElement): void {
-  if (!isStyleSpan(el)) return;
+function adjacentMeaningfulSibling(
+  el: HTMLElement,
+  direction: 'previous' | 'next'
+): ChildNode | null {
+  let sibling = direction === 'previous' ? el.previousSibling : el.nextSibling;
+  while (sibling?.nodeType === Node.TEXT_NODE && sibling.textContent === '') {
+    const empty = sibling;
+    sibling = direction === 'previous' ? sibling.previousSibling : sibling.nextSibling;
+    empty.remove();
+  }
+  return sibling;
+}
+
+function mergeAdjacentStyleSpans(el: HTMLElement): HTMLElement {
+  if (!isStyleSpan(el)) return el;
   const normStyle = getNormalizedStyleText(el);
 
   // Check previous sibling
-  const prev = el.previousSibling;
+  const prev = adjacentMeaningfulSibling(el, 'previous');
   if (
     prev &&
     prev.nodeType === Node.ELEMENT_NODE &&
@@ -479,7 +494,7 @@ function mergeAdjacentStyleSpans(el: HTMLElement): void {
   }
 
   // Check next sibling
-  const next = el.nextSibling;
+  const next = adjacentMeaningfulSibling(el, 'next');
   if (
     next &&
     next.nodeType === Node.ELEMENT_NODE &&
@@ -489,6 +504,19 @@ function mergeAdjacentStyleSpans(el: HTMLElement): void {
     const nextEl = next as HTMLElement;
     while (nextEl.firstChild) el.appendChild(nextEl.firstChild);
     nextEl.remove();
+  }
+  return el;
+}
+
+function mergeAdjacentStyleChildren(parent: ParentNode): void {
+  let child = parent.firstChild;
+  while (child) {
+    if (child.nodeType === Node.ELEMENT_NODE && isStyleSpan(child as Element)) {
+      const merged = mergeAdjacentStyleSpans(child as HTMLElement);
+      child = merged.nextSibling;
+    } else {
+      child = child.nextSibling;
+    }
   }
 }
 
@@ -543,8 +571,10 @@ export function applyStyledSpan(
 
   if (parentSpan) {
     parentSpan.style.setProperty(prop, value);
-    mergeAdjacentStyleSpans(parentSpan);
-    return range;
+    const merged = mergeAdjacentStyleSpans(parentSpan);
+    const out = doc.createRange();
+    out.selectNodeContents(merged);
+    return out;
   }
 
   const cleanRange = removeStyledSpan(range, prop, root);
@@ -565,7 +595,7 @@ export function applyStyledSpan(
   }
 
   cleanRange.insertNode(targetEl);
-  mergeAdjacentStyleSpans(targetEl);
+  targetEl = mergeAdjacentStyleSpans(targetEl);
 
   const out = doc.createRange();
   out.selectNodeContents(targetEl);

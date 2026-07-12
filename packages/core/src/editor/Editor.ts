@@ -30,6 +30,20 @@ export interface EditorConfig {
   plugins?: Plugin[];
   /** Prefix for chrome data-testids (default "editor"): editor-root, editor-toolbar, editor-content, editor-statusbar. */
   testIdPrefix?: string;
+  /** Configure default text style colors and font size presets. */
+  textStyles?: {
+    colors?: string[];
+    fontSizes?: string[];
+  };
+}
+
+const editorConfigs = new WeakMap<Editor, EditorConfig>();
+
+/** Package-internal configuration access for bundled plugins. */
+export function getEditorConfig(editor: Editor): Readonly<EditorConfig> {
+  const config = editorConfigs.get(editor);
+  if (!config) throw new Error('Editor configuration is unavailable');
+  return config;
 }
 
 export type ToolbarMode = 'wrap' | 'more';
@@ -54,7 +68,7 @@ export interface EditorEvents extends Record<string, unknown> {
 }
 
 const DEFAULT_TOOLBAR =
-  'undo redo | selectall copy cut paste | bold italic underline strikethrough | h1 h2 paragraph blockquote | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink table image | findreplace preview visualblocks | code fullscreen removeformat';
+  'undo redo | selectall copy cut paste | bold italic underline strikethrough superscript subscript | forecolor backcolor fontsize | h1 h2 paragraph blockquote | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink table image | findreplace preview visualblocks | code fullscreen removeformat';
 
 export class Editor {
   readonly events = new Emitter<EditorEvents>();
@@ -77,6 +91,8 @@ export class Editor {
       config.target ??
       (config.selector ? (document.querySelector(config.selector) as HTMLElement | null) : null);
     if (!target) throw new Error('Editor.init: config.target or config.selector is required');
+
+    editorConfigs.set(this, config);
 
     this.buildChrome(target);
     this.selection = new SelectionManager(this.body);
@@ -394,21 +410,53 @@ export class Editor {
     return true;
   }
 
-  /** Once the user types into a caret container, its U+FEFF filler is no longer needed. */
+  /** Remove caret fillers and unwrap formatting containers emptied by editing. */
   private cleanCaretFiller(): void {
     const range = this.selection.getRange();
     const node = range?.startContainer;
-    if (!range || !node || node.nodeType !== Node.TEXT_NODE) return;
-    const text = node as Text;
-    const idx = text.data.indexOf('﻿');
-    if (idx === -1 || text.data.length <= 1) return;
-    const offset = range.startOffset;
-    text.deleteData(idx, 1);
-    if (offset > idx) {
-      range.setStart(text, Math.min(offset - 1, text.data.length));
-      range.collapse(true);
-      this.selection.setRange(range);
+    if (!range || !node) return;
+
+    let text = node.nodeType === Node.TEXT_NODE ? (node as Text) : null;
+    if (text) {
+      const idx = text.data.indexOf('﻿');
+      if (idx !== -1 && text.data.length > 1) {
+        const offset = range.startOffset;
+        text.deleteData(idx, 1);
+        if (offset > idx) range.setStart(text, Math.min(offset - 1, text.data.length));
+        range.collapse(true);
+      }
     }
+
+    const inlineSelector = 'span,strong,b,em,i,u,s,strike,del,code,sub,sup';
+    let wrapper = text?.parentElement ?? (node as Element).closest?.(inlineSelector) ?? null;
+    let fallbackParent: Node | null = null;
+    let fallbackOffset = 0;
+
+    while (
+      wrapper &&
+      wrapper !== this.body &&
+      wrapper.matches(inlineSelector) &&
+      (wrapper.textContent ?? '').replace(/\uFEFF/g, '') === '' &&
+      !wrapper.querySelector('img,hr,table')
+    ) {
+      const parent = wrapper.parentNode;
+      if (!parent) break;
+      fallbackParent = parent;
+      fallbackOffset = Array.prototype.indexOf.call(parent.childNodes, wrapper);
+      const nextWrapper = wrapper.parentElement;
+      while (wrapper.firstChild) parent.insertBefore(wrapper.firstChild, wrapper);
+      wrapper.remove();
+      wrapper = nextWrapper;
+    }
+
+    text = text?.isConnected ? text : null;
+    if (text) {
+      range.setStart(text, Math.min(range.startOffset, text.data.length));
+    } else if (fallbackParent?.isConnected) {
+      range.setStart(fallbackParent, Math.min(fallbackOffset, fallbackParent.childNodes.length));
+    }
+    range.collapse(true);
+    this.selection.setRange(range);
   }
 
   // ---- public API ----
@@ -451,6 +499,10 @@ export class Editor {
     return this.commands.queryState(name);
   }
 
+  queryCommandValue(name: string): string {
+    return this.commands.queryValue(name);
+  }
+
   on: Emitter<EditorEvents>['on'] = (event, fn) => this.events.on(event, fn);
   off: Emitter<EditorEvents>['off'] = (event, fn) => this.events.off(event, fn);
 
@@ -463,6 +515,7 @@ export class Editor {
     this.cleanups.forEach((fn) => fn());
     this.cleanups = [];
     this.root.remove();
+    editorConfigs.delete(this);
     this.events.removeAll();
   }
 }
