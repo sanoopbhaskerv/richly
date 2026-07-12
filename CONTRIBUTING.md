@@ -33,6 +33,12 @@ user-visible change. Follow `MIGRATING.md` when a compatibility surface changes.
 
 ## Commit guidance
 
+Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/)
+(`feat:`, `fix:`, `docs:`, `chore:`, …, with `!` or a `BREAKING CHANGE:` footer
+for incompatible changes). This is enforced by the local `commit-msg` hook and
+by the `commits` CI job on every pull request. The types matter: they drive
+automatic version derivation via `yarn release:prepare`.
+
 Keep commits focused and describe the user-visible effect. Do not commit build
 output, coverage data, local environment files, or Playwright artifacts.
 

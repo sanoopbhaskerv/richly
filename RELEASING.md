@@ -23,20 +23,21 @@ documented CSS variables/classes, and the sanitized HTML contract.
 ## Prepare a release
 
 1. Create a release branch from a green `main` branch.
-2. Update both package versions to the same SemVer value.
-3. Update `@richly/react`'s `@richly/core` dependency to the matching caret
-   range.
-4. Move relevant entries from `CHANGELOG.md`'s `Unreleased` section into a
-   dated version section.
-5. Add migration instructions when the release changes a compatibility
+2. Run `yarn release:prepare` — it derives the bump from Conventional Commits
+   since the last tag (feat → minor, fix → patch, breaking → major, mapped to
+   minor while pre-1.0), updates all package versions, `@richly/react`'s
+   `@richly/core` range, and rolls `CHANGELOG.md`'s `Unreleased` section into
+   a dated version section. Use `--dry-run` to preview; review the diff and
+   the changelog wording before committing.
+3. Add migration instructions when the release changes a compatibility
    surface.
-6. Run:
+4. Run:
 
    ```bash
    yarn release:check
    ```
 
-7. Merge the release branch, then create and push an annotated tag:
+5. Merge the release branch, then create and push an annotated tag:
 
    ```bash
    git tag -a v0.1.0 -m "Richly v0.1.0"

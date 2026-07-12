@@ -1,7 +1,7 @@
 {
   "name": "richly-monorepo",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "workspaces": [
     "packages/*"
   ],
@@ -15,6 +15,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
+    "release:prepare": "node scripts/prepare-release.mjs",
     "release:validate": "node scripts/check-release.mjs",
     "release:pack": "node scripts/pack-dry-run.mjs",
     "release:check": "yarn release:validate && yarn lint && yarn format && yarn test && yarn build && yarn release:pack",
@@ -42,6 +43,8 @@
     "url": "https://github.com/sanoopbhaskerv/richly/issues"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.45.0",
     "eslint": "^10.6.0",
