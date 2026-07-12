@@ -495,6 +495,10 @@ export class Editor {
         el.remove();
     });
     clone.querySelectorAll('img[data-rly-uploading]').forEach((img) => img.remove());
+    // Transient find/replace highlights (documenttools.ts) never serialize.
+    clone.querySelectorAll('mark[data-rly-find-match]').forEach((mark) => {
+      mark.replaceWith(...Array.from(mark.childNodes));
+    });
     return clone.innerHTML.replace(/﻿/g, '');
   }
 

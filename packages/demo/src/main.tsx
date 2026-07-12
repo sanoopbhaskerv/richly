@@ -21,8 +21,10 @@ const uploadImage = async (file: File): Promise<{ src: string; alt?: string }> =
   return { src: dataUrl, alt: file.name.replace(/\.[^.]+$/, '') };
 };
 
+// Mirrors the core default toolbar with the custom Highlight button added, so
+// the custom-plugin demo instances still expose every standard tool.
 const demoToolbar =
-  'undo redo | bold italic highlight | forecolor backcolor | h1 h2 | alignleft aligncenter alignright | bullist numlist | link table image | preview visualblocks';
+  'undo redo | selectall copy cut paste | bold italic highlight underline strikethrough superscript subscript | forecolor backcolor fontsize | h1 h2 paragraph blockquote | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink table image | findreplace preview visualblocks | code fullscreen removeformat';
 
 // ---- Vanilla integration (with custom plugins) ----
 VanillaEditor.init({

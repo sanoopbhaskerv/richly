@@ -82,8 +82,9 @@ test.describe('advanced editing', () => {
     await editor.content.press('ControlOrMeta+f');
     await page.getByTestId('dialog-field-find').fill('before');
     await page.getByTestId('dialog-field-replace').fill('after');
-    await page.getByTestId('dialog-field-action').selectOption('replaceAll');
-    await page.getByTestId('dialog-submit').click();
+    await page.getByTestId('findreplace-replace-all').click();
+    await expect(page.getByTestId('findreplace-count')).toHaveText('Replaced 1 occurrence');
+    await page.getByTestId('dialog-close').click();
     await expect(editor.content).toContainText('after');
 
     await editor.root.getByTestId('menu-view').click();

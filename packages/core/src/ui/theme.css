@@ -892,6 +892,54 @@
   background: var(--rly-active);
 }
 
+/* Find/replace transient highlights (documenttools.ts). Cleaned from getContent(). */
+.rly-content mark.rly-match {
+  background: color-mix(in srgb, var(--rly-accent) 22%, transparent);
+  color: inherit;
+  border-radius: 2px;
+}
+.rly-content mark.rly-match-current {
+  background: color-mix(in srgb, var(--rly-accent) 55%, transparent);
+  outline: 1px solid var(--rly-accent);
+}
+
+/* Floating (non-modal) find/replace panel — keeps editor highlights visible. */
+.rly-findreplace {
+  position: fixed;
+  top: 84px;
+  right: 24px;
+  z-index: 100;
+  width: min(340px, calc(100vw - 32px));
+  box-sizing: border-box;
+  background: var(--rly-surface, #fff);
+  color: var(--rly-text, #1f2733);
+  border: 1px solid var(--rly-border, #e3e6ea);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(10, 15, 30, 0.28);
+  padding: 16px 18px 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+}
+.rly-findreplace .rly-dialog-header {
+  margin-bottom: 14px;
+}
+.rly-findreplace .rly-dialog-fields {
+  gap: 8px;
+}
+.rly-findreplace-count {
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--rly-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.rly-findreplace-footer {
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 14px;
+}
+.rly-findreplace-footer .rly-dialog-btn {
+  padding: 7px 12px;
+}
+
 .rly-content.rly-visual-blocks > :is(p, h1, h2, h3, h4, h5, h6, blockquote, pre, ul, ol, table) {
   position: relative;
   outline: 1px dashed color-mix(in srgb, var(--rly-accent) 42%, transparent);

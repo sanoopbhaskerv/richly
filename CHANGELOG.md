@@ -7,6 +7,28 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Reworked find/replace into a stateful search session with a floating,
+  non-modal panel: separate **Find**, **Find Next**, **Replace**, and
+  **Replace All** actions, plus a live `findreplace-count` counter ("2 of 20").
+- Added keyboard navigation while the panel is open — Enter moves to the next
+  match, Shift+Enter to the previous, both wrapping around.
+- Added transient match highlighting via `rly-match` / `rly-match-current`
+  marks, scrolled into view and stripped from `getContent()` like caret
+  fillers.
+- Replace All now reports how many occurrences were replaced.
+
+### Fixed
+
+- Fixed find/replace so replacing occurrences one at a time advances through
+  stable ordinals (`2 of 20`, `3 of 20`) instead of recomputing from the start,
+  and never reprocesses inserted replacement text (e.g. `dialogue` →
+  `dialogue23` no longer becomes `dialogue2323`).
+- Restored the demo's custom-plugin instances to the full default toolbar (with
+  the Highlight button) and gave them full width so the shipped tools and
+  layout-sensitive e2e coverage stay in sync.
+
 ## [0.5.0] - 2026-07-12
 
 ### Added

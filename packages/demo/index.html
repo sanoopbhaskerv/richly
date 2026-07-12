@@ -36,7 +36,8 @@
         .wrap {
           grid-template-columns: 1fr 1fr;
         }
-        .head {
+        .head,
+        .full-span {
           grid-column: span 2;
         }
       }
@@ -74,7 +75,7 @@
           ◐ Theme
         </button>
       </div>
-      <section>
+      <section class="full-span">
         <h2>Vanilla JS (with custom plugins)</h2>
         <div id="vanilla-host"></div>
       </section>
@@ -82,7 +83,7 @@
         <h2>Vanilla JS (standard)</h2>
         <div id="vanilla-clean-host"></div>
       </section>
-      <section>
+      <section class="full-span">
         <h2>React (with custom plugins)</h2>
         <div id="react-host"></div>
       </section>
