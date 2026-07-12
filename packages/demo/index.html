@@ -32,6 +32,14 @@
         justify-content: space-between;
         align-items: baseline;
       }
+      @media (min-width: 900px) {
+        .wrap {
+          grid-template-columns: 1fr 1fr;
+        }
+        .head {
+          grid-column: span 2;
+        }
+      }
       h1 {
         font-size: 17px;
         margin: 0;
@@ -67,12 +75,20 @@
         </button>
       </div>
       <section>
-        <h2>Vanilla JS</h2>
+        <h2>Vanilla JS (with custom plugins)</h2>
         <div id="vanilla-host"></div>
       </section>
       <section>
-        <h2>React</h2>
+        <h2>Vanilla JS (standard)</h2>
+        <div id="vanilla-clean-host"></div>
+      </section>
+      <section>
+        <h2>React (with custom plugins)</h2>
         <div id="react-host"></div>
+      </section>
+      <section>
+        <h2>React (standard)</h2>
+        <div id="react-clean-host"></div>
       </section>
     </div>
     <script type="module" src="/src/main.tsx"></script>

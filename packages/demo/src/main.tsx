@@ -3,6 +3,8 @@ import { Editor as VanillaEditor } from '@richly/core';
 import { Editor as ReactEditor } from '@richly/react';
 import { createRoot } from 'react-dom/client';
 import { StrictMode, useState } from 'react';
+import { highlightPlugin } from '../../../examples/highlight-plugin';
+import { createWordGoalPlugin } from '../../../examples/word-goal-plugin';
 
 const shouldFailUpload = new URLSearchParams(window.location.search).has('imgfail');
 
@@ -19,21 +21,38 @@ const uploadImage = async (file: File): Promise<{ src: string; alt?: string }> =
   return { src: dataUrl, alt: file.name.replace(/\.[^.]+$/, '') };
 };
 
-// ---- Vanilla integration (testIdPrefix "editor" → editor-root, tb-bold, …) ----
+const demoToolbar =
+  'undo redo | bold italic highlight | forecolor backcolor | h1 h2 | alignleft aligncenter alignright | bullist numlist | link table image | preview visualblocks';
+
+// ---- Vanilla integration (with custom plugins) ----
 VanillaEditor.init({
   target: document.getElementById('vanilla-host')!,
   testIdPrefix: 'editor',
   images: { upload: uploadImage },
+  plugins: [
+    highlightPlugin,
+    createWordGoalPlugin({ goal: 50, testId: 'status-vanilla-word-goal' })
+  ],
+  toolbar: demoToolbar,
   initialContent: `
     <h1>Vanilla build</h1>
-    <p>This instance was created with <strong>Editor.init()</strong> — no framework. Select text and use the toolbar or <strong>⌘B</strong>/<strong>⌘I</strong>/<strong>⌘Z</strong>.</p>
-    <blockquote>Same engine as the React instance below.</blockquote>`
+    <p>This instance was created with <strong>Editor.init()</strong> and has the custom Highlight and Word Goal plugins registered.</p>`
 });
 
-// ---- React integration (testIdPrefix "reditor") ----
+// ---- Vanilla integration (standard) ----
+VanillaEditor.init({
+  target: document.getElementById('vanilla-clean-host')!,
+  testIdPrefix: 'editor-clean',
+  images: { upload: uploadImage },
+  initialContent: `
+    <h1>Vanilla build (Standard)</h1>
+    <p>This instance has <strong>no custom plugins</strong> registered. It uses default plugins and toolbar configurations.</p>`
+});
+
+// ---- React integration (with custom plugins) ----
 function App(): JSX.Element {
   const [html, setHtml] = useState(
-    '<h1>React build</h1><p>This one is a <strong>&lt;Editor /&gt;</strong> component with <em>onChange</em> wired to state.</p>'
+    '<h1>React build</h1><p>This one is a <strong>&lt;Editor /&gt;</strong> component with custom plugins and custom toolbar.</p>'
   );
   return (
     <div>
@@ -41,6 +60,29 @@ function App(): JSX.Element {
         value={html}
         onChange={setHtml}
         testIdPrefix="reditor"
+        toolbarMode="more"
+        toolbar={demoToolbar}
+        images={{ upload: uploadImage }}
+        plugins={[
+          highlightPlugin,
+          createWordGoalPlugin({ goal: 30, testId: 'status-react-word-goal' })
+        ]}
+      />
+    </div>
+  );
+}
+
+// ---- React integration (standard) ----
+function CleanApp(): JSX.Element {
+  const [html, setHtml] = useState(
+    '<h1>React build (Standard)</h1><p>This component has <strong>no custom plugins</strong> and uses default toolbar configurations.</p>'
+  );
+  return (
+    <div>
+      <ReactEditor
+        value={html}
+        onChange={setHtml}
+        testIdPrefix="reditor-clean"
         toolbarMode="more"
         images={{ upload: uploadImage }}
       />
@@ -51,5 +93,11 @@ function App(): JSX.Element {
 createRoot(document.getElementById('react-host')!).render(
   <StrictMode>
     <App />
+  </StrictMode>
+);
+
+createRoot(document.getElementById('react-clean-host')!).render(
+  <StrictMode>
+    <CleanApp />
   </StrictMode>
 );
