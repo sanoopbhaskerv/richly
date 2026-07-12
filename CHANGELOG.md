@@ -7,8 +7,14 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-12
+
 ### Added
 
+- Added find/replace polish: a live `findreplace-count` counter in the dialog,
+  Enter/Shift+Enter match navigation while the dialog is open, transient
+  `rly-match` / `rly-match-current` highlighting cleaned from serialized
+  content, Replace All replacement counts, and unit/e2e coverage.
 - Reworked find/replace into a stateful search session with a floating,
   non-modal panel: separate **Find**, **Find Next**, **Replace**, and
   **Replace All** actions, plus a live `findreplace-count` counter ("2 of 20").
@@ -126,7 +132,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Firefox inline-format and link commands now recognize selections whose range
   boundaries surround the inline element from its parent node.
 
-[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.2.0...v0.4.0
 [0.3.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.2.0...v0.3.0
