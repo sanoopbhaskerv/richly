@@ -262,3 +262,312 @@ export function removeAllInline(range: Range, root: HTMLElement): Range {
   }
   return r;
 }
+
+/**
+ * Checks if the given element is a `<span>` whose only purpose/significance is inline styling.
+ * An element qualifies if it is a SPAN tag and has no other attributes other than `style`.
+ *
+ * @param el - The HTML element to check.
+ * @returns `true` if the element is a styling-only span; otherwise, `false`.
+ */
+export function isStyleSpan(el: Element): boolean {
+  if (el.tagName.toUpperCase() !== 'SPAN') return false;
+
+  // Iterate through all attributes to check if any attribute other than 'style' is present.
+  for (let i = 0; i < el.attributes.length; i++) {
+    // Under noUncheckedIndexedAccess, index-based access on el.attributes may return undefined.
+    const attrNode = el.attributes[i];
+    if (attrNode) {
+      const attr = attrNode.name;
+      // If there is any attribute other than 'style', it's not a pure style span (e.g. has an ID or class)
+      if (attr !== 'style') return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Traverses up the DOM tree from the starting node to find the nearest inline-style value
+ * for a specific property (e.g., 'color', 'background-color').
+ *
+ * @param node - The starting DOM node.
+ * @param prop - The CSS property name to query.
+ * @param root - The editor root container to bound the search traversal.
+ * @returns The trimmed inline-style value if found, or an empty string `''` if none.
+ */
+export function queryStyledValue(node: Node | null, prop: string, root: HTMLElement): string {
+  let n: Node | null = node;
+  while (n && n !== root) {
+    if (n.nodeType === Node.ELEMENT_NODE) {
+      const el = n as HTMLElement;
+      const val = el.style.getPropertyValue(prop);
+      if (val) return val.trim();
+    }
+    n = n.parentNode;
+  }
+  return '';
+}
+
+/**
+ * Finds the closest style span ancestor that has the specified style property set.
+ *
+ * @param node - The starting DOM node.
+ * @param prop - The CSS property name to check on the spans.
+ * @param root - The editor root container to bound the search traversal.
+ * @returns The closest HTMLElement span ancestor if found, or `null` if none.
+ */
+export function closestStyledSpanAncestor(
+  node: Node | null,
+  prop: string,
+  root: HTMLElement
+): HTMLElement | null {
+  let n: Node | null = node;
+  while (n && n !== root) {
+    if (n.nodeType === Node.ELEMENT_NODE && (n as HTMLElement).tagName.toUpperCase() === 'SPAN') {
+      const el = n as HTMLElement;
+      if (el.style.getPropertyValue(prop)) return el;
+    }
+    n = n.parentNode;
+  }
+  return null;
+}
+
+/**
+ * Removes the specified style property from the given range.
+ * If the style is set on an ancestor span, the span is split around the range
+ * so only the text within the selection has the style removed.
+ *
+ * @param range - The document range from which to remove the style.
+ * @param prop - The CSS style property to remove (e.g., 'color', 'background-color').
+ * @param root - The editor root container to bound the DOM traversal.
+ * @returns The updated range.
+ */
+export function removeStyledSpan(range: Range, prop: string, root: HTMLElement): Range {
+  const doc = range.startContainer.ownerDocument!;
+  const ancestor =
+    closestStyledSpanAncestor(range.commonAncestorContainer, prop, root) ??
+    closestStyledSpanAncestor(range.startContainer, prop, root);
+
+  if (ancestor) {
+    // Split: [left stays in ancestor][mid = unformatted][right = clone of ancestor]
+    const rightRange = doc.createRange();
+    rightRange.setStart(range.endContainer, range.endOffset);
+    rightRange.setEnd(ancestor, ancestor.childNodes.length);
+    const rightFrag = rightRange.extractContents();
+
+    const midFrag = range.extractContents();
+
+    midFrag.querySelectorAll('span').forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      if (htmlEl.style.getPropertyValue(prop)) {
+        htmlEl.style.removeProperty(prop);
+        if (!htmlEl.style.cssText.trim() && isStyleSpan(htmlEl)) {
+          unwrap(htmlEl);
+        }
+      }
+    });
+
+    const parent = ancestor.parentNode!;
+    const next = ancestor.nextSibling;
+
+    let rightEl: HTMLElement | null = null;
+    if (rightFrag.textContent !== '' || rightFrag.querySelector('img,br')) {
+      rightEl = ancestor.cloneNode(false) as HTMLElement;
+      rightEl.appendChild(rightFrag);
+    }
+
+    const marker = doc.createTextNode('');
+    parent.insertBefore(marker, next);
+    if (rightEl) parent.insertBefore(rightEl, marker);
+
+    // Mid part gets ancestor's other styles (to preserve them)
+    const otherStyles: Record<string, string> = {};
+    for (let i = 0; i < ancestor.style.length; i++) {
+      // Under noUncheckedIndexedAccess, accessing style[i] might yield undefined.
+      const p = ancestor.style[i];
+      // Keep styling properties that are not the one currently being removed/split.
+      if (p && p !== prop) {
+        otherStyles[p] = ancestor.style.getPropertyValue(p);
+      }
+    }
+
+    let midNode: Node = midFrag;
+    if (Object.keys(otherStyles).length > 0) {
+      const midSpan = doc.createElement('span');
+      Object.entries(otherStyles).forEach(([p, val]) => {
+        midSpan.style.setProperty(p, val);
+      });
+      midSpan.appendChild(midFrag);
+      midNode = midSpan;
+    }
+
+    const anchorNode: Node = rightEl ?? marker;
+    const midStart = Array.prototype.indexOf.call(parent.childNodes, anchorNode);
+    parent.insertBefore(midNode, anchorNode);
+
+    // Left side: original ancestor remains (empty elements will be cleaned below)
+    if (isEmpty(ancestor)) {
+      parent.removeChild(ancestor);
+    }
+
+    const out = doc.createRange();
+    const midEnd = Array.prototype.indexOf.call(parent.childNodes, anchorNode);
+    out.setStart(parent, Math.max(0, isEmpty(ancestor) ? midStart - 1 : midStart));
+    out.setEnd(parent, midEnd);
+    marker.remove();
+    return out;
+  }
+
+  const frag = range.extractContents();
+  frag.querySelectorAll('span').forEach((el) => {
+    const htmlEl = el as HTMLElement;
+    if (htmlEl.style.getPropertyValue(prop)) {
+      htmlEl.style.removeProperty(prop);
+      if (!htmlEl.style.cssText.trim() && isStyleSpan(htmlEl)) {
+        unwrap(htmlEl);
+      }
+    }
+  });
+  const first = frag.firstChild;
+  const last = frag.lastChild;
+  range.insertNode(frag);
+  const out = doc.createRange();
+  if (first && last) {
+    out.setStartBefore(first);
+    out.setEndAfter(last);
+  }
+  return out;
+}
+
+/**
+ * Returns a sorted, normalized string representation of an element's inline style rules.
+ * Sorting the style rules (e.g., `"color: red; font-size: 14px"`) ensures that comparisons
+ * between style definitions are position-independent.
+ *
+ * @param el - The HTML element whose styles should be normalized.
+ * @returns A normalized inline style string.
+ */
+function getNormalizedStyleText(el: HTMLElement): string {
+  const styles: string[] = [];
+  for (let i = 0; i < el.style.length; i++) {
+    // Under noUncheckedIndexedAccess, accessing style[i] might yield undefined.
+    const p = el.style[i];
+    if (p) {
+      styles.push(`${p}: ${el.style.getPropertyValue(p).trim()}`);
+    }
+  }
+  styles.sort(); // Sort so that property order does not affect style equality comparisons.
+  return styles.join('; ');
+}
+
+function mergeAdjacentStyleSpans(el: HTMLElement): void {
+  if (!isStyleSpan(el)) return;
+  const normStyle = getNormalizedStyleText(el);
+
+  // Check previous sibling
+  const prev = el.previousSibling;
+  if (
+    prev &&
+    prev.nodeType === Node.ELEMENT_NODE &&
+    isStyleSpan(prev as Element) &&
+    getNormalizedStyleText(prev as HTMLElement) === normStyle
+  ) {
+    const prevEl = prev as HTMLElement;
+    while (el.firstChild) prevEl.appendChild(el.firstChild);
+    el.remove();
+    el = prevEl;
+  }
+
+  // Check next sibling
+  const next = el.nextSibling;
+  if (
+    next &&
+    next.nodeType === Node.ELEMENT_NODE &&
+    isStyleSpan(next as Element) &&
+    getNormalizedStyleText(next as HTMLElement) === normStyle
+  ) {
+    const nextEl = next as HTMLElement;
+    while (nextEl.firstChild) el.appendChild(nextEl.firstChild);
+    nextEl.remove();
+  }
+}
+
+function isAtAbsoluteStart(node: Node, offset: number, ancestor: Node): boolean {
+  if (node.nodeType === Node.TEXT_NODE && offset !== 0) return false;
+  let curr: Node = node;
+  while (curr && curr !== ancestor) {
+    const parent = curr.parentNode;
+    if (!parent) return false;
+    if (parent.firstChild !== curr) return false;
+    curr = parent;
+  }
+  return curr === ancestor;
+}
+
+function isAtAbsoluteEnd(node: Node, offset: number, ancestor: Node): boolean {
+  if (node.nodeType === Node.TEXT_NODE && offset !== (node.textContent?.length ?? 0)) return false;
+  let curr: Node = node;
+  while (curr && curr !== ancestor) {
+    const parent = curr.parentNode;
+    if (!parent) return false;
+    if (parent.lastChild !== curr) return false;
+    curr = parent;
+  }
+  return curr === ancestor;
+}
+
+/** Wrap the range in (or merge into) a span carrying `prop: value`. */
+export function applyStyledSpan(
+  range: Range,
+  prop: string,
+  value: string,
+  root: HTMLElement
+): Range {
+  const doc = range.startContainer.ownerDocument!;
+  if (!value) {
+    return removeStyledSpan(range, prop, root);
+  }
+
+  // Optimize: If the range selects the exact contents of an existing style span ancestor,
+  // set the property on it directly without wrapping.
+  let parentSpan: HTMLElement | null = null;
+  const ancestor = closestTag(range.commonAncestorContainer, 'span', root);
+  if (ancestor && isStyleSpan(ancestor)) {
+    if (
+      isAtAbsoluteStart(range.startContainer, range.startOffset, ancestor) &&
+      isAtAbsoluteEnd(range.endContainer, range.endOffset, ancestor)
+    ) {
+      parentSpan = ancestor;
+    }
+  }
+
+  if (parentSpan) {
+    parentSpan.style.setProperty(prop, value);
+    mergeAdjacentStyleSpans(parentSpan);
+    return range;
+  }
+
+  const cleanRange = removeStyledSpan(range, prop, root);
+  const frag = cleanRange.extractContents();
+
+  let targetEl: HTMLElement;
+  if (
+    frag.childNodes.length === 1 &&
+    frag.firstChild?.nodeType === Node.ELEMENT_NODE &&
+    isStyleSpan(frag.firstChild as Element)
+  ) {
+    targetEl = frag.firstChild as HTMLElement;
+    targetEl.style.setProperty(prop, value);
+  } else {
+    targetEl = doc.createElement('span');
+    targetEl.style.setProperty(prop, value);
+    targetEl.appendChild(frag);
+  }
+
+  cleanRange.insertNode(targetEl);
+  mergeAdjacentStyleSpans(targetEl);
+
+  const out = doc.createRange();
+  out.selectNodeContents(targetEl);
+  return out;
+}
