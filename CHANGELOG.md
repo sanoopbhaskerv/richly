@@ -7,8 +7,19 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-12
+
 ### Added
 
+- Added a styled-span engine for inline CSS text styling (apply/remove/query)
+  with merge-and-split semantics that avoid nested redundant spans.
+- Added text style commands and value queries: `ForeColor`, `BackColor`,
+  `FontSize`, `Superscript`, and `Subscript`, including
+  `queryCommandValue` support in the command registry/editor facade.
+- Added text-style UI controls: forecolor/backcolor swatch panels,
+  `tb-select-fontsize`, and superscript/subscript toolbar + menu entries.
+- Added default text-style presets and configuration hooks for color palette
+  and font-size options.
 - Added image upload hooks via `images.upload` (dialog file picker, paste-file,
   and drop-file routing) with `imageuploadstart`, `imageuploadend`, and
   `imageuploaderror` events.
@@ -16,6 +27,14 @@ and releases follow [Semantic Versioning](https://semver.org/).
   results for selected `File` objects.
 - Added image selection/resize frame with drag handles and frame-scoped
   keyboard resizing.
+
+### Fixed
+
+- Hardened text-style editing and paste flows with expanded sanitizer/clipboard
+  regression coverage for color, background-color, and font-size from Word/
+  Google Docs fixtures.
+- Fixed text-style edge cases around mixed inline formatting, Enter splits in
+  styled runs, and RemoveFormat behavior across tag+style combinations.
 
 ## [0.4.0] - 2026-07-12
 
@@ -85,7 +104,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Firefox inline-format and link commands now recognize selections whose range
   boundaries surround the inline element from its parent node.
 
-[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.2.0...v0.4.0
 [0.3.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.1.0...v0.2.0
