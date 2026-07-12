@@ -826,6 +826,8 @@
   border: 1px solid var(--rly-border);
   padding: 7px 10px;
   min-width: 30px;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 .rly-content td.rly-cell-selected,
 .rly-content th.rly-cell-selected {

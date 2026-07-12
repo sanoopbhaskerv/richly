@@ -15,6 +15,10 @@ describe('table plugin', () => {
     const table = ed.getBody().querySelector('table')!;
     expect(table.rows.length).toBe(2);
     expect(table.rows[0]!.cells.length).toBe(3);
+    expect(table.style.tableLayout).toBe('');
+    const columns = Array.from(table.querySelectorAll('col'));
+    expect(columns).toHaveLength(3);
+    columns.forEach((col) => expect(parseFloat(col.style.width)).toBeCloseTo(100 / 3));
     expect(table.nextElementSibling).toBeTruthy();
     expect(ed.queryCommandState('InsertTable')).toBe(true); // caret inside table
   });
@@ -47,6 +51,22 @@ describe('table plugin', () => {
     ed.getBody()
       .querySelectorAll('tr')
       .forEach((tr) => expect(tr.children.length).toBe(1));
+  });
+
+  it('keeps new percentage columns equal after inserting and deleting a column', () => {
+    ed = createTestEditor('<p><br></p>');
+    ed.execCommand('InsertTable', { rows: 1, cols: 3 });
+    ed.execCommand('TableInsertColAfter');
+
+    const table = ed.getBody().querySelector('table')!;
+    let columns = Array.from(table.querySelectorAll('col'));
+    expect(columns).toHaveLength(4);
+    columns.forEach((col) => expect(parseFloat(col.style.width)).toBeCloseTo(25));
+
+    ed.execCommand('TableDeleteCol');
+    columns = Array.from(table.querySelectorAll('col'));
+    expect(columns).toHaveLength(3);
+    columns.forEach((col) => expect(parseFloat(col.style.width)).toBeCloseTo(100 / 3));
   });
 
   it('deleting the last row removes the table', () => {

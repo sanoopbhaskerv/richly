@@ -23,6 +23,9 @@ and releases follow [Semantic Versioning](https://semver.org/).
   constrained consumer flex/grid layouts. Overflow is now measured against the
   editor host and includes separator margins, keeping both the toolbar and More
   control contained whenever the full toolbar cannot fit.
+- Newly inserted table columns now retain their initial equal widths for normal
+  content. Multi-word text wraps at spaces, while a long single word expands
+  its column without being split across lines.
 
 ## [0.1.0] - 2026-07-11
 

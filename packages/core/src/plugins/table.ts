@@ -62,13 +62,21 @@ function insertTable(editor: Editor, rows: number, cols: number): void {
   const range = editor.selection.getRange();
 
   const table = doc.createElement('table');
+  // Percentage columns keep the empty grid equal without forcing fixed layout:
+  // normal text wraps at spaces, while an unbroken word can expand its column.
+  const colgroup = doc.createElement('colgroup');
+  for (let c = 0; c < cols; c++) {
+    const col = doc.createElement('col');
+    col.style.width = `${100 / cols}%`;
+    colgroup.appendChild(col);
+  }
   const tbody = doc.createElement('tbody');
   for (let r = 0; r < rows; r++) {
     const tr = doc.createElement('tr');
     for (let c = 0; c < cols; c++) tr.appendChild(makeCell(doc));
     tbody.appendChild(tr);
   }
-  table.appendChild(tbody);
+  table.append(colgroup, tbody);
 
   const block = range ? closestBlock(range.startContainer, body) : null;
   if (block && block.tagName !== 'LI') {
@@ -118,11 +126,21 @@ function insertCol(editor: Editor, where: 'before' | 'after'): void {
     const col = doc.createElement('col');
     const neighbor = colgroup.children[Math.min(idx, colgroup.children.length - 1)] as
       HTMLElement | undefined;
+    const percentageColumns = neighbor?.style.width.trim().endsWith('%') ?? false;
     const width = parseFloat(neighbor?.style.width ?? '') || 80;
-    col.style.width = `${Math.round(width)}px`;
+    col.style.width = percentageColumns
+      ? `${100 / (colgroup.children.length + 1)}%`
+      : `${Math.round(width)}px`;
     colgroup.insertBefore(col, colgroup.children[idx] ?? null);
-    const tableWidth = table.getBoundingClientRect().width || parseFloat(table.style.width);
-    if (tableWidth) table.style.width = `${Math.round(tableWidth + width)}px`;
+    if (percentageColumns) {
+      const equalWidth = `${100 / colgroup.children.length}%`;
+      Array.from(colgroup.children).forEach((item) => {
+        (item as HTMLElement).style.width = equalWidth;
+      });
+    } else {
+      const tableWidth = table.getBoundingClientRect().width || parseFloat(table.style.width);
+      if (tableWidth) table.style.width = `${Math.round(tableWidth + width)}px`;
+    }
   }
   if (caret) placeCaretIn(editor, caret);
   editor.events.emit('change', editor.getContent());
@@ -147,9 +165,15 @@ function deleteCol(editor: Editor): void {
   for (const row of Array.from(table.rows)) row.cells[idx]?.remove();
   const colgroup = table.querySelector(':scope > colgroup');
   const oldWidth = (colgroup?.children[idx] as HTMLElement | undefined)?.style.width;
+  const percentageColumns = oldWidth?.trim().endsWith('%') ?? false;
   colgroup?.children[idx]?.remove();
   if (colgroup && !colgroup.children.length) colgroup.remove();
-  if (oldWidth && table.style.width) {
+  else if (colgroup && percentageColumns) {
+    const equalWidth = `${100 / colgroup.children.length}%`;
+    Array.from(colgroup.children).forEach((item) => {
+      (item as HTMLElement).style.width = equalWidth;
+    });
+  } else if (oldWidth && table.style.width) {
     table.style.width = `${Math.max(60, Math.round(parseFloat(table.style.width) - parseFloat(oldWidth)))}px`;
   }
   if (!table.rows[0]?.cells.length) table.remove();
@@ -717,7 +741,11 @@ function installColumnResize(editor: Editor): void {
 
     // Freeze measured columns into a colgroup. Widths on td/th are redistributed
     // differently by browser table algorithms; colgroup gives deterministic drag math.
-    table.style.width = `${Math.round(table.getBoundingClientRect().width)}px`;
+    const measuredTableWidth = table.getBoundingClientRect().width;
+    const measuredColumnWidths = Array.from(table.rows[0]?.cells ?? []).map(
+      (item) => item.getBoundingClientRect().width
+    );
+    table.style.width = `${Math.round(measuredTableWidth)}px`;
     table.style.tableLayout = 'fixed';
     let colgroup = table.querySelector(':scope > colgroup');
     if (!colgroup) {
@@ -732,6 +760,11 @@ function installColumnResize(editor: Editor): void {
       if (caption) caption.after(colgroup);
       else table.prepend(colgroup);
     }
+    // Convert percentage columns to rendered pixel widths before drag math.
+    Array.from(colgroup.children).forEach((item, index) => {
+      const width = measuredColumnWidths[index];
+      if (width) (item as HTMLElement).style.width = `${Math.round(width)}px`;
+    });
     const colIdx = cell.cellIndex;
     const target = colgroup.children[colIdx] as HTMLElement | undefined;
     if (!target) return;

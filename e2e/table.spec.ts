@@ -21,8 +21,24 @@ test.describe('table, image, source view, fullscreen (vanilla instance)', () => 
     await expect(table.locator('tr')).toHaveCount(2);
     await expect(table.locator('tr').first().locator('td')).toHaveCount(3);
 
+    const cells = table.locator('tr').first().locator('td');
+    const widthsBefore = await cells.evaluateAll((items) =>
+      items.map((item) => item.getBoundingClientRect().width)
+    );
     await page.keyboard.type('cell text'); // caret starts in first cell
     await editor.expectContentMatches(/<td>cell text/);
+    const widthsAfter = await cells.evaluateAll((items) =>
+      items.map((item) => item.getBoundingClientRect().width)
+    );
+    widthsAfter.forEach((width, index) => expect(width).toBeCloseTo(widthsBefore[index]!, 0));
+
+    const longWordCell = cells.nth(1);
+    const heightBeforeLongWord = (await longWordCell.boundingBox())!.height;
+    await longWordCell.click();
+    await page.keyboard.type('averyveryveryveryveryveryveryveryveryveryverylongsingleword');
+    const cellAfterLongWord = (await longWordCell.boundingBox())!;
+    expect(cellAfterLongWord.width).toBeGreaterThan(widthsBefore[1]! + 50);
+    expect(cellAfterLongWord.height).toBeCloseTo(heightBeforeLongWord, 0);
   });
 
   test('Tab navigates cells; table menu adds a row below', async ({ page }) => {
