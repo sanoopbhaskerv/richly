@@ -1,0 +1,86 @@
+name: Bug report
+description: Something in the editor doesn't behave the way it should.
+title: '[Bug]: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. Security vulnerabilities
+        should go through [private advisories](https://github.com/sanoopbhaskerv/richly/security/advisories/new)
+        instead of a public issue — see [SECURITY.md](https://github.com/sanoopbhaskerv/richly/blob/main/SECURITY.md).
+
+        If possible, reproduce the issue on the [live demo](https://sanoopbhaskerv.github.io/richly/)
+        and link it below.
+
+  - type: checkboxes
+    id: packages
+    attributes:
+      label: Affected package(s)
+      options:
+        - label: '@richly/core'
+        - label: '@richly/react'
+        - label: 'Demo / docs'
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The `@richly/core` (or `@richly/react`) version you're using.
+      placeholder: '0.6.1'
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: A minimal sequence of actions. A link to a reproduction on the live demo, StackBlitz, or CodeSandbox is very helpful.
+      placeholder: |
+        1. Open the editor with `initialContent: '...'`
+        2. Select the word "..."
+        3. Click ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: 'Chrome 126 on macOS 14'
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: compat
+    attributes:
+      label: Compatibility impact
+      description: |
+        Does fixing this require changing a documented public surface — exported
+        types, `EditorConfig`, command names/arguments, event payloads, CSS
+        variables/classes, or sanitized HTML output? See
+        [MIGRATING.md](https://github.com/sanoopbhaskerv/richly/blob/main/MIGRATING.md#compatibility-surfaces).
+        A maintainer will apply the `api-breaking` label if so — you don't need
+        to add it yourself.
+      options:
+        - label: I believe fixing this would require a breaking API change.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Logs, screenshots, or anything else that would help.

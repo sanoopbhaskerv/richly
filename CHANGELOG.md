@@ -7,6 +7,18 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Added custom color pickers to the text-color and background-color palettes,
+  with selection-aware values and active states for custom and cleared colors.
+- Added a `Deploy demo` GitHub Actions workflow that publishes
+  `@richly/demo` to GitHub Pages on every push to `main`, plus a
+  GH Pages-aware `base` path in the demo's Vite config. Linked the live demo
+  from the root README and both package READMEs.
+- Added structured GitHub issue templates (bug report, API feedback) and
+  disabled blank issues, so soak feedback — including anything affecting the
+  1.0 API freeze — is easier to triage.
+
 ## [0.6.1] - 2026-07-13
 
 ### Added

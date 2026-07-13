@@ -20,6 +20,8 @@ same core.
 - **Extensible:** a small command + plugin API that the bundled features are
   themselves built on.
 
+**[Try it live →](https://sanoopbhaskerv.github.io/richly/)**
+
 ---
 
 ## Contents
@@ -203,6 +205,8 @@ corner handles.
 
 Customize the color swatches and font-size options offered by the toolbar. The
 built-in defaults are exported so you can extend rather than replace them.
+Both the text-color and background-color palettes also include a native custom
+color picker for colors outside the configured presets.
 
 ```ts
 import { Editor, DEFAULT_COLORS, DEFAULT_FONT_SIZES } from '@richly/core';
@@ -394,6 +398,7 @@ Modern evergreen browsers — Chromium (Chrome, Edge), Firefox, and WebKit
 
 ## Links
 
+- [Live demo](https://sanoopbhaskerv.github.io/richly/)
 - [Repository & full docs](https://github.com/sanoopbhaskerv/richly#readme)
 - [React bindings (`@richly/react`)](https://www.npmjs.com/package/@richly/react)
 - [Plugin authoring guide](https://github.com/sanoopbhaskerv/richly/blob/main/docs/PLUGINS.md)

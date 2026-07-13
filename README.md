@@ -5,6 +5,9 @@ provides a TypeScript core for direct DOM use and a small React wrapper, with
 advanced tables, search and replace, preview, links, images, source editing,
 undo/redo, keyboard shortcuts, and a themeable editor UI included.
 
+**[Live demo →](https://sanoopbhaskerv.github.io/richly/)** — vanilla and React
+editors side by side, including the custom plugin examples.
+
 ## Why Richly
 
 - No runtime editor dependencies and no deprecated browser editing commands.

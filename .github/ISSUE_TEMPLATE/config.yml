@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/sanoopbhaskerv/richly/security/advisories/new
+    about: Report privately — do not open a public issue for security reports.
+  - name: Live demo
+    url: https://sanoopbhaskerv.github.io/richly/
+    about: Try the editor and reproduce your issue before reporting.
+  - name: Plugin authoring guide
+    url: https://github.com/sanoopbhaskerv/richly/blob/main/docs/PLUGINS.md
+    about: Questions about building a plugin start here.

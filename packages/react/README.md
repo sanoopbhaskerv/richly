@@ -13,6 +13,8 @@ the editing engine, commands, events, theming, and plugin API all live there.
 - Core configuration surfaced as props.
 - Direct access to the underlying core `Editor` via `onInit` or a `ref`.
 
+**[Try it live →](https://sanoopbhaskerv.github.io/richly/)**
+
 ---
 
 ## Install
@@ -124,6 +126,7 @@ Common core types (`EditorConfig`, `WordCountOptions`, `ToolbarMode`, `Plugin`,
 
 ## Links
 
+- [Live demo](https://sanoopbhaskerv.github.io/richly/)
 - [Repository & full docs](https://github.com/sanoopbhaskerv/richly#readme)
 - [Core package (`@richly/core`)](https://www.npmjs.com/package/@richly/core)
 - [Plugin authoring guide](https://github.com/sanoopbhaskerv/richly/blob/main/docs/PLUGINS.md)

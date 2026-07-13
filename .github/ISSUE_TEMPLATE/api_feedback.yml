@@ -1,0 +1,70 @@
+name: API feedback / feature request
+description: Feedback on the public API, configuration, commands, events, or a request for new capability.
+title: '[API]: '
+labels: ['api-feedback']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Richly is pre-1.0 and gathering real-world feedback before freezing its
+        public API (see [ROADMAP.md](https://github.com/sanoopbhaskerv/richly/blob/main/ROADMAP.md)).
+        This template is for anything about the shape of the API rather than a
+        broken behavior — new config options, awkward command signatures,
+        missing events, plugin-API gaps, and similar.
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface does this concern?
+      options:
+        - 'EditorConfig option'
+        - 'Command (name or arguments)'
+        - 'Event (name or payload)'
+        - 'CSS variable / class'
+        - 'Plugin API'
+        - 'Package exports / TypeScript types'
+        - 'Other'
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behavior
+      description: What the API looks like today, and what's missing or awkward about it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed change
+      description: The API you'd like to see. A short code sample is ideal.
+      render: ts
+    validations:
+      required: true
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: How you're working around this today, if at all.
+
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Would this require a breaking change?
+      description: See the compatibility surfaces defined in [MIGRATING.md](https://github.com/sanoopbhaskerv/richly/blob/main/MIGRATING.md#compatibility-surfaces).
+      options:
+        - 'No — additive'
+        - 'Yes — changes existing behavior'
+        - 'Not sure'
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: pr
+    attributes:
+      label: Contribution
+      options:
+        - label: I'd be willing to submit a PR for this.
