@@ -1,6 +1,20 @@
 import { expect, test } from '@playwright/test';
 import { EditorPage } from './pages/EditorPage';
 
+test('font-size control uses the first editable position before initial focus', async ({
+  page
+}) => {
+  const editor = new EditorPage(page, 'editor');
+  await editor.goto();
+  const input = editor.root.getByTestId('font-size-input');
+
+  await expect(input).toHaveValue('29.45');
+  await editor.root.getByTestId('font-size-increase').click();
+
+  await expect(input).toHaveValue('30.45');
+  expect(await editor.content.innerHTML()).toMatch(/font-size:\s*30\.45px/i);
+});
+
 test.describe('text style ui', () => {
   let editor: EditorPage;
 
@@ -163,40 +177,79 @@ test.describe('text style ui', () => {
     await editor.expectContentMatches(/color:\s*(#3b82f6|rgb\(59,\s*130,\s*246\))/i);
   });
 
-  test('fontsize select applies and tracks values', async () => {
+  test('font-size stepper applies, tracks, validates, and resets values', async () => {
     await editor.selectWord('bravo');
-    const select = editor.root.getByTestId('tb-select-fontsize');
-    await select.selectOption('24px');
+    const input = editor.root.getByTestId('font-size-input');
+    await input.fill('24');
+    await input.press('Enter');
     await editor.expectContentMatches(/font-size:\s*24px/i);
 
     await editor.selectWord('alpha');
-    await expect(select).toHaveValue('');
+    await expect(input).toHaveValue('15.5');
 
     await editor.selectWord('bravo');
-    await expect(select).toHaveValue('24px');
+    await expect(input).toHaveValue('24');
 
+    await editor.root.getByTestId('font-size-increase').click();
+    await editor.expectContentMatches(/font-size:\s*25px/i);
+
+    await editor.selectWord('bravo');
+    await input.fill('513');
+    await input.press('Enter');
+    await expect(input).toHaveAttribute('aria-invalid', 'true');
+    await editor.expectContentMatches(/font-size:\s*25px/i);
+
+    await input.press('Escape');
+    await editor.selectWord('bravo');
+    await input.fill('');
+    await input.press('Enter');
+    expect(await editor.content.innerHTML()).not.toMatch(/font-size\s*:/i);
+  });
+
+  test('mixed and reverse selections display the document-start size', async () => {
     await editor.content.evaluate((element) => {
-      const bravo = Array.from(element.querySelectorAll('span')).find((span) =>
-        span.textContent?.includes('bravo')
-      ) as HTMLElement;
-      bravo.style.fontSize = '21px';
+      element.innerHTML =
+        '<p><span style="font-size: 19px">alpha</span> <span style="font-size: 14px">bravo</span></p>';
+      const spans = element.querySelectorAll('span');
+      const first = spans[0]!.firstChild!;
+      const last = spans[1]!.firstChild!;
+      window.getSelection()?.setBaseAndExtent(last, last.textContent!.length, first, 0);
+      document.dispatchEvent(new Event('selectionchange'));
+    });
+    const input = editor.root.getByTestId('font-size-input');
+    await expect(input).toHaveValue('19');
+
+    await editor.root.getByTestId('font-size-increase').click();
+    const html = await editor.content.innerHTML();
+    expect(html).not.toMatch(/font-size:\s*(19|14)px/i);
+    expect(html).toMatch(/font-size:\s*20px/i);
+  });
+
+  test('font-size input applies keyboard steps', async () => {
+    await editor.selectWord('bravo');
+    const input = editor.root.getByTestId('font-size-input');
+    await input.press('ArrowUp');
+    await editor.expectContentMatches(/font-size:\s*16.5px/i);
+
+    await editor.selectWord('bravo');
+    await input.press('Shift+ArrowDown');
+    await editor.expectContentMatches(/font-size:\s*11.5px/i);
+  });
+
+  test('font-size control tracks externally changed values', async () => {
+    await editor.selectWord('bravo');
+    const input = editor.root.getByTestId('font-size-input');
+    await editor.content.evaluate((element) => {
+      element.innerHTML = '<p>alpha <span style="font-size: 21px">bravo</span> charlie</p>';
+      const span = element.querySelector('span')!;
       const range = document.createRange();
-      range.selectNodeContents(bravo);
+      range.selectNodeContents(span);
       const selection = window.getSelection();
       selection?.removeAllRanges();
       selection?.addRange(range);
       document.dispatchEvent(new Event('selectionchange'));
     });
-    await expect(select).toHaveValue('21px');
-    await expect
-      .poll(() =>
-        select.evaluate(
-          (element: HTMLSelectElement) =>
-            Array.from(element.options).find((option) => option.className === 'rly-temp-option')
-              ?.textContent
-        )
-      )
-      .toBe('21px');
+    await expect(input).toHaveValue('21');
   });
 
   test('superscript and subscript are mutually exclusive', async () => {
@@ -255,8 +308,9 @@ test.describe('text style ui in overflow toolbar', () => {
     await editor.clickButton('more');
     const morePanel = editor.root.getByTestId('toolbar-more-panel');
     await expect(morePanel).toBeVisible();
-    const select = editor.root.getByTestId('tb-select-fontsize');
-    await select.selectOption('18px');
+    const input = editor.root.getByTestId('font-size-input');
+    await input.fill('18');
+    await input.press('Enter');
     await editor.expectContentMatches(/font-size:\s*18px/i);
 
     await editor.selectWord('target');

@@ -63,14 +63,16 @@ Pattern: kebab-case, stable, semantic. Never derive from labels/i18n. One editor
 | Toolbar button                          | `tb-<name>` (e.g. `tb-bold`, `tb-undo`, `tb-h1`)                                  |
 | Toolbar overflow                        | `tb-more`, `toolbar-more-panel`                                                   |
 | Preview                                 | `preview-overlay`, `preview-frame`, `preview-close`                               |
-| Toolbar select (blocks/fonts)           | `tb-select-<name>`                                                                |
+| Toolbar select                          | `tb-select-<name>`                                                                |
 | Menubar menu button                     | `menu-<name>` (e.g. `menu-file`)                                                  |
 | Menu item                               | `menuitem-<id>`                                                                   |
 | Dropdown panel                          | `dd-<name>` (e.g. `dd-table`, `dd-forecolor`)                                     |
 | Table grid cell                         | `grid-cell-<row>-<col>`                                                           |
 | Color swatch                            | `swatch-<hex-no-hash>`                                                            |
 | WP3 text style dropdowns                | `dd-forecolor`, `dd-backcolor`                                                    |
-| WP3 font size select                    | `tb-select-fontsize`                                                              |
+| Font size stepper                       | `font-size-control`                                                               |
+| Font size input                         | `font-size-input`                                                                 |
+| Font size decrement/increment           | `font-size-decrease`, `font-size-increase`                                        |
 | WP3 clear swatch                        | `swatch-none`                                                                     |
 | Custom text/background color action     | `custom-color`                                                                    |
 | Advanced color controls                 | `color-picker-sv`, `color-picker-hue`, `color-picker-opacity`, `color-picker-hex` |

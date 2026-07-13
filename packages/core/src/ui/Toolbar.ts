@@ -47,6 +47,10 @@ export class Toolbar {
       for (const name of names) {
         const buttonSpec = this.editor.ui.buttons.get(name);
         if (!buttonSpec) continue;
+        if (buttonSpec.type === 'component') {
+          groupEl.appendChild(buttonSpec.render(this.editor));
+          continue;
+        }
         if (buttonSpec.type === 'select') {
           const select = doc.createElement('select');
           select.className = 'rly-tb-select';

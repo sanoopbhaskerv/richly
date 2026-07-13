@@ -28,7 +28,7 @@ describe('Text Style Commands & Queries', () => {
       normalizeHtml('<p><span style="color: red">hello</span> world</p>')
     );
 
-    ed.execCommand('FontSize', '18px');
+    ed.execCommand('FontSize', { value: '18px' });
     expect(normalizeHtml(ed.getContent())).toBe(
       normalizeHtml('<p><span style="color: red; font-size: 18px">hello</span> world</p>')
     );
@@ -64,7 +64,7 @@ describe('Text Style Commands & Queries', () => {
 
     ed.execCommand('ForeColor', 'red');
     ed.execCommand('BackColor', 'blue');
-    ed.execCommand('FontSize', '24px');
+    ed.execCommand('FontSize', { value: '24px' });
     expect(normalizeHtml(ed.getContent())).toBe(
       normalizeHtml(
         '<p><span style="color: red; background-color: blue; font-size: 24px">hello</span> world</p>'
@@ -73,7 +73,7 @@ describe('Text Style Commands & Queries', () => {
   });
 
   // --- 4. Remove styles ---
-  it('executing ForeColor/BackColor/FontSize with empty string removes style property', () => {
+  it('executing ForeColor/BackColor with an empty string or FontSize with null removes style', () => {
     ed = createTestEditor('<p><span style="color: red; font-size: 18px">hello</span> world</p>');
     selectText(ed, 'hello');
 
@@ -82,7 +82,7 @@ describe('Text Style Commands & Queries', () => {
       normalizeHtml('<p><span style="font-size: 18px">hello</span> world</p>')
     );
 
-    ed.execCommand('FontSize', '');
+    ed.execCommand('FontSize', { value: null });
     expect(normalizeHtml(ed.getContent())).toBe(normalizeHtml('<p>hello world</p>'));
   });
 
@@ -112,7 +112,7 @@ describe('Text Style Commands & Queries', () => {
 
     const originalContent = ed.getContent();
     ed.execCommand('ForeColor', 'red');
-    ed.execCommand('FontSize', '24px');
+    ed.execCommand('FontSize', { value: '24px' });
     ed.execCommand('Superscript');
     ed.execCommand('Subscript');
 
@@ -319,7 +319,7 @@ describe('Text Style Commands & Queries', () => {
     expect(ed.getContent()).toBe('<p>alpha target</p>');
   });
 
-  it('honors custom font-size presets verbatim', () => {
+  it('honors custom font-size presets in the Format menu', () => {
     const target = document.createElement('div');
     document.body.appendChild(target);
     ed = Editor.init({
@@ -328,12 +328,12 @@ describe('Text Style Commands & Queries', () => {
       textStyles: { fontSizes: ['1.2em'] }
     });
 
-    const select = ed
+    const menuItem = ed
       .getRoot()
-      .querySelector<HTMLSelectElement>('[data-testid="tb-select-fontsize"]')!;
-    expect(Array.from(select.options).map((option) => option.value)).toEqual(['', '1.2em']);
+      .querySelector<HTMLButtonElement>('[data-testid="menuitem-fontsize-1-2em"]')!;
+    expect(menuItem).not.toBeNull();
     selectText(ed, 'custom');
-    ed.execCommand('FontSize', '1.2em');
+    ed.execCommand('FontSize', { value: '1.2em' });
     expect(ed.getContent()).toContain('font-size: 1.2em');
   });
 

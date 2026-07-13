@@ -1,7 +1,7 @@
 import type { Plugin } from './types';
 import { getEditorConfig, type Editor } from '../editor/Editor';
-import type { SelectOption } from '../ui/UiRegistry';
 import { createColorPickerPanel } from '../ui/colorpicker/ColorPicker';
+import { createFontSizeControl, type FontSizeCommandArgs } from '../ui/FontSizeControl';
 import {
   applyStyledSpan,
   removeStyledSpan,
@@ -239,6 +239,15 @@ function toggleStyle(editor: Editor, prop: string, value: string): void {
     : removeStyledSpan(range, prop, body);
 
   editor.selection.setRange(out);
+  body.querySelectorAll('span').forEach((span) => {
+    if (
+      isStyleSpan(span) &&
+      !(span.textContent ?? '').replace(new RegExp(CARET_FILLER, 'g'), '') &&
+      !span.querySelector('img,br')
+    ) {
+      span.remove();
+    }
+  });
   body.normalize();
   editor.events.emit('change', editor.getContent());
 }
@@ -366,8 +375,8 @@ export const textStylePlugin: Plugin = {
     // FontSize Command
     editor.commands.register('FontSize', {
       execute: (ed, args) => {
-        const size = typeof args === 'string' ? args : '';
-        toggleStyle(ed, 'font-size', size);
+        const size = (args as FontSizeCommandArgs | undefined)?.value ?? null;
+        toggleStyle(ed, 'font-size', size ?? '');
       },
       queryState: (ed) => {
         return !!queryStyleCommandValue(ed, 'font-size');
@@ -416,16 +425,9 @@ export const textStylePlugin: Plugin = {
       panel: (ed, close) => createColorPanel(ed, 'BackColor', close)
     });
 
-    const { fontSizes } = textStyleOptions(editor);
-    const fontSizeOptions: SelectOption[] = [
-      { label: 'Size', value: '' },
-      ...fontSizes.map((size) => ({ label: size, value: size }))
-    ];
     editor.ui.addButton('fontsize', {
-      type: 'select',
-      tooltip: 'Font size',
-      command: 'FontSize',
-      options: fontSizeOptions
+      type: 'component',
+      render: (ed) => createFontSizeControl({ editor: ed }).element
     });
 
     editor.ui.addToggleButton('superscript', {
@@ -449,12 +451,12 @@ export const textStylePlugin: Plugin = {
       text: 'Subscript',
       command: 'Subscript'
     });
-    fontSizes.forEach((size) => {
+    textStyleOptions(editor).fontSizes.forEach((size) => {
       editor.ui.addMenuItem(`fontsize-${size.replace(/[^a-z0-9]+/gi, '-')}`, {
         menu: 'format',
         text: `Font size ${size}`,
         command: 'FontSize',
-        args: size
+        args: { value: size } satisfies FontSizeCommandArgs
       });
     });
   }

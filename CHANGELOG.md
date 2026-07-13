@@ -7,6 +7,21 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Replaced the preset font-size toolbar select with an accessible `− [size] +`
+  stepper supporting arbitrary `1–512px` values, two-decimal precision,
+  keyboard increments, mixed-selection reference sizing, reset-to-inherited
+  behavior, selection preservation, and one-step undo.
+- Added the reusable `createFontSizeControl` API and font-size parsing,
+  formatting, reference-size, control, and command argument exports.
+
+### Changed
+
+- Changed the `FontSize` command argument to `{ value: string | null }` ahead
+  of the 1.0 API freeze. `null` removes explicit sizing; `textStyles.fontSizes`
+  continues to configure the Format-menu presets.
+
 ## [0.8.0] - 2026-07-13
 
 ### Added

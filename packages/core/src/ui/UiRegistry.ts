@@ -49,7 +49,13 @@ export interface SelectControl {
   options: SelectOption[];
 }
 
-export type ButtonSpec = ButtonControl | ToggleControl | PanelControl | SelectControl;
+export interface ComponentControl {
+  type: 'component';
+  render: (editor: Editor) => HTMLElement;
+}
+
+export type ButtonSpec =
+  ButtonControl | ToggleControl | PanelControl | SelectControl | ComponentControl;
 
 type LegacyButtonSpec = {
   icon: string;

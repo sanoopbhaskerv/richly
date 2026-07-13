@@ -30,7 +30,7 @@ export interface EditorConfig {
   plugins?: Plugin[];
   /** Prefix for chrome data-testids (default "editor"): editor-root, editor-toolbar, editor-content, editor-statusbar. */
   testIdPrefix?: string;
-  /** Configure default text style colors and font size presets. */
+  /** Configure color swatches and Format-menu font size presets. */
   textStyles?: {
     colors?: string[];
     fontSizes?: string[];

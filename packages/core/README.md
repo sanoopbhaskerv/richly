@@ -120,7 +120,7 @@ Editor.init({
   resize: true, // set false to remove the resize grip
   wordCount: true, // true | false | { words, characters, selection }
   images: { upload: uploadFn }, // image upload hook (see below)
-  textStyles: { colors, fontSizes }, // swatch + font-size presets
+  textStyles: { colors, fontSizes }, // swatches + Format-menu size presets
   blockquoteStyle: true, // set false to opt out of the default blockquote look
   plugins: [myPlugin], // additional plugins
   testIdPrefix: 'editor' // prefix for chrome data-testids
@@ -139,7 +139,7 @@ Editor.init({
 | `resize`          | `boolean`                     | `true`     | Show the statusbar resize grip.                                  |
 | `wordCount`       | `boolean \| WordCountOptions` | `true`     | Word/character/selection counts in the statusbar.                |
 | `images`          | `ImagesConfig`                | —          | Upload hook, accept filter, and size limit.                      |
-| `textStyles`      | `{ colors?, fontSizes? }`     | presets    | Color swatches and font-size options.                            |
+| `textStyles`      | `{ colors?, fontSizes? }`     | presets    | Color swatches and Format-menu font-size presets.                |
 | `blockquoteStyle` | `boolean`                     | `true`     | Set `false` to opt out of Richly's default blockquote styling.   |
 | `plugins`         | `Plugin[]`                    | `[]`       | Extra plugins registered after the defaults.                     |
 | `testIdPrefix`    | `string`                      | `'editor'` | Prefix for `data-testid` hooks on the editor chrome.             |
@@ -204,10 +204,16 @@ is swapped in, and on failure the placeholder is removed and an
 `imageuploaderror` event is emitted. Selected images show a resize frame with
 corner handles.
 
-## Text style presets
+## Text styles and font size
 
-Customize the color swatches and font-size options offered by the toolbar. The
-built-in defaults are exported so you can extend rather than replace them.
+The toolbar's font-size control accepts any pixel value from `1` to `512`,
+including decimals with up to two places. Type a value and press Enter, use
+Arrow Up/Down, or click −/+ to apply it to the complete selection. Clearing the
+field removes explicit sizing and returns the text to its inherited size. Mixed
+selections display the computed size at the first selected text position.
+
+Customize the color swatches and font-size presets offered by the Format menu.
+The built-in defaults are exported so you can extend rather than replace them.
 Both the text-color and background-color palettes include a Richly-native
 advanced picker in the same popover. It provides saturation/brightness, hue,
 opacity, synchronized HEX and slider views, recent colors, presets, and an
@@ -223,6 +229,20 @@ Editor.init({
     fontSizes: ['14px', '16px', '20px', '28px'] // default: 12/14/16/18/24/32px
   }
 });
+```
+
+For a custom toolbar or host UI, the same control is available as a reusable
+component. Its defaults are `min: 1`, `max: 512`, `step: 1`, `largeStep: 5`,
+and `fallbackSize: 16`:
+
+```ts
+import { createFontSizeControl } from '@richly/core';
+
+const fontSize = createFontSizeControl({ editor });
+toolbar.append(fontSize.element);
+
+// When the host UI is removed independently of the editor:
+fontSize.destroy();
 ```
 
 ## Word count
@@ -288,7 +308,8 @@ Anything in the UI is a named command you can also invoke programmatically:
 editor.execCommand('Bold');
 editor.execCommand('FormatBlock', 'h2');
 editor.execCommand('ForeColor', '#e5484d');
-editor.execCommand('FontSize', '18px');
+editor.execCommand('FontSize', { value: '18px' });
+editor.execCommand('FontSize', { value: null }); // remove explicit size
 editor.execCommand('InsertLink', { href: 'https://example.com', text: 'Example' });
 
 editor.queryCommandState('Bold'); // → boolean
