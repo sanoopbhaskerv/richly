@@ -7,6 +7,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.0-rc.1] - 2026-07-13
+
 ### Added
 
 - Added the 1.0 compatibility contract and tripwire tests for package exports,
@@ -197,7 +199,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Firefox inline-format and link commands now recognize selections whose range
   boundaries surround the inline element from its parent node.
 
-[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.1...HEAD
+[1.0.0-rc.1]: https://github.com/sanoopbhaskerv/richly/compare/v0.9.0...v1.0.0-rc.1
 [0.9.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.1...v0.7.0

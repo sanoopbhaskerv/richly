@@ -380,6 +380,7 @@
   color: inherit;
   font: inherit;
   text-align: right;
+  font-size: 14px;
 }
 .rly-font-size-unit {
   flex: none;
