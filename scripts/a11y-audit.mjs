@@ -78,17 +78,19 @@ try {
 
     await scan(page, 'Demo: default state');
 
-    await page.getByTestId('menu-format').first().click();
+    const primaryEditor = page.getByTestId('editor-root');
+    const formatMenu = primaryEditor.getByTestId('menu-format');
+    await formatMenu.click();
     await scan(page, 'Demo: open menubar menu');
-    await page.keyboard.press('Escape');
+    await formatMenu.press('Escape');
 
-    await page.getByTestId('tb-link').first().click();
+    await primaryEditor.getByTestId('tb-link').click();
     await scan(page, 'Demo: modal dialog');
     await page.keyboard.press('Escape');
 
-    await page.getByTestId('tb-forecolor').first().click();
+    await primaryEditor.getByTestId('tb-forecolor').click();
     await scan(page, 'Demo: color palette');
-    await page.getByTestId('custom-color').first().click();
+    await primaryEditor.getByTestId('dd-forecolor').getByTestId('custom-color').click();
     await scan(page, 'Demo: advanced color picker');
     await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');

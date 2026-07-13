@@ -1,101 +1,130 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Richly — demo (vanilla + React)</title>
-    <style>
-      body {
-        margin: 0;
-        padding: 32px 16px;
-        background: #f4f5f7;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
-        color: #1f2733;
-      }
-      [data-theme='dark'] body,
-      html[data-theme='dark'] {
-        background: #17191d;
-        color: #e6e9ee;
-      }
-      .wrap {
-        width: 100%;
-        max-width: 1320px;
-        margin: 0 auto;
-        display: grid;
-        gap: 28px;
-      }
-      .wrap > * {
-        min-width: 0;
-      }
-      .head {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-      }
-      @media (min-width: 900px) {
-        .wrap {
-          grid-template-columns: 1fr 1fr;
-        }
-        .head,
-        .full-span {
-          grid-column: span 2;
-        }
-      }
-      h1 {
-        font-size: 17px;
-        margin: 0;
-      }
-      h2 {
-        font-size: 14px;
-        font-weight: 600;
-        margin: 0 0 8px;
-        opacity: 0.75;
-      }
-      .theme-btn {
-        border: 1px solid #d0d4da;
-        background: #fff;
-        border-radius: 8px;
-        padding: 6px 12px;
-        cursor: pointer;
-      }
-    </style>
+    <meta
+      name="description"
+      content="Explore Richly's toolbar modes, text styles, plugins, image uploads, and React integration in a live editor playground."
+    />
+    <title>Richly Editor Playground</title>
   </head>
   <body>
-    <div class="wrap">
-      <div class="head">
-        <h1>Richly demo — same core, two integrations</h1>
+    <header class="app-header">
+      <a class="brand" href="#playground" aria-label="Richly playground home">
+        <span class="brand-mark" aria-hidden="true">R</span>
+        <span>
+          <span class="brand-name">Richly</span>
+          <span class="brand-subtitle">Editor playground</span>
+        </span>
+      </a>
+      <div class="header-actions">
+        <span class="release-badge">1.0 release candidate</span>
+        <a
+          class="header-link"
+          href="https://github.com/sanoopbhaskerv/richly"
+          target="_blank"
+          rel="noreferrer"
+        >
+          GitHub <span aria-hidden="true">↗</span>
+        </a>
         <button
           class="theme-btn"
+          type="button"
           data-testid="theme-toggle"
+          aria-label="Toggle light and dark theme"
+          aria-pressed="true"
           onclick="
-            document.documentElement.dataset.theme =
-              document.documentElement.dataset.theme === 'dark' ? '' : 'dark'
+            const root = document.documentElement;
+            const isDark = root.dataset.theme === 'dark';
+            root.dataset.theme = isDark ? '' : 'dark';
+            this.setAttribute('aria-pressed', String(!isDark));
           "
         >
-          ◐ Theme
+          <span aria-hidden="true">◐</span> Theme
         </button>
       </div>
-      <section class="full-span">
-        <h2>Vanilla JS (with custom plugins)</h2>
-        <div id="vanilla-host"></div>
+    </header>
+
+    <main class="wrap">
+      <section
+        id="playground"
+        class="playground-section full-span"
+        aria-labelledby="playground-title"
+      >
+        <div id="playground-root"></div>
       </section>
-      <section>
-        <h2>Vanilla JS (standard)</h2>
-        <div id="vanilla-clean-host"></div>
+
+      <section class="section-intro full-span" aria-labelledby="integration-title">
+        <div>
+          <p class="eyebrow">Integration matrix</p>
+          <h2 id="integration-title">Compare production-ready presets</h2>
+        </div>
+        <p>
+          The same core behavior rendered through Vanilla JavaScript and React, with default,
+          custom-plugin, and sliding-toolbar configurations.
+        </p>
       </section>
-      <section>
-        <h2>Vanilla JS (standard) toolbar mode sliding</h2>
-        <div id="vanilla-sliding-clean-host"></div>
+
+      <section class="fixture-card">
+        <div class="fixture-heading">
+          <div>
+            <span class="fixture-kicker">Vanilla JavaScript</span>
+            <h3>Standard defaults</h3>
+          </div>
+          <span class="fixture-chip">Core</span>
+        </div>
+        <div id="vanilla-clean-host" class="fixture-editor"></div>
       </section>
-      <section class="full-span">
-        <h2>React (with custom plugins)</h2>
-        <div id="react-host"></div>
+
+      <section class="fixture-card">
+        <div class="fixture-heading">
+          <div>
+            <span class="fixture-kicker">Vanilla JavaScript</span>
+            <h3>Sliding toolbar</h3>
+          </div>
+          <span class="fixture-chip fixture-chip--new">New</span>
+        </div>
+        <div id="vanilla-sliding-clean-host" class="fixture-editor"></div>
       </section>
-      <section>
-        <h2>React (standard)</h2>
-        <div id="react-clean-host"></div>
+
+      <section class="fixture-card full-span">
+        <div class="fixture-heading">
+          <div>
+            <span class="fixture-kicker">React component</span>
+            <h3>Custom plugins and floating overflow</h3>
+          </div>
+          <span class="fixture-chip">@richly/react</span>
+        </div>
+        <div id="react-host" class="fixture-editor"></div>
       </section>
-    </div>
+
+      <section class="fixture-card">
+        <div class="fixture-heading">
+          <div>
+            <span class="fixture-kicker">React component</span>
+            <h3>Standard sliding preset</h3>
+          </div>
+          <span class="fixture-chip">Responsive</span>
+        </div>
+        <div id="react-clean-host" class="fixture-editor"></div>
+      </section>
+
+      <aside class="fixture-card capability-card" aria-label="Playground capabilities">
+        <p class="eyebrow">Included in this playground</p>
+        <ul>
+          <li><span aria-hidden="true">✓</span> Live toolbar and chrome configuration</li>
+          <li><span aria-hidden="true">✓</span> Brand-aware color palettes</li>
+          <li><span aria-hidden="true">✓</span> Image upload, tables, and find/replace</li>
+          <li><span aria-hidden="true">✓</span> Vanilla and React integration examples</li>
+        </ul>
+      </aside>
+    </main>
+    <footer class="app-footer">
+      <span>Built with Richly — accessible, framework-friendly rich text editing.</span>
+      <a href="https://github.com/sanoopbhaskerv/richly#readme">Read the documentation</a>
+    </footer>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

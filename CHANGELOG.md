@@ -14,6 +14,27 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Added `textStyles.themeColors` to place brand colors first in both the text
   and highlight palettes while retaining the configured or built-in palette.
 
+### Changed
+
+- Rebuilt the demo as a responsive configuration playground with live toolbar,
+  chrome, content-feature, theme-color, API-code, and sanitized-output controls,
+  while retaining the Vanilla and React integration matrix.
+
+### Fixed
+
+- Kept the leading tool group visible in collapsed sliding toolbars and made
+  overflow redistribution follow nested grid/flex constraints through framework
+  host wrappers.
+- Recomputed sliding overflow when toolbar styles or font metrics settle without
+  changing the editor width, preventing a stale Undo/Redo-only primary row.
+- Coalesced sliding-toolbar resize observations into animation frames, preventing
+  reparenting feedback and unstable tool counts during continuous resizing.
+- Preserved fractional grid and flex widths and excluded the More button's
+  auto-alignment margin from overflow sizing, preventing valid tool groups from
+  collapsing into the drawer at sub-pixel demo widths.
+- Prioritized Bold and Italic ahead of clipboard actions in the default toolbar
+  so narrow sliding layouts retain useful formatting controls.
+
 ## [1.0.0-rc.1] - 2026-07-13
 
 ### Added
