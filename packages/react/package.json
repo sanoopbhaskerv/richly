@@ -1,6 +1,6 @@
 {
   "name": "@richly/react",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "React bindings for Richly, a dependency-free WYSIWYG HTML editor.",
   "license": "MIT",
   "repository": {
@@ -59,7 +59,7 @@
     "prepack": "yarn build"
   },
   "dependencies": {
-    "@richly/core": "^0.7.0"
+    "@richly/core": "^0.8.0"
   },
   "peerDependencies": {
     "react": ">=18",

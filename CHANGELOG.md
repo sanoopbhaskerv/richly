@@ -7,6 +7,12 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-07-13
+
+### Added
+
+- Added more tags for better visibility
+
 ## [0.7.0] - 2026-07-13
 
 ### Added
@@ -157,7 +163,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Firefox inline-format and link commands now recognize selections whose range
   boundaries surround the inline element from its parent node.
 
-[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.1...v0.7.0
 [0.7.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.0...v0.6.1
