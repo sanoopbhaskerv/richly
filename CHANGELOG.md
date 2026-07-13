@@ -7,17 +7,14 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-13
+
 ### Added
 
 - Added `blockquoteStyle` to `EditorConfig` (and the `@richly/react`
   `<Editor>` props). Default `true` preserves Richly's accent-bordered
   blockquote look; set `false` to withhold that presentation hook entirely so
   consumer CSS can style `blockquote` without a specificity fight.
-
-## [0.7.0] - 2026-07-13
-
-### Added
-
 - Added a Richly-native advanced picker to the text-color and background-color
   popovers, with saturation/brightness, hue, opacity, synchronized HEX and
   slider views, recent colors, presets, and selection-safe Cancel/Done actions.
@@ -161,6 +158,7 @@ and releases follow [Semantic Versioning](https://semver.org/).
   boundaries surround the inline element from its parent node.
 
 [Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.1...v0.7.0
 [0.7.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.5.0...v0.6.0
