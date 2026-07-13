@@ -72,6 +72,27 @@ describe('Text Style Commands & Queries', () => {
     );
   });
 
+  it('applies background color across list items without creating empty items', () => {
+    ed = createTestEditor('<ol><li>first</li><li>second</li><li>third</li><li>last</li></ol>');
+    const items = ed.getBody().querySelectorAll('li');
+    const range = document.createRange();
+    range.setStart(items[0]!.firstChild!, 0);
+    range.setEnd(items[2]!.firstChild!, items[2]!.textContent!.length);
+    ed.selection.setRange(range);
+
+    ed.execCommand('BackColor', '#fef9c3');
+
+    expect(ed.getBody().querySelectorAll('li')).toHaveLength(4);
+    expect(normalizeHtml(ed.getContent())).toBe(
+      normalizeHtml(
+        '<ol><li><span style="background-color: #fef9c3">first</span></li>' +
+          '<li><span style="background-color: #fef9c3">second</span></li>' +
+          '<li><span style="background-color: #fef9c3">third</span></li>' +
+          '<li>last</li></ol>'
+      )
+    );
+  });
+
   // --- 4. Remove styles ---
   it('executing ForeColor/BackColor with an empty string or FontSize with null removes style', () => {
     ed = createTestEditor('<p><span style="color: red; font-size: 18px">hello</span> world</p>');

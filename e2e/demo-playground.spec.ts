@@ -56,9 +56,9 @@ test.describe('demo configuration playground', () => {
     await editor.goto();
     const theme = page.getByTestId('theme-toggle');
 
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    await theme.click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', '');
+    await theme.click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expect(editor.content).toContainText('Configure this editor live');
   });
 });

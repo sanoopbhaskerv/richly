@@ -42,9 +42,9 @@ type ToolbarPreset = keyof typeof TOOLBAR_PRESETS;
 const DEFAULT_THEME_COLORS = ['#0f766e', '#be123c', '#2563eb'];
 
 const PLAYGROUND_CONTENT = `
-  <h1>Vanilla build</h1>
-  <p><strong>Configure this editor live.</strong> Change toolbar behavior, chrome, brand colors, and content features from the panel beside it.</p>
-  <blockquote>Richly keeps the editing surface small while leaving product-level configuration in your hands.</blockquote>
+  <h1>Create content that connects ✨</h1>
+  <p><strong>Configure this editor live.</strong> Shape the toolbar, chrome, brand colors, and content features around your product.</p>
+  <blockquote>Clean output. Flexible APIs. Built for developers.</blockquote>
   <h2>Things to try</h2>
   <ul>
     <li>Select text and apply a brand color or an exact custom color.</li>
@@ -310,22 +310,103 @@ function PlaygroundApp(): JSX.Element {
       </aside>
 
       <div className="playground-workspace">
-        <div className="workspace-heading">
-          <div>
+        <div className="hero-grid">
+          <div className="hero-copy">
             <p className="eyebrow">Interactive sandbox</p>
-            <h1 id="playground-title">Build your Richly setup</h1>
-            <p>
-              Every control re-creates the core editor with the selected public API options while
-              preserving your document.
+            <h1 id="playground-title">
+              Try Richly. Build better <span>content experiences.</span>
+            </h1>
+            <p className="hero-lede">
+              A dependency-free rich text editor that is fast, accessible, and ready to fit the
+              product you are already building.
             </p>
+
+            <div className="hero-proof" aria-label="Richly product benefits">
+              <div>
+                <span className="proof-icon" aria-hidden="true">
+                  ⚡
+                </span>
+                <p>
+                  <strong>Dependency-free</strong>Small core, direct DOM API.
+                </p>
+              </div>
+              <div>
+                <span className="proof-icon" aria-hidden="true">
+                  ◈
+                </span>
+                <p>
+                  <strong>Safe by default</strong>Sanitized HTML in and out.
+                </p>
+              </div>
+              <div>
+                <span className="proof-icon" aria-hidden="true">
+                  ✦
+                </span>
+                <p>
+                  <strong>Made to extend</strong>Plugins, themes, and React.
+                </p>
+              </div>
+            </div>
+
+            <div className="hero-actions">
+              <a className="primary-cta" href="https://github.com/sanoopbhaskerv/richly#install">
+                Get Richly <span aria-hidden="true">→</span>
+              </a>
+              <a className="secondary-cta" href="https://github.com/sanoopbhaskerv/richly">
+                View on GitHub <span aria-hidden="true">↗</span>
+              </a>
+            </div>
           </div>
-          <span className="live-badge">
-            <span aria-hidden="true"></span> Live
-          </span>
+
+          <div className="editor-showcase">
+            <div className="showcase-label">
+              <span>Live product preview</span>
+              <span className="live-badge">
+                <span aria-hidden="true"></span> Live
+              </span>
+            </div>
+            <div className="editor-frame playground-editor">
+              <div id="vanilla-host" ref={hostRef}></div>
+            </div>
+          </div>
         </div>
 
-        <div className="editor-frame playground-editor">
-          <div id="vanilla-host" ref={hostRef}></div>
+        <div className="benefit-strip" aria-label="Why teams choose Richly">
+          <article>
+            <span aria-hidden="true">🚀</span>
+            <div>
+              <strong>Developer first</strong>
+              <p>Plain TypeScript and a clean public API.</p>
+            </div>
+          </article>
+          <article>
+            <span aria-hidden="true">🎨</span>
+            <div>
+              <strong>Brand it your way</strong>
+              <p>Themeable UI and custom color systems.</p>
+            </div>
+          </article>
+          <article>
+            <span aria-hidden="true">🔒</span>
+            <div>
+              <strong>Safe &amp; reliable</strong>
+              <p>Sanitized paste and HTML output.</p>
+            </div>
+          </article>
+          <article>
+            <span aria-hidden="true">🧩</span>
+            <div>
+              <strong>Plug &amp; extend</strong>
+              <p>Hooks and plugins for real products.</p>
+            </div>
+          </article>
+          <article>
+            <span aria-hidden="true">〈〉</span>
+            <div>
+              <strong>Open source</strong>
+              <p>MIT licensed and built in the open.</p>
+            </div>
+          </article>
         </div>
 
         <div className="inspector-grid">
@@ -365,6 +446,27 @@ function PlaygroundApp(): JSX.Element {
             >
               <code>{html}</code>
             </pre>
+          </article>
+
+          <article className="inspector-card stack-card">
+            <div className="inspector-heading">
+              <div>
+                <span className="inspector-kicker">Built for your stack</span>
+                <h2>Use it where you ship</h2>
+              </div>
+            </div>
+            <div className="stack-content">
+              <div className="stack-logos" aria-label="Supported integration approaches">
+                <span className="stack-logo stack-logo--js">JS</span>
+                <span className="stack-logo stack-logo--react" role="img" aria-label="React" />
+                <span className="stack-logo stack-logo--ts">TS</span>
+                <span className="stack-logo stack-logo--dom">DOM</span>
+              </div>
+              <p>
+                Vanilla JavaScript, TypeScript, React, or any framework that can host a DOM node.
+              </p>
+              <a href="#integration-title">Explore the integration matrix ↓</a>
+            </div>
           </article>
         </div>
       </div>
