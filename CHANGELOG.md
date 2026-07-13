@@ -7,6 +7,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.0-rc.2] - 2026-07-13
+
 ### Added
 
 - Added `toolbarMode: 'sliding'`, which keeps a single primary toolbar row and
@@ -227,7 +229,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Firefox inline-format and link commands now recognize selections whose range
   boundaries surround the inline element from its parent node.
 
-[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.1...HEAD
+[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.2...HEAD
+[1.0.0-rc.2]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/sanoopbhaskerv/richly/compare/v0.9.0...v1.0.0-rc.1
 [0.9.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.7.0...v0.8.0
