@@ -1,78 +1,104 @@
 /** Whitelist-based HTML sanitizer. ALL inbound HTML (setContent, paste) passes through here. */
 
-const ALLOWED_TAGS = new Set([
-  'p',
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
-  'blockquote',
-  'pre',
-  'div',
-  'br',
-  'hr',
-  'strong',
-  'b',
-  'em',
-  'i',
-  'u',
-  's',
-  'strike',
-  'del',
-  'code',
-  'sub',
-  'sup',
-  'span',
-  'ul',
-  'ol',
-  'li',
-  'a',
-  'img',
-  'table',
-  'colgroup',
-  'col',
-  'thead',
-  'tbody',
-  'tfoot',
-  'tr',
-  'td',
-  'th',
-  'caption',
-  'figure',
-  'figcaption'
-]);
+/** Internal release-contract source; package consumers should use sanitize(). */
+export const SANITIZER_SCHEMA = {
+  tags: [
+    'p',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'blockquote',
+    'pre',
+    'div',
+    'br',
+    'hr',
+    'strong',
+    'b',
+    'em',
+    'i',
+    'u',
+    's',
+    'strike',
+    'del',
+    'code',
+    'sub',
+    'sup',
+    'span',
+    'ul',
+    'ol',
+    'li',
+    'a',
+    'img',
+    'table',
+    'colgroup',
+    'col',
+    'thead',
+    'tbody',
+    'tfoot',
+    'tr',
+    'td',
+    'th',
+    'caption',
+    'figure',
+    'figcaption'
+  ],
+  globalAttributes: ['style', 'class', 'id', 'dir', 'lang', 'title'],
+  attributes: {
+    a: ['href', 'target', 'rel'],
+    img: ['src', 'alt', 'width', 'height'],
+    td: ['colspan', 'rowspan'],
+    th: ['colspan', 'rowspan', 'scope']
+  },
+  styles: [
+    'color',
+    'background-color',
+    'text-align',
+    'text-decoration',
+    'font-weight',
+    'font-style',
+    'font-size',
+    'font-family',
+    'line-height',
+    'margin-left',
+    'margin-right',
+    'padding-left', // indent + table alignment
+    'width',
+    'height',
+    'vertical-align',
+    'border-width',
+    'border-color',
+    'padding',
+    'table-layout' // table/cell props & resize
+  ],
+  dropEntirely: [
+    'script',
+    'style',
+    'iframe',
+    'object',
+    'embed',
+    'form',
+    'meta',
+    'link',
+    'head',
+    'title'
+  ]
+} as const;
 
-const ALLOWED_ATTRS: Record<string, Set<string>> = {
-  '*': new Set(['style', 'class', 'id', 'dir', 'lang', 'title']),
-  a: new Set(['href', 'target', 'rel']),
-  img: new Set(['src', 'alt', 'width', 'height']),
-  td: new Set(['colspan', 'rowspan']),
-  th: new Set(['colspan', 'rowspan', 'scope'])
+const ALLOWED_TAGS = new Set<string>(SANITIZER_SCHEMA.tags);
+const ALLOWED_ATTRS: Record<string, ReadonlySet<string>> = {
+  '*': new Set(SANITIZER_SCHEMA.globalAttributes),
+  ...Object.fromEntries(
+    Object.entries(SANITIZER_SCHEMA.attributes).map(([tag, attributes]) => [
+      tag,
+      new Set(attributes)
+    ])
+  )
 };
-
-const ALLOWED_STYLES = new Set([
-  'color',
-  'background-color',
-  'text-align',
-  'text-decoration',
-  'font-weight',
-  'font-style',
-  'font-size',
-  'font-family',
-  'line-height',
-  'margin-left',
-  'margin-right',
-  'padding-left', // indent + table alignment
-  'width',
-  'height',
-  'vertical-align',
-  'border-width',
-  'border-color',
-  'padding',
-  'table-layout' // table/cell props & resize
-]);
+const ALLOWED_STYLES = new Set<string>(SANITIZER_SCHEMA.styles);
+const DROP_ENTIRELY = new Set<string>(SANITIZER_SCHEMA.dropEntirely);
 
 const URL_SCHEME_BLOCKLIST = /^\s*(javascript|vbscript|data(?!:image\/(png|gif|jpe?g|webp)))\s*:/i;
 
@@ -114,18 +140,6 @@ export function sanitize(html: string, doc: Document = document): string {
   const root = template.content;
 
   // Remove disallowed elements (keep children for unknown wrappers, drop dangerous subtrees)
-  const DROP_ENTIRELY = new Set([
-    'script',
-    'style',
-    'iframe',
-    'object',
-    'embed',
-    'form',
-    'meta',
-    'link',
-    'head',
-    'title'
-  ]);
   const walker = (node: Element): void => {
     for (const child of Array.from(node.children)) walker(child);
     const tag = node.tagName.toLowerCase();

@@ -43,10 +43,6 @@ For React:
 npm install @richly/react react react-dom
 ```
 
-> The package scope is currently `@sb`. Before the first public release,
-> publish it under an npm scope you own and update package names and imports if
-> that scope is different.
-
 ## Vanilla JavaScript
 
 ```ts
@@ -54,7 +50,7 @@ import { Editor } from '@richly/core';
 import '@richly/core/theme.css';
 
 const editor = Editor.init({
-  target: document.querySelector('#editor')!,
+  target: document.querySelector<HTMLElement>('#editor')!,
   initialContent: '<p>Start writing.</p>'
 });
 
@@ -78,9 +74,10 @@ export function ArticleEditor() {
 ```
 
 Use `initialValue` for an uncontrolled editor. The component accepts `toolbar`,
-`toolbarOverflow`, `menubar`, `statusbar`, and `resize` options from the core
+`toolbarMode`, `menubar`, `statusbar`, and `resize` options from the core
 configuration. Tool groups wrap onto additional rows by default; set
-`toolbarOverflow: true` to keep one row and move extra groups into a More menu.
+`toolbarMode="more"` to keep one row and move extra groups into a More menu.
+The deprecated `toolbarOverflow` alias remains available for 0.x migrations.
 
 Word counting can be disabled with `wordCount: false`, or configured in either
 API:
@@ -103,6 +100,7 @@ yarn format
 yarn test
 yarn test:coverage
 yarn e2e --project=chromium
+yarn a11y:audit
 yarn build
 ```
 
@@ -111,12 +109,19 @@ side by side.
 
 ## Publishing checklist
 
-Before publishing, set a package scope you own, add the repository URL to both
-package manifests, bump versions, then verify the packed files:
+Prepare an explicit release candidate, verify it, then tag the reviewed release
+commit. Prerelease tags publish to npm under `next`; stable tags publish under
+`latest`:
 
 ```bash
-cd packages/core && npm pack --dry-run
-cd ../react && npm pack --dry-run
+yarn release:prepare --version 1.0.0-rc.1
+yarn release:check
+git tag v1.0.0-rc.1
+
+# After the RC soak, promote the prerelease base version.
+yarn release:prepare
+yarn release:check
+git tag v1.0.0
 ```
 
 Use npm provenance for public releases where your registry and CI setup support

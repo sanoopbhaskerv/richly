@@ -200,7 +200,9 @@ export function openDialog(editor: Editor, spec: DialogSpec): Promise<DialogResu
         submit();
       } else if (e.key === 'Tab' && dialog.contains(doc.activeElement)) {
         // Focus trap.
-        const focusables = [...inputs.values(), cancelBtn, submitBtn];
+        const focusables = [closeBtn, ...inputs.values(), cancelBtn, submitBtn].filter(
+          (element) => !element.disabled && !element.hidden
+        );
         const idx = focusables.indexOf(doc.activeElement as HTMLInputElement);
         if (idx !== -1) {
           e.preventDefault();
@@ -211,7 +213,9 @@ export function openDialog(editor: Editor, spec: DialogSpec): Promise<DialogResu
     };
     doc.addEventListener('keydown', keyHandler, true);
 
-    doc.body.appendChild(overlay);
+    // Keep the modal inside the editor theme scope so public --rly-* overrides
+    // and dark-mode tokens are inherited by portal-like dialog chrome.
+    editor.getRoot().appendChild(overlay);
     const first = inputs.values().next().value as FieldEl | undefined;
     first?.focus();
     if (first && 'select' in first && typeof first.select === 'function') first.select();

@@ -28,16 +28,25 @@ documented CSS variables/classes, and the sanitized HTML contract.
    minor while pre-1.0), updates all package versions, `@richly/react`'s
    `@richly/core` range, and rolls `CHANGELOG.md`'s `Unreleased` section into
    a dated version section. Use `--dry-run` to preview; review the diff and
-   the changelog wording before committing.
+   the changelog wording before committing. For an explicit release candidate,
+   use `yarn release:prepare --version 1.0.0-rc.1`. Running the command without
+   `--version` on a prerelease promotes its base version (`1.0.0-rc.1` →
+   `1.0.0`).
 3. Add migration instructions when the release changes a compatibility
    surface.
 4. Run:
 
    ```bash
    yarn release:check
+   yarn a11y:audit
+   yarn e2e
    ```
 
-5. Merge the release branch, then create and push an annotated tag:
+5. For a 1.0 release candidate, complete the keyboard-only walkthrough in
+   `ACCESSIBILITY.md` and a smoke test in real Safari. Playwright WebKit is
+   required CI coverage but does not replace the Safari smoke.
+
+6. Merge the release branch, then create and push an annotated tag:
 
    ```bash
    git tag -a v0.1.0 -m "Richly v0.1.0"
@@ -46,7 +55,8 @@ documented CSS variables/classes, and the sanitized HTML contract.
 
 The `Release` GitHub Actions workflow verifies the tag matches both package
 versions, runs the release checks, publishes core before React with npm
-provenance, and creates a GitHub release from the changelog.
+provenance, and creates a GitHub release from the changelog. Prerelease tags
+publish under npm's `next` dist-tag; stable tags publish under `latest`.
 
 ## Repository protection
 

@@ -81,6 +81,14 @@ function installInlineTextToolbar(editor: Editor): void {
 
   const buttons: { action: InlineAction; el: HTMLButtonElement }[] = [];
 
+  const focusButton = (index: number): void => {
+    const enabled = buttons.map(({ el }) => el).filter((button) => !button.disabled);
+    if (!enabled.length) return;
+    const target = (index + enabled.length) % enabled.length;
+    enabled.forEach((button, buttonIndex) => (button.tabIndex = buttonIndex === target ? 0 : -1));
+    enabled[target]?.focus();
+  };
+
   for (const entry of INLINE_ACTIONS) {
     if (entry === null) {
       const sep = doc.createElement('div');
@@ -106,6 +114,30 @@ function installInlineTextToolbar(editor: Editor): void {
 
   root.appendChild(bar);
 
+  const onToolbarKeyDown = (event: KeyboardEvent): void => {
+    const enabled = buttons.map(({ el }) => el).filter((button) => !button.disabled);
+    const current = enabled.indexOf(doc.activeElement as HTMLButtonElement);
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      focusButton(current + (event.key === 'ArrowRight' ? 1 : -1));
+    } else if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      focusButton(event.key === 'Home' ? 0 : enabled.length - 1);
+    } else if (event.key === 'Escape' || (event.altKey && event.key === 'F10')) {
+      event.preventDefault();
+      buttons.forEach(({ el }) => (el.tabIndex = -1));
+      editor.focus();
+    }
+  };
+  const onEditorKeyDown = (event: KeyboardEvent): void => {
+    if (event.altKey && event.key === 'F10' && bar.classList.contains('rly-open')) {
+      event.preventDefault();
+      focusButton(0);
+    }
+  };
+  bar.addEventListener('keydown', onToolbarKeyDown);
+  body.addEventListener('keydown', onEditorKeyDown);
+
   let anchor: Range | null = null;
 
   const refreshActive = (): void => {
@@ -120,6 +152,7 @@ function installInlineTextToolbar(editor: Editor): void {
   const hide = (): void => {
     anchor = null;
     bar.classList.remove('rly-open');
+    buttons.forEach(({ el }) => (el.tabIndex = -1));
   };
 
   const position = (): void => {
@@ -191,6 +224,8 @@ function installInlineTextToolbar(editor: Editor): void {
   });
   editor.events.on('destroy', () => {
     body.removeEventListener('scroll', onScroll);
+    body.removeEventListener('keydown', onEditorKeyDown);
+    bar.removeEventListener('keydown', onToolbarKeyDown);
     doc.defaultView?.removeEventListener('resize', onScroll);
     bar.remove();
   });

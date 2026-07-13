@@ -22,6 +22,7 @@ export interface EditorProps {
   statusbar?: boolean;
   wordCount?: boolean | WordCountOptions;
   resize?: boolean;
+  textStyles?: EditorConfig['textStyles'];
   images?: ImagesConfig;
   /** Set false to omit Richly's default blockquote styling. Default true. */
   blockquoteStyle?: boolean;
@@ -65,6 +66,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(prop
       statusbar: props.statusbar,
       wordCount: props.wordCount,
       resize: props.resize,
+      textStyles: props.textStyles,
       images: props.images,
       blockquoteStyle: props.blockquoteStyle,
       plugins: props.plugins,

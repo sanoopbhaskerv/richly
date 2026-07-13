@@ -10,7 +10,11 @@ application workflows also affect conformance.
 - The editing surface exposes a labelled multiline textbox.
 - Toolbar controls have accessible names, pressed states, roving tab stops, and
   left/right arrow navigation.
+- `Alt+F10` enters a visible contextual text/table toolbar; arrows move within
+  it and Escape returns focus to the editing surface.
 - Menus and dialogs expose appropriate roles and expanded/modal state.
+- Menubars and table context menus support arrow, Home/End, and Escape
+  navigation; `Shift+F10` opens table actions from the keyboard.
 - Dialogs trap focus, close with Escape, and restore the editor selection.
 - Common formatting commands have platform-aware keyboard shortcuts.
 - Tables use semantic table elements; header-cell scope is configurable.
@@ -20,10 +24,12 @@ application workflows also affect conformance.
 
 ## Test coverage
 
-Automated checks cover keyboard operation, focus restoration, accessible state,
-dialog behavior, real browser selection, and Chromium/Firefox/WebKit behavior.
-Unit tests cover roles and configuration where browser interaction is not
-required. See `TESTING.md` for the maintained test contract.
+Automated checks cover keyboard operation, focus restoration, focus traps,
+accessible state, dialog behavior, real browser selection, and
+Chromium/Firefox/WebKit behavior. `yarn a11y:audit` runs axe-core over the demo
+and representative open menu, modal, palette, and advanced-picker states. Unit
+tests cover roles and configuration where browser interaction is not required.
+See `TESTING.md` for the maintained test contract.
 
 ## Current limitations
 

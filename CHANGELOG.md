@@ -7,6 +7,23 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Added the 1.0 compatibility contract and tripwire tests for package exports,
+  editor/React configuration, built-in commands and events, documented CSS
+  hooks, and the sanitizer schema.
+- Added `yarn a11y:audit`, powered by Playwright and axe-core, over the demo and
+  representative open menu, dialog, palette, and custom-picker states.
+- Added keyboard entry and roving navigation for contextual text/table
+  toolbars, menubars, and table context menus.
+
+### Changed
+
+- Release preparation now accepts explicit prerelease versions such as
+  `--version 1.0.0-rc.1`; prerelease tags publish to npm under `next` while
+  stable releases use `latest`.
+- The React wrapper now forwards `textStyles` and re-exports `ImagesConfig`.
+
 ## [0.9.0] - 2026-07-13
 
 ### Added
@@ -183,7 +200,6 @@ and releases follow [Semantic Versioning](https://semver.org/).
 [Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v0.9.0...HEAD
 [0.9.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.7.0...v0.8.0
-[0.7.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.1...v0.7.0
 [0.7.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.5.0...v0.6.0

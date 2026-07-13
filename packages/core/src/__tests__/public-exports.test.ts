@@ -12,7 +12,12 @@ function parseExportsFromIndex(source: string): string[] {
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean)
-      .map((s) => s.replace(/^type\s+/, ''));
+      .map((s) =>
+        s
+          .replace(/^type\s+/, '')
+          .split(/\s+as\s+/)
+          .at(-1)!
+      );
     for (const name of names) out.add(name);
   }
   return [...out].sort();
@@ -75,5 +80,26 @@ describe('public exports snapshot (1.0 freeze tripwire)', () => {
     required.forEach((name) => {
       expect(actual.has(name)).toBe(true);
     });
+  });
+
+  it('matches the expected React package export surface', () => {
+    const indexPath = resolve(process.cwd(), '../react/src/index.ts');
+    const source = readFileSync(indexPath, 'utf8');
+    const actual = parseExportsFromIndex(source);
+
+    const expected = [
+      'CoreEditor',
+      'Editor',
+      'EditorConfig',
+      'EditorHandle',
+      'EditorProps',
+      'FindReplaceArgs',
+      'ImagesConfig',
+      'Plugin',
+      'ToolbarMode',
+      'WordCountOptions'
+    ].sort();
+
+    expect(actual).toEqual(expected);
   });
 });
