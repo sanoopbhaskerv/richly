@@ -7,6 +7,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.0-rc.4] - 2026-07-13
+
 ### Fixed
 
 - Rendered portable `Mod` shortcuts as native platform labels in toolbar
@@ -245,7 +247,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Firefox inline-format and link commands now recognize selections whose range
   boundaries surround the inline element from its parent node.
 
-[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.3...HEAD
+[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.4...HEAD
+[1.0.0-rc.4]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.3...v1.0.0-rc.4
 [1.0.0-rc.3]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.2...v1.0.0-rc.3
 [1.0.0-rc.2]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/sanoopbhaskerv/richly/compare/v0.9.0...v1.0.0-rc.1

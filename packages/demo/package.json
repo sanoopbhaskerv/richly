@@ -1,14 +1,14 @@
 {
   "name": "@richly/demo",
   "private": true,
-  "version": "1.0.0-rc.3",
+  "version": "1.0.0-rc.4",
   "type": "module",
   "scripts": {
     "dev": "vite --port 5177 --strictPort",
     "build": "vite build"
   },
   "dependencies": {
-    "@richly/core": "^1.0.0-rc.3",
+    "@richly/core": "^1.0.0-rc.4",
     "@richly/react": "*",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
