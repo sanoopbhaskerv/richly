@@ -1,6 +1,7 @@
 import type { Plugin } from './types';
 import { getEditorConfig, type Editor } from '../editor/Editor';
 import type { SelectOption } from '../ui/UiRegistry';
+import { createColorPickerPanel } from '../ui/colorpicker/ColorPicker';
 import {
   applyStyledSpan,
   removeStyledSpan,
@@ -85,123 +86,17 @@ function createColorPanel(
   command: 'ForeColor' | 'BackColor',
   close: () => void
 ): HTMLElement {
-  const doc = editor.getBody().ownerDocument;
-  const panel = doc.createElement('div');
-  panel.className = 'rly-color-panel';
-
-  const grid = doc.createElement('div');
-  grid.className = 'rly-color-grid';
-  grid.setAttribute('role', 'grid');
-
-  const swatches: HTMLButtonElement[] = [];
-  const colors = textStyleOptions(editor).colors;
-  for (const color of colors) {
-    const hex = color.toLowerCase();
-    const swatch = doc.createElement('button');
-    swatch.type = 'button';
-    swatch.className = 'rly-color-swatch';
-    swatch.dataset.testid = `swatch-${hex.replace('#', '')}`;
-    swatch.setAttribute('role', 'gridcell');
-    swatch.setAttribute('aria-label', COLOR_LABELS[hex] ?? `Color ${hex}`);
-    swatch.style.backgroundColor = color;
-    swatch.tabIndex = swatches.length === 0 ? 0 : -1;
-    swatch.addEventListener('mousedown', (e) => e.preventDefault());
-    swatch.addEventListener('click', () => {
-      editor.execCommand(command, color);
-      close();
-      editor.focus();
-    });
-    swatches.push(swatch);
-    grid.appendChild(swatch);
-  }
-
-  const clear = doc.createElement('button');
-  clear.type = 'button';
-  clear.className = 'rly-color-clear-btn';
-  clear.dataset.testid = 'swatch-none';
-  clear.setAttribute('aria-label', 'No color');
-  clear.textContent = 'None';
-  clear.addEventListener('mousedown', (e) => e.preventDefault());
-  clear.addEventListener('click', () => {
-    editor.execCommand(command, '');
-    close();
-    editor.focus();
+  return createColorPickerPanel({
+    mode: command === 'ForeColor' ? 'text' : 'highlight',
+    editor,
+    close,
+    palette: textStyleOptions(editor).colors.map((color) => ({
+      value: color,
+      label: COLOR_LABELS[color.toLowerCase()] ?? `Color ${color}`
+    })),
+    getCurrentColor: () => editor.queryCommandValue(command),
+    onApply: (color) => editor.execCommand(command, color ?? '')
   });
-
-  const focusSwatch = (idx: number): void => {
-    const clamped = Math.max(0, Math.min(swatches.length - 1, idx));
-    swatches.forEach((sw, swIdx) => {
-      sw.tabIndex = swIdx === clamped ? 0 : -1;
-    });
-    swatches[clamped]?.focus();
-  };
-
-  const normalizeColor = (color: string): string => {
-    const probe = doc.createElement('span');
-    probe.style.color = color;
-    return probe.style.color;
-  };
-  const refreshSelectedSwatch = (): number => {
-    const current = normalizeColor(editor.queryCommandValue(command));
-    let selected = -1;
-    swatches.forEach((swatch, index) => {
-      const matches = current !== '' && swatch.style.backgroundColor === current;
-      swatch.classList.toggle('rly-selected', matches);
-      swatch.setAttribute('aria-selected', String(matches));
-      if (matches) selected = index;
-    });
-    return selected;
-  };
-
-  panel.addEventListener('rly-panel-open', () => {
-    const selected = refreshSelectedSwatch();
-    focusSwatch(selected >= 0 ? selected : 0);
-  });
-  panel.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      close();
-      editor.focus();
-      return;
-    }
-
-    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
-
-    e.stopPropagation();
-    e.preventDefault();
-    const active = doc.activeElement as HTMLElement | null;
-    if (active === clear) {
-      if (e.key === 'ArrowUp') focusSwatch(swatches.length - 1);
-      return;
-    }
-
-    const idx = swatches.findIndex((sw) => sw === active);
-    const current = idx >= 0 ? idx : 0;
-    const columns = 8;
-    const row = Math.floor(current / columns);
-    const col = current % columns;
-    let next = current;
-
-    if (e.key === 'ArrowLeft') next = current > 0 ? current - 1 : 0;
-    else if (e.key === 'ArrowRight') next = Math.min(swatches.length - 1, current + 1);
-    else if (e.key === 'ArrowUp') next = row > 0 ? current - columns : current;
-    else if (e.key === 'ArrowDown') {
-      const down = current + columns;
-      if (down >= swatches.length) clear.focus();
-      else {
-        const lastColInDownRow = (Math.floor(down / columns) + 1) * columns - 1;
-        next = Math.min(
-          swatches.length - 1,
-          Math.min(lastColInDownRow, down + col - (down % columns))
-        );
-      }
-    }
-
-    if (doc.activeElement !== clear) focusSwatch(next);
-  });
-
-  panel.append(grid, clear);
-  return panel;
 }
 
 /**

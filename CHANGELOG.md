@@ -18,9 +18,9 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Added custom color dialogs to the text-color and background-color palettes,
-  with selection-aware previews, explicit Save/Cancel actions, and active
-  states for custom and cleared colors.
+- Added a Richly-native advanced picker to the text-color and background-color
+  popovers, with saturation/brightness, hue, opacity, synchronized HEX and
+  slider views, recent colors, presets, and selection-safe Cancel/Done actions.
 - Added a `Deploy demo` GitHub Actions workflow that publishes
   `@richly/demo` to GitHub Pages on every push to `main`, plus a
   GH Pages-aware `base` path in the demo's Vite config. Linked the live demo

@@ -231,6 +231,94 @@ describe('Text Style Commands & Queries', () => {
     expect(button.style.getPropertyValue('--rly-control-value')).toBe('');
   });
 
+  it('applies advanced custom colors and tracks recent and cleared states', () => {
+    ed = createTestEditor('<p>plain custom</p>');
+    selectText(ed, 'custom');
+
+    const button = ed.getRoot().querySelector<HTMLButtonElement>('[data-testid="tb-forecolor"]')!;
+    button.click();
+
+    const custom = ed.getRoot().querySelector<HTMLButtonElement>('[data-testid="custom-color"]')!;
+    const picker = custom.closest<HTMLElement>('.rly-color-picker')!;
+    custom.click();
+    expect(picker.dataset.view).toBe('custom');
+    const customInput = picker.querySelector<HTMLInputElement>('[data-testid="color-picker-hex"]')!;
+    customInput.value = '#123456';
+    customInput.dispatchEvent(new Event('input', { bubbles: true }));
+    picker.querySelector<HTMLButtonElement>('[data-testid="color-picker-done"]')!.click();
+
+    expect(ed.getContent()).toMatch(/color:\s*(#123456|rgb\(18,\s*52,\s*86\))/i);
+    expect(button.style.getPropertyValue('--rly-control-value')).toMatch(
+      /^(#123456|rgb\(18,\s*52,\s*86\))$/i
+    );
+
+    selectText(ed, 'custom');
+    ed.events.emit('selectionchange', undefined);
+    button.click();
+    expect(ed.getRoot().querySelector('[data-testid="recent-color-123456"]')).not.toBeNull();
+    expect(ed.getRoot().querySelector('[data-testid="custom-color"]')?.textContent).toContain(
+      '#123456'
+    );
+
+    button.click();
+    selectText(ed, 'plain');
+    ed.events.emit('selectionchange', undefined);
+    button.click();
+    const clear = ed.getRoot().querySelector<HTMLElement>('[data-testid="swatch-none"]')!;
+    expect(clear.classList.contains('rly-selected')).toBe(true);
+    expect(clear.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('cancels an advanced custom color without changing content', () => {
+    ed = createTestEditor('<p>plain custom</p>');
+    selectText(ed, 'custom');
+    let changes = 0;
+    ed.events.on('change', () => changes++);
+
+    ed.getRoot().querySelector<HTMLButtonElement>('[data-testid="tb-backcolor"]')!.click();
+    ed.getRoot()
+      .querySelector<HTMLButtonElement>(
+        '[data-testid="dd-backcolor"] [data-testid="custom-color"]'
+      )!
+      .click();
+
+    const picker = ed
+      .getRoot()
+      .querySelector<HTMLElement>('.rly-color-picker[data-view="custom"]')!;
+    const input = picker.querySelector<HTMLInputElement>('[data-testid="color-picker-hex"]')!;
+    input.value = '#fedcba';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    picker.querySelector<HTMLButtonElement>('[data-testid="color-picker-cancel"]')!.click();
+
+    expect(ed.getContent()).toBe('<p>plain custom</p>');
+    expect(changes).toBe(0);
+  });
+
+  it('applies opacity as one undoable custom-color change', () => {
+    ed = createTestEditor('<p>alpha target</p>');
+    selectText(ed, 'target');
+    let changes = 0;
+    ed.events.on('change', () => changes++);
+
+    ed.getRoot().querySelector<HTMLButtonElement>('[data-testid="tb-forecolor"]')!.click();
+    ed.getRoot().querySelector<HTMLButtonElement>('[data-testid="custom-color"]')!.click();
+    const picker = ed
+      .getRoot()
+      .querySelector<HTMLElement>('.rly-color-picker[data-view="custom"]')!;
+    const opacity = picker.querySelector<HTMLInputElement>('[data-testid="color-picker-opacity"]')!;
+    opacity.value = '50';
+    opacity.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(
+      picker.querySelector<HTMLInputElement>('[data-testid="color-picker-hex"]')!.value
+    ).toMatch(/^#[0-9A-F]{6}80$/);
+    picker.querySelector<HTMLButtonElement>('[data-testid="color-picker-done"]')!.click();
+
+    expect(changes).toBe(1);
+    expect(ed.getContent()).toMatch(/color:\s*(#[0-9a-f]{8}|rgba\()/i);
+    ed.execCommand('Undo');
+    expect(ed.getContent()).toBe('<p>alpha target</p>');
+  });
+
   it('honors custom font-size presets verbatim', () => {
     const target = document.createElement('div');
     document.body.appendChild(target);

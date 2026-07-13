@@ -6,6 +6,8 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  // Project Pages serve from /<repo>/ — set GH_PAGES=true only in that build.
+  base: process.env.GH_PAGES ? '/richly/' : '/',
   plugins: [react()],
   resolve: {
     alias: [

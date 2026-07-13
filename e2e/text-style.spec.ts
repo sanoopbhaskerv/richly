@@ -59,6 +59,101 @@ test.describe('text style ui', () => {
     expect(html).not.toMatch(/color\s*:/i);
   });
 
+  test('custom palette colors apply to text and background', async () => {
+    await editor.selectWord('bravo');
+    await editor.clickButton('forecolor');
+    await editor.root.getByTestId('dd-forecolor').getByTestId('custom-color').click();
+    const forePicker = editor.root.getByTestId('dd-forecolor');
+    await expect(forePicker.getByTestId('color-picker-hex')).toBeVisible();
+    await forePicker.getByTestId('color-picker-hex').fill('#123456');
+    await forePicker.getByTestId('color-picker-done').click();
+    await editor.expectContentMatches(/color:\s*(#123456|rgb\(18,\s*52,\s*86\))/i);
+
+    await editor.selectWord('bravo');
+    await editor.clickButton('backcolor');
+    await editor.root.getByTestId('dd-backcolor').getByTestId('custom-color').click();
+    const backPicker = editor.root.getByTestId('dd-backcolor');
+    await expect(backPicker.getByTestId('color-picker-hex')).toBeVisible();
+    await backPicker.getByTestId('color-picker-hex').fill('#fedcba');
+    await backPicker.getByTestId('color-picker-done').click();
+    await editor.expectContentMatches(/background-color:\s*(#fedcba|rgb\(254,\s*220,\s*186\))/i);
+
+    await editor.selectWord('bravo');
+    await editor.clickButton('forecolor');
+    await expect(forePicker.getByTestId('recent-color-123456')).toBeVisible();
+    await editor.root.getByTestId('dd-forecolor').getByTestId('custom-color').click();
+    await expect(forePicker.getByTestId('color-picker-hex')).toHaveValue('#123456');
+    await forePicker.getByTestId('color-picker-cancel').click();
+  });
+
+  test('canceling an advanced custom color leaves content unchanged', async () => {
+    const before = await editor.content.innerHTML();
+    await editor.selectWord('alpha');
+    await editor.clickButton('backcolor');
+    await editor.root.getByTestId('dd-backcolor').getByTestId('custom-color').click();
+
+    const picker = editor.root.getByTestId('dd-backcolor');
+    await picker.getByTestId('color-picker-hex').fill('#fedcba');
+    await picker.getByTestId('color-picker-cancel').click();
+
+    expect(await editor.content.innerHTML()).toBe(before);
+  });
+
+  test('advanced picker validates HEX and supports sliders, back, and escape', async () => {
+    await editor.selectWord('charlie');
+    await editor.clickButton('forecolor');
+    const panel = editor.root.getByTestId('dd-forecolor');
+    await panel.getByTestId('custom-color').click();
+
+    const hex = panel.getByTestId('color-picker-hex');
+    await hex.fill('#nope');
+    await expect(panel.getByTestId('color-picker-done')).toBeDisabled();
+    await expect(panel.getByText('Enter a valid HEX color')).toBeVisible();
+
+    await hex.fill('#3b82f6');
+    await expect(panel.getByTestId('color-picker-done')).toBeEnabled();
+    await panel.getByTestId('color-picker-add-preset').click();
+    await expect(panel.getByTestId('color-picker-preset-3B82F6')).toBeVisible();
+    await panel.getByTestId('color-picker-sv').press('Shift+ArrowLeft');
+    await expect(panel.getByTestId('color-picker-hex')).not.toHaveValue('#3B82F6');
+    await panel.getByTestId('color-picker-tab-sliders').click();
+    await panel.getByTestId('color-picker-number-h').fill('120');
+    await expect(panel.getByTestId('color-picker-hex')).toHaveValue(/^#[0-9A-F]{6}$/);
+    await expect(panel.getByTestId('color-picker-hex')).not.toHaveValue('#3B82F6');
+
+    await panel.getByTestId('color-picker-back').click();
+    await expect(panel.getByTestId('custom-color')).toBeVisible();
+    await panel.getByTestId('custom-color').click();
+    await panel.getByTestId('color-picker-hex').press('Escape');
+    await expect(panel.getByTestId('custom-color')).toBeVisible();
+    await panel.getByTestId('custom-color').press('Escape');
+    await expect(panel).not.toHaveClass(/rly-open/);
+  });
+
+  test('advanced picker stays inside a narrow viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 760 });
+    await editor.selectWord('alpha');
+    await editor.clickButton('forecolor');
+    const panel = editor.root.getByTestId('dd-forecolor');
+    await panel.getByTestId('custom-color').click();
+
+    const bounds = await panel.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+        bottom: rect.bottom,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight
+      };
+    });
+    expect(bounds.left).toBeGreaterThanOrEqual(7);
+    expect(bounds.right).toBeLessThanOrEqual(bounds.viewportWidth - 7);
+    expect(bounds.top).toBeGreaterThanOrEqual(7);
+    expect(bounds.bottom).toBeLessThanOrEqual(bounds.viewportHeight - 7);
+  });
+
   test('collapsed swatch apply styles newly typed text', async ({ page }) => {
     await editor.placeCursorAtEnd();
     await editor.clickButton('forecolor');
@@ -133,11 +228,18 @@ test.describe('text style ui', () => {
     await expect(editor.content).toBeFocused();
 
     await page.evaluate(() => window.scrollTo(0, 100));
-    const before = await page.evaluate(() => window.scrollY);
     await editor.clickButton('forecolor');
-    await panel.press('ArrowDown');
+    const reset = panel.getByTestId('swatch-none');
+    await expect(reset).toBeFocused();
+    await reset.press('Tab');
+    const focusedSwatch = panel.getByTestId('swatch-fee2e2');
+    await expect(focusedSwatch).toBeFocused();
+    const before = await page.evaluate(() => window.scrollY);
+    await page.keyboard.press('ArrowDown');
     const after = await page.evaluate(() => window.scrollY);
-    expect(after).toBe(before);
+    // Firefox can round a sub-pixel layout shift to one CSS pixel under load;
+    // keyboard navigation must not cause a meaningful document scroll.
+    expect(Math.abs(after - before)).toBeLessThanOrEqual(1);
   });
 });
 

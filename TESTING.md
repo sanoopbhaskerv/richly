@@ -56,28 +56,31 @@ expect(ed.getContent()).toBe('<p><strong>hello</strong> world</p>');
 
 Pattern: kebab-case, stable, semantic. Never derive from labels/i18n. One editor per testid scope; for multi-instance pages scope queries by root.
 
-| Element                                 | data-testid                                                              |
-| --------------------------------------- | ------------------------------------------------------------------------ |
-| Editor root wrapper                     | `editor-root`                                                            |
-| Menubar / toolbar / content / statusbar | `editor-menubar`, `editor-toolbar`, `editor-content`, `editor-statusbar` |
-| Toolbar button                          | `tb-<name>` (e.g. `tb-bold`, `tb-undo`, `tb-h1`)                         |
-| Toolbar overflow                        | `tb-more`, `toolbar-more-panel`                                          |
-| Preview                                 | `preview-overlay`, `preview-frame`, `preview-close`                      |
-| Toolbar select (blocks/fonts)           | `tb-select-<name>`                                                       |
-| Menubar menu button                     | `menu-<name>` (e.g. `menu-file`)                                         |
-| Menu item                               | `menuitem-<id>`                                                          |
-| Dropdown panel                          | `dd-<name>` (e.g. `dd-table`, `dd-forecolor`)                            |
-| Table grid cell                         | `grid-cell-<row>-<col>`                                                  |
-| Color swatch                            | `swatch-<hex-no-hash>`                                                   |
-| WP3 text style dropdowns                | `dd-forecolor`, `dd-backcolor`                                           |
-| WP3 font size select                    | `tb-select-fontsize`                                                     |
-| WP3 clear swatch                        | `swatch-none`                                                            |
-| Dialog / field / actions                | `dialog-<name>`, `dialog-field-<name>`, `dialog-submit`, `dialog-cancel` |
-| Statusbar parts                         | `status-elpath`, `status-wordcount`, `status-resize`                     |
-| Context toolbar                         | `ctx-toolbar`, buttons reuse `tb-<name>`                                 |
-| Inline text toolbar                     | `text-inline-toolbar`, `inline-text-action-<id>`                         |
-| Image selection frame                   | `image-selection`                                                        |
-| Image resize handles                    | `image-resize-x`, `image-resize-y`, `image-resize-xy`                    |
+| Element                                 | data-testid                                                                       |
+| --------------------------------------- | --------------------------------------------------------------------------------- |
+| Editor root wrapper                     | `editor-root`                                                                     |
+| Menubar / toolbar / content / statusbar | `editor-menubar`, `editor-toolbar`, `editor-content`, `editor-statusbar`          |
+| Toolbar button                          | `tb-<name>` (e.g. `tb-bold`, `tb-undo`, `tb-h1`)                                  |
+| Toolbar overflow                        | `tb-more`, `toolbar-more-panel`                                                   |
+| Preview                                 | `preview-overlay`, `preview-frame`, `preview-close`                               |
+| Toolbar select (blocks/fonts)           | `tb-select-<name>`                                                                |
+| Menubar menu button                     | `menu-<name>` (e.g. `menu-file`)                                                  |
+| Menu item                               | `menuitem-<id>`                                                                   |
+| Dropdown panel                          | `dd-<name>` (e.g. `dd-table`, `dd-forecolor`)                                     |
+| Table grid cell                         | `grid-cell-<row>-<col>`                                                           |
+| Color swatch                            | `swatch-<hex-no-hash>`                                                            |
+| WP3 text style dropdowns                | `dd-forecolor`, `dd-backcolor`                                                    |
+| WP3 font size select                    | `tb-select-fontsize`                                                              |
+| WP3 clear swatch                        | `swatch-none`                                                                     |
+| Custom text/background color action     | `custom-color`                                                                    |
+| Advanced color controls                 | `color-picker-sv`, `color-picker-hue`, `color-picker-opacity`, `color-picker-hex` |
+| Advanced color actions                  | `color-picker-back`, `color-picker-cancel`, `color-picker-done`                   |
+| Dialog / field / actions                | `dialog-<name>`, `dialog-field-<name>`, `dialog-submit`, `dialog-cancel`          |
+| Statusbar parts                         | `status-elpath`, `status-wordcount`, `status-resize`                              |
+| Context toolbar                         | `ctx-toolbar`, buttons reuse `tb-<name>`                                          |
+| Inline text toolbar                     | `text-inline-toolbar`, `inline-text-action-<id>`                                  |
+| Image selection frame                   | `image-selection`                                                                 |
+| Image resize handles                    | `image-resize-x`, `image-resize-y`, `image-resize-xy`                             |
 
 Implementation rule: testids are attached in core UI components (`ui/`), driven by the registered button/dialog name — plugin authors get them for free.
 

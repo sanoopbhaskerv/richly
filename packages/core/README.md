@@ -208,9 +208,10 @@ corner handles.
 
 Customize the color swatches and font-size options offered by the toolbar. The
 built-in defaults are exported so you can extend rather than replace them.
-Both the text-color and background-color palettes also include a custom-color
-dialog with an explicit preview, Save, and Cancel flow for colors outside the
-configured presets.
+Both the text-color and background-color palettes include a Richly-native
+advanced picker in the same popover. It provides saturation/brightness, hue,
+opacity, synchronized HEX and slider views, recent colors, presets, and an
+explicit Cancel/Done flow for colors outside the configured swatches.
 
 ```ts
 import { Editor, DEFAULT_COLORS, DEFAULT_FONT_SIZES } from '@richly/core';

@@ -91,16 +91,67 @@ export class Toolbar {
           const dd = doc.createElement('div');
           dd.className = 'rly-tb-dd';
           dd.dataset.testid = `dd-${name}`;
-          // Clicks inside the panel must not steal the content selection.
-          dd.addEventListener('mousedown', (e) => e.preventDefault());
-          const close = (): void => {
-            // Clear any dynamic positioning so CSS defaults apply next time.
+          // Simple panels keep the content selection live. Rich interactive
+          // panels restore their saved bookmark before applying a command.
+          dd.addEventListener('mousedown', (e) => {
+            const target = e.target as Element | null;
+            if (target?.closest('.rly-color-picker[data-view="custom"]')) return;
+            e.preventDefault();
+          });
+          dd.addEventListener('click', (e) => e.stopPropagation());
+          const resetPosition = (): void => {
             dd.style.left = '';
             dd.style.right = '';
+            dd.style.top = '';
+            dd.style.bottom = '';
+            dd.style.marginTop = '';
+            dd.style.marginBottom = '';
+          };
+          const positionPanel = (): void => {
+            const view = doc.defaultView;
+            if (!view) return;
+            const update = (): void => {
+              if (!dd.classList.contains('rly-open')) return;
+              resetPosition();
+              const panelRect = dd.getBoundingClientRect();
+              const wrapRect = wrap.getBoundingClientRect();
+              const margin = 8;
+              const naturalLeft = wrapRect.right - panelRect.width;
+              const clampedLeft = Math.max(
+                margin,
+                Math.min(view.innerWidth - panelRect.width - margin, naturalLeft)
+              );
+              dd.style.left = `${clampedLeft - wrapRect.left}px`;
+              dd.style.right = 'auto';
+
+              const fitsBelow = wrapRect.bottom + 4 + panelRect.height <= view.innerHeight - margin;
+              const fitsAbove = wrapRect.top - 4 - panelRect.height >= margin;
+              if (!fitsBelow && fitsAbove) {
+                dd.style.top = 'auto';
+                dd.style.bottom = '100%';
+                dd.style.marginTop = '0';
+                dd.style.marginBottom = '4px';
+              } else if (!fitsBelow) {
+                dd.style.top = `${margin - wrapRect.top}px`;
+                dd.style.marginTop = '0';
+              }
+            };
+            // Update immediately for view switches, then once after layout so
+            // font loading and responsive styles cannot leave stale bounds.
+            update();
+            view.requestAnimationFrame(update);
+          };
+          const close = (): void => {
+            resetPosition();
             dd.classList.remove('rly-open');
             btn.setAttribute('aria-expanded', 'false');
           };
-          dd.appendChild(buttonSpec.panel(this.editor, close));
+          dd.addEventListener('rly-panel-resize', positionPanel);
+          const panelContent = buttonSpec.panel(this.editor, close);
+          dd.appendChild(panelContent);
+          if (panelContent.classList.contains('rly-color-picker')) {
+            dd.classList.add('rly-tb-dd-color');
+          }
           if (buttonSpec.valueCommand) {
             btn.classList.add('rly-value-indicator');
             this.valueIndicators.push({ el: btn, command: buttonSpec.valueCommand });
@@ -114,6 +165,10 @@ export class Toolbar {
               const el = p as HTMLElement;
               el.style.left = '';
               el.style.right = '';
+              el.style.top = '';
+              el.style.bottom = '';
+              el.style.marginTop = '';
+              el.style.marginBottom = '';
               el.classList.remove('rly-open');
               el.parentElement
                 ?.querySelector(':scope > button')
@@ -129,31 +184,7 @@ export class Toolbar {
               dd.firstElementChild?.dispatchEvent(
                 new (doc.defaultView?.Event ?? Event)('rly-panel-open')
               );
-              // Dynamically clamp the panel so it never overflows either
-              // viewport edge. We measure after a rAF so the browser has
-              // painted the panel at its natural position.
-              const view = doc.defaultView;
-              if (view) {
-                requestAnimationFrame(() => {
-                  const panelRect = dd.getBoundingClientRect();
-                  const wrapRect = wrap.getBoundingClientRect();
-                  const margin = 8;
-                  const vpWidth = view.innerWidth;
-
-                  // Natural desired left in viewport coords: right-align panel to wrap.
-                  const naturalLeft = wrapRect.right - panelRect.width;
-                  // Clamp so the panel stays fully inside the viewport.
-                  const clampedLeft = Math.max(
-                    margin,
-                    Math.min(vpWidth - panelRect.width - margin, naturalLeft)
-                  );
-                  // Convert from viewport coords to local coords
-                  // (relative to the wrap, which is the CSS containing block).
-                  const localLeft = clampedLeft - wrapRect.left;
-                  dd.style.left = `${localLeft}px`;
-                  dd.style.right = 'auto';
-                });
-              }
+              positionPanel();
             }
           });
           doc.addEventListener('click', close);
