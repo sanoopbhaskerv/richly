@@ -2,6 +2,9 @@ import type { Editor } from '../editor/Editor';
 import type { ToolbarMode } from '../editor/Editor';
 import { icons } from './icons';
 
+let slidingDrawerId = 0;
+const SLIDING_ANIMATION_SETTLE_MS = 300;
+
 /**
  * Renders a toolbar from a spec string: "undo redo | bold italic | h1 h2".
  * data-testid convention (TESTING.md §4): tb-<name>.
@@ -14,6 +17,13 @@ export class Toolbar {
   private sections: HTMLElement[][] = [];
   private moreWrap: HTMLElement | null = null;
   private morePanel: HTMLElement | null = null;
+  private slidingPrimary: HTMLElement | null = null;
+  private slidingToggleWrap: HTMLElement | null = null;
+  private slidingToggle: HTMLButtonElement | null = null;
+  private slidingDrawer: HTMLElement | null = null;
+  private slidingContent: HTMLElement | null = null;
+  private slidingOpen = false;
+  private slidingOverflowTimer: number | null = null;
 
   constructor(
     private editor: Editor,
@@ -25,6 +35,7 @@ export class Toolbar {
     container.setAttribute('aria-label', 'Editor toolbar');
     this.render(spec);
     if (mode === 'more') this.installOverflow();
+    else if (mode === 'sliding') this.installSliding();
     editor.events.on('selectionchange', () => this.refresh());
     editor.events.on('change', () => this.refresh());
     editor.events.on('execcommand', () => this.refresh());
@@ -309,40 +320,8 @@ export class Toolbar {
     // Measure the actual children instead of scrollWidth. Inline-size containment keeps
     // the editor shrinkable inside grids/flex layouts, so overflowing paint is not
     // guaranteed to be represented by scrollWidth in every browser.
-    const view = this.container.ownerDocument.defaultView;
-    const styles = view?.getComputedStyle(this.container);
-    const padding =
-      Number.parseFloat(styles?.paddingLeft ?? '0') +
-      Number.parseFloat(styles?.paddingRight ?? '0');
-    const gap = Number.parseFloat(styles?.columnGap ?? styles?.gap ?? '0');
-    // Never trust only the toolbar width: in min-content flex/grid layouts it
-    // can grow wider than its editor or consumer host. Use the narrowest
-    // measurable boundary so groups collapse before they paint outside it.
-    const boundaryWidths = [
-      this.container.clientWidth,
-      this.container.parentElement?.clientWidth,
-      this.container.parentElement?.parentElement?.clientWidth
-    ].filter((width): width is number => typeof width === 'number' && width > 0);
-    const availableWidth = Math.min(...boundaryWidths) - padding;
-    const occupiedWidth = (): number => {
-      const children = Array.from(this.container.children).filter(
-        (child): child is HTMLElement => !(child as HTMLElement).hidden
-      );
-      const outerWidth = (child: HTMLElement): number => {
-        const childStyles = view?.getComputedStyle(child);
-        const marginLeft = Number.parseFloat(childStyles?.marginLeft ?? '0');
-        const marginRight = Number.parseFloat(childStyles?.marginRight ?? '0');
-        return (
-          child.getBoundingClientRect().width +
-          (Number.isFinite(marginLeft) ? marginLeft : 0) +
-          (Number.isFinite(marginRight) ? marginRight : 0)
-        );
-      };
-      return (
-        children.reduce((width, child) => width + outerWidth(child), 0) +
-        Math.max(0, children.length - 1) * gap
-      );
-    };
+    const availableWidth = this.availableToolbarWidth();
+    const occupiedWidth = (): number => this.occupiedWidth(this.container);
 
     // jsdom and detached editors have no measurable width.
     if (availableWidth <= 0 || occupiedWidth() <= availableWidth) return;
@@ -352,6 +331,230 @@ export class Toolbar {
       if (occupiedWidth() <= availableWidth) break;
       panel.prepend(...this.sections[i]!);
     }
+  }
+
+  /** Keep one primary row and reveal overflow groups in an inline drawer. */
+  private installSliding(): void {
+    const doc = this.container.ownerDocument;
+    const view = doc.defaultView;
+    this.container.classList.add('rly-toolbar-sliding-enabled');
+
+    const primary = doc.createElement('div');
+    primary.className = 'rly-toolbar-primary';
+    primary.dataset.testid = 'toolbar-primary';
+    primary.append(...Array.from(this.container.children));
+
+    const toggleWrap = doc.createElement('div');
+    toggleWrap.className = 'rly-toolbar-sliding-toggle';
+    toggleWrap.hidden = true;
+
+    const toggle = doc.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'rly-tb-btn';
+    toggle.dataset.testid = 'tb-more';
+    toggle.dataset.tooltip = 'Show more tools';
+    toggle.innerHTML = icons.more ?? '•••';
+    toggle.setAttribute('aria-label', 'Show more tools');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.addEventListener('mousedown', (event) => event.preventDefault());
+
+    const drawer = doc.createElement('div');
+    drawer.id = `rly-toolbar-drawer-${++slidingDrawerId}`;
+    drawer.className = 'rly-toolbar-sliding-drawer';
+    drawer.dataset.testid = 'toolbar-sliding-drawer';
+    drawer.setAttribute('role', 'group');
+    drawer.setAttribute('aria-label', 'Additional editor tools');
+    drawer.setAttribute('aria-hidden', 'true');
+    toggle.setAttribute('aria-controls', drawer.id);
+
+    const content = doc.createElement('div');
+    content.className = 'rly-toolbar-sliding-content';
+    content.dataset.testid = 'toolbar-sliding-content';
+    drawer.appendChild(content);
+    toggleWrap.appendChild(toggle);
+    primary.appendChild(toggleWrap);
+    this.container.append(primary, drawer);
+
+    this.slidingPrimary = primary;
+    this.slidingToggleWrap = toggleWrap;
+    this.slidingToggle = toggle;
+    this.slidingDrawer = drawer;
+    this.slidingContent = content;
+    this.buttons.push(toggle);
+
+    toggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.setSlidingOpen(!this.slidingOpen);
+    });
+
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape' || !this.slidingOpen || event.defaultPrevented) return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.setSlidingOpen(false, true);
+    };
+    this.container.addEventListener('keydown', onKeyDown);
+
+    let lastWidth = Number.NaN;
+    const refresh = (force = false): void => {
+      const width = this.availableToolbarWidth();
+      if (!force && width === lastWidth) return;
+      lastWidth = width;
+      this.refreshSliding();
+    };
+    const observer = view?.ResizeObserver ? new view.ResizeObserver(() => refresh()) : null;
+    observer?.observe(primary);
+    const onResize = (): void => refresh();
+    view?.addEventListener('resize', onResize);
+    this.editor.events.on('destroy', () => {
+      observer?.disconnect();
+      view?.removeEventListener('resize', onResize);
+      this.container.removeEventListener('keydown', onKeyDown);
+      if (this.slidingOverflowTimer !== null) {
+        view?.clearTimeout(this.slidingOverflowTimer);
+        this.slidingOverflowTimer = null;
+      }
+    });
+
+    // Run once synchronously to avoid a visible wrapped frame, then remeasure
+    // after layout settles for browser font and sub-pixel sizing differences.
+    refresh(true);
+    if (view?.requestAnimationFrame) view.requestAnimationFrame(() => refresh(true));
+    else queueMicrotask(() => refresh(true));
+  }
+
+  private refreshSliding(): void {
+    const primary = this.slidingPrimary;
+    const toggleWrap = this.slidingToggleWrap;
+    const content = this.slidingContent;
+    if (!primary || !toggleWrap || !content) return;
+
+    const keepOpen = this.slidingOpen;
+    for (const section of this.sections) {
+      for (const item of section) primary.insertBefore(item, toggleWrap);
+    }
+    content.replaceChildren();
+    toggleWrap.hidden = true;
+
+    const availableWidth = this.availableToolbarWidth();
+    if (availableWidth <= 0 || this.occupiedWidth(primary) <= availableWidth) {
+      this.setSlidingOpen(false);
+      this.repositionToolbarDropdowns();
+      return;
+    }
+
+    toggleWrap.hidden = false;
+    for (let index = this.sections.length - 1; index >= 0; index--) {
+      if (this.occupiedWidth(primary) <= availableWidth) break;
+      content.prepend(...this.sections[index]!);
+    }
+
+    if (content.childElementCount === 0) {
+      toggleWrap.hidden = true;
+      this.setSlidingOpen(false);
+      return;
+    }
+    this.setSlidingOpen(keepOpen);
+    this.repositionToolbarDropdowns();
+  }
+
+  private setSlidingOpen(open: boolean, focusToggle = false): void {
+    const drawer = this.slidingDrawer;
+    const toggle = this.slidingToggle;
+    if (!drawer || !toggle) return;
+
+    const changed = this.slidingOpen !== open;
+    this.slidingOpen = open;
+    drawer.classList.toggle('rly-open', open);
+    drawer.setAttribute('aria-hidden', String(!open));
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Hide more tools' : 'Show more tools');
+    toggle.dataset.tooltip = open ? 'Hide more tools' : 'Show more tools';
+
+    if (changed) {
+      const view = this.container.ownerDocument.defaultView;
+      if (this.slidingOverflowTimer !== null) {
+        view?.clearTimeout(this.slidingOverflowTimer);
+        this.slidingOverflowTimer = null;
+      }
+      drawer.classList.remove('rly-expanded');
+      if (open) {
+        if (view?.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+          drawer.classList.add('rly-expanded');
+        } else if (view) {
+          this.slidingOverflowTimer = view.setTimeout(() => {
+            this.slidingOverflowTimer = null;
+            if (this.slidingOpen) drawer.classList.add('rly-expanded');
+          }, SLIDING_ANIMATION_SETTLE_MS);
+        }
+      }
+    }
+
+    if (!open && changed) {
+      this.closeToolbarDropdowns();
+      const active = this.container.ownerDocument.activeElement;
+      if (focusToggle || (active && drawer.contains(active))) toggle.focus();
+    }
+  }
+
+  private closeToolbarDropdowns(): void {
+    this.container.querySelectorAll<HTMLElement>('.rly-tb-dd.rly-open').forEach((dropdown) => {
+      dropdown.classList.remove('rly-open');
+      dropdown.parentElement
+        ?.querySelector(':scope > button')
+        ?.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  private repositionToolbarDropdowns(): void {
+    const EventConstructor = this.container.ownerDocument.defaultView?.Event;
+    if (!EventConstructor) return;
+    this.container.querySelectorAll<HTMLElement>('.rly-tb-dd.rly-open').forEach((dropdown) => {
+      dropdown.dispatchEvent(new EventConstructor('rly-panel-resize'));
+    });
+  }
+
+  private availableToolbarWidth(): number {
+    const view = this.container.ownerDocument.defaultView;
+    const styles = view?.getComputedStyle(this.container);
+    const leftPadding = Number.parseFloat(styles?.paddingLeft ?? '0');
+    const rightPadding = Number.parseFloat(styles?.paddingRight ?? '0');
+    const padding =
+      (Number.isFinite(leftPadding) ? leftPadding : 0) +
+      (Number.isFinite(rightPadding) ? rightPadding : 0);
+    // Never trust only the toolbar width: min-content flex/grid layouts can
+    // report a toolbar wider than its consumer host.
+    const boundaryWidths = [
+      this.container.clientWidth,
+      this.container.parentElement?.clientWidth,
+      this.container.parentElement?.parentElement?.clientWidth
+    ].filter((width): width is number => typeof width === 'number' && width > 0);
+    if (boundaryWidths.length === 0) return 0;
+    return Math.min(...boundaryWidths) - padding;
+  }
+
+  private occupiedWidth(parent: HTMLElement): number {
+    const view = this.container.ownerDocument.defaultView;
+    const styles = view?.getComputedStyle(parent);
+    const parsedGap = Number.parseFloat(styles?.columnGap ?? styles?.gap ?? '0');
+    const gap = Number.isFinite(parsedGap) ? parsedGap : 0;
+    const children = Array.from(parent.children).filter(
+      (child): child is HTMLElement => !(child as HTMLElement).hidden
+    );
+    const outerWidth = (child: HTMLElement): number => {
+      const childStyles = view?.getComputedStyle(child);
+      const marginLeft = Number.parseFloat(childStyles?.marginLeft ?? '0');
+      const marginRight = Number.parseFloat(childStyles?.marginRight ?? '0');
+      return (
+        child.getBoundingClientRect().width +
+        (Number.isFinite(marginLeft) ? marginLeft : 0) +
+        (Number.isFinite(marginRight) ? marginRight : 0)
+      );
+    };
+    return (
+      children.reduce((width, child) => width + outerWidth(child), 0) +
+      Math.max(0, children.length - 1) * gap
+    );
   }
 
   refresh(): void {
@@ -390,7 +593,13 @@ export class Toolbar {
       const available = this.buttons.filter((button) => {
         if (button.hidden || button.closest('[hidden]')) return false;
         const overflow = button.closest('.rly-toolbar-overflow-panel');
-        return !overflow || overflow.classList.contains('rly-open');
+        if (overflow && !overflow.classList.contains('rly-open')) return false;
+        const drawer = button.closest('.rly-toolbar-sliding-drawer');
+        return !drawer || drawer.classList.contains('rly-open');
+      });
+      available.sort((left, right) => {
+        if (left === right) return 0;
+        return left.compareDocumentPosition(right) & 4 ? -1 : 1;
       });
       const idx = available.findIndex((b) => b === this.container.ownerDocument.activeElement);
       if (idx === -1) return;

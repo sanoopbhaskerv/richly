@@ -7,6 +7,11 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Added `toolbarMode: 'sliding'`, which keeps a single primary toolbar row and
+  reveals overflow groups in an accessible, animated inline drawer.
+
 ## [1.0.0-rc.1] - 2026-07-13
 
 ### Added

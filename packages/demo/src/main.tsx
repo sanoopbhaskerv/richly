@@ -52,6 +52,18 @@ VanillaEditor.init({
     <h1>Vanilla build (Standard)</h1>
     <p>This instance has <strong>no custom plugins</strong> registered. It uses default plugins and toolbar configurations.</p>`
 });
+// ---- Vanilla integration (standard) toolbar mode sliding----
+
+VanillaEditor.init({
+  target: document.getElementById('vanilla-sliding-clean-host')!,
+  testIdPrefix: 'editor-sliding-clean',
+  images: { upload: uploadImage },
+  blockquoteStyle,
+  toolbarMode: 'sliding',
+  initialContent: `
+    <h1>Vanilla build (Standard)</h1>
+    <p>This instance has <strong>no custom plugins</strong> registered. It uses default plugins and toolbar configurations.</p>`
+});
 
 // ---- React integration (with custom plugins) ----
 function App(): JSX.Element {
@@ -87,7 +99,7 @@ function CleanApp(): JSX.Element {
         value={html}
         onChange={setHtml}
         testIdPrefix="reditor-clean"
-        toolbarMode="more"
+        toolbarMode="sliding"
         images={{ upload: uploadImage }}
       />
     </div>

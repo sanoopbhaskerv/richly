@@ -93,6 +93,23 @@ try {
     await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');
 
+    const slidingToolbar = page.getByTestId('reditor-clean-root');
+    await slidingToolbar.getByTestId('tb-more').click();
+    const slidingDrawer = await slidingToolbar
+      .getByTestId('toolbar-sliding-drawer')
+      .elementHandle();
+    if (!slidingDrawer) throw new Error('Sliding toolbar drawer was not rendered.');
+    try {
+      await page.waitForFunction(
+        (drawer) => drawer.classList.contains('rly-expanded'),
+        slidingDrawer
+      );
+    } finally {
+      await slidingDrawer.dispose();
+    }
+    await scan(page, 'Demo: open sliding toolbar drawer');
+    await page.keyboard.press('Escape');
+
     console.log('Accessibility audit passed.');
   } finally {
     await browser.close();

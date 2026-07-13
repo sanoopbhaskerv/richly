@@ -10,6 +10,8 @@ application workflows also affect conformance.
 - The editing surface exposes a labelled multiline textbox.
 - Toolbar controls have accessible names, pressed states, roving tab stops, and
   left/right arrow navigation.
+- The sliding toolbar drawer exposes disclosure state, excludes collapsed
+  controls from navigation, and restores focus to its toggle when dismissed.
 - `Alt+F10` enters a visible contextual text/table toolbar; arrows move within
   it and Escape returns focus to the editing surface.
 - Menus and dialogs expose appropriate roles and expanded/modal state.
@@ -27,9 +29,29 @@ application workflows also affect conformance.
 Automated checks cover keyboard operation, focus restoration, focus traps,
 accessible state, dialog behavior, real browser selection, and
 Chromium/Firefox/WebKit behavior. `yarn a11y:audit` runs axe-core over the demo
-and representative open menu, modal, palette, and advanced-picker states. Unit
-tests cover roles and configuration where browser interaction is not required.
-See `TESTING.md` for the maintained test contract.
+and representative open menu, modal, palette, advanced-picker, and sliding
+toolbar states. Unit tests cover roles and configuration where browser
+interaction is not required. See `TESTING.md` for the maintained test contract.
+
+## Release-candidate keyboard walkthrough
+
+Complete this walkthrough in the demo before a release candidate:
+
+1. Tab into each editor, use the toolbar's roving Left/Right arrows, and verify
+   every control has a visible focus indicator and accessible name.
+2. Open the sliding toolbar with Enter, navigate from its toggle into the
+   drawer with Right Arrow, and press Escape. The drawer must collapse and
+   focus must return to its toggle.
+3. Open every menubar menu and table context menu without a pointer. Exercise
+   Arrow keys, Home, End, Enter, and Escape, checking focus restoration.
+4. Open each toolbar panel, including colors and tables, and complete or cancel
+   it using only the keyboard.
+5. Open each modal dialog, Tab and Shift+Tab through a full focus loop, then
+   cancel with Escape and verify the editor selection is restored.
+6. Enter both contextual toolbars with Alt+F10, traverse their controls, and
+   dismiss them with Escape.
+7. Repeat the disclosure and dialog checks at a narrow viewport and with the
+   operating system's reduced-motion preference enabled.
 
 ## Current limitations
 

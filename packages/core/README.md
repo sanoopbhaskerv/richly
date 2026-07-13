@@ -114,7 +114,7 @@ Editor.init({
   selector: '#editor', // …or a CSS selector (alternative to target)
   initialContent: '<p></p>', // starting HTML
   toolbar: 'bold italic | h1 h2', // toolbar spec (see below)
-  toolbarMode: 'wrap', // 'wrap' (default) | 'more'
+  toolbarMode: 'wrap', // 'wrap' (default) | 'more' | 'sliding'
   menubar: true, // set false to hide the menubar
   statusbar: true, // set false to hide the statusbar
   resize: true, // set false to remove the resize grip
@@ -127,22 +127,22 @@ Editor.init({
 });
 ```
 
-| Option            | Type                          | Default    | Description                                                      |
-| ----------------- | ----------------------------- | ---------- | ---------------------------------------------------------------- |
-| `target`          | `HTMLElement`                 | —          | Element to mount into. Required unless `selector` is given.      |
-| `selector`        | `string`                      | —          | CSS selector for the mount point.                                |
-| `initialContent`  | `string`                      | `''`       | Initial HTML, sanitized on load.                                 |
-| `toolbar`         | `string`                      | full set   | Space/`\|`-separated toolbar spec.                               |
-| `toolbarMode`     | `'wrap' \| 'more'`            | `'wrap'`   | Wrap groups onto new rows, or keep one row with a **More** menu. |
-| `menubar`         | `boolean`                     | `true`     | Show the menubar.                                                |
-| `statusbar`       | `boolean`                     | `true`     | Show the statusbar.                                              |
-| `resize`          | `boolean`                     | `true`     | Show the statusbar resize grip.                                  |
-| `wordCount`       | `boolean \| WordCountOptions` | `true`     | Word/character/selection counts in the statusbar.                |
-| `images`          | `ImagesConfig`                | —          | Upload hook, accept filter, and size limit.                      |
-| `textStyles`      | `{ colors?, fontSizes? }`     | presets    | Color swatches and Format-menu font-size presets.                |
-| `blockquoteStyle` | `boolean`                     | `true`     | Set `false` to opt out of Richly's default blockquote styling.   |
-| `plugins`         | `Plugin[]`                    | `[]`       | Extra plugins registered after the defaults.                     |
-| `testIdPrefix`    | `string`                      | `'editor'` | Prefix for `data-testid` hooks on the editor chrome.             |
+| Option            | Type                            | Default    | Description                                                    |
+| ----------------- | ------------------------------- | ---------- | -------------------------------------------------------------- |
+| `target`          | `HTMLElement`                   | —          | Element to mount into. Required unless `selector` is given.    |
+| `selector`        | `string`                        | —          | CSS selector for the mount point.                              |
+| `initialContent`  | `string`                        | `''`       | Initial HTML, sanitized on load.                               |
+| `toolbar`         | `string`                        | full set   | Space/`\|`-separated toolbar spec.                             |
+| `toolbarMode`     | `'wrap' \| 'more' \| 'sliding'` | `'wrap'`   | Wrap groups, float overflow, or expand it in an inline drawer. |
+| `menubar`         | `boolean`                       | `true`     | Show the menubar.                                              |
+| `statusbar`       | `boolean`                       | `true`     | Show the statusbar.                                            |
+| `resize`          | `boolean`                       | `true`     | Show the statusbar resize grip.                                |
+| `wordCount`       | `boolean \| WordCountOptions`   | `true`     | Word/character/selection counts in the statusbar.              |
+| `images`          | `ImagesConfig`                  | —          | Upload hook, accept filter, and size limit.                    |
+| `textStyles`      | `{ colors?, fontSizes? }`       | presets    | Color swatches and Format-menu font-size presets.              |
+| `blockquoteStyle` | `boolean`                       | `true`     | Set `false` to opt out of Richly's default blockquote styling. |
+| `plugins`         | `Plugin[]`                      | `[]`       | Extra plugins registered after the defaults.                   |
+| `testIdPrefix`    | `string`                        | `'editor'` | Prefix for `data-testid` hooks on the editor chrome.           |
 
 > **Note:** `toolbarOverflow` is deprecated in favor of `toolbarMode`.
 > `toolbarOverflow: true` maps to `toolbarMode: 'more'` and `false` to
@@ -172,8 +172,9 @@ Editor.init({
 ```
 
 With `toolbarMode: 'more'`, groups that do not fit on one row collapse into a
-**More** menu; with the default `'wrap'`, they wrap onto additional rows so
-every tool stays visible.
+floating **More** panel. With `'sliding'`, the same groups appear in an
+expandable inline drawer beneath the primary row. With the default `'wrap'`,
+they wrap onto additional rows and remain visible.
 
 ## Images and uploads
 

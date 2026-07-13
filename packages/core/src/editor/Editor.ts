@@ -16,7 +16,7 @@ export interface EditorConfig {
   initialContent?: string;
   /** Toolbar spec, e.g. "undo redo | bold italic underline strikethrough | h1 h2 paragraph blockquote | removeformat" */
   toolbar?: string;
-  /** Toolbar layout. `wrap` is the default; `more` keeps one row and collapses extra groups. */
+  /** Toolbar layout. `wrap` is the default; `more` floats overflow; `sliding` expands inline. */
   toolbarMode?: ToolbarMode;
   /** @deprecated Use `toolbarMode: 'more'` instead. */
   toolbarOverflow?: boolean;
@@ -65,7 +65,7 @@ export function getEditorConfig(editor: Editor): Readonly<EditorConfig> {
   return config;
 }
 
-export type ToolbarMode = 'wrap' | 'more';
+export type ToolbarMode = 'wrap' | 'more' | 'sliding';
 
 export interface WordCountOptions {
   words?: boolean;

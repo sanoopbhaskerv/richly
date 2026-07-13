@@ -31,7 +31,22 @@ function interfaceMembers(file: string, interfaceName: string): Record<string, s
   );
 }
 
+function typeAlias(file: string, aliasName: string): string {
+  const sourceText = readFileSync(resolve(process.cwd(), file), 'utf8');
+  const source = ts.createSourceFile(file, sourceText, ts.ScriptTarget.Latest, true);
+  const declaration = source.statements.find(
+    (statement): statement is ts.TypeAliasDeclaration =>
+      ts.isTypeAliasDeclaration(statement) && statement.name.text === aliasName
+  );
+  if (!declaration) throw new Error(`Missing ${aliasName} in ${file}`);
+  return declaration.type.getText(source).replace(/\s+/g, ' ').trim();
+}
+
 describe('1.0 public contract tripwires', () => {
+  it('freezes toolbar layout mode names', () => {
+    expect(typeAlias('src/editor/Editor.ts', 'ToolbarMode')).toBe("'wrap' | 'more' | 'sliding'");
+  });
+
   it('freezes EditorConfig option names', () => {
     expect(Object.keys(interfaceMembers('src/editor/Editor.ts', 'EditorConfig')).sort()).toEqual(
       [

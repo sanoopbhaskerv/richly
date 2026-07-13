@@ -70,7 +70,7 @@ interface EditorConfig {
   selector?: string;
   initialContent?: string;
   toolbar?: string;
-  toolbarMode?: 'wrap' | 'more';
+  toolbarMode?: 'wrap' | 'more' | 'sliding';
   /** @deprecated; true = more, false = wrap */
   toolbarOverflow?: boolean;
   menubar?: boolean;
@@ -101,6 +101,9 @@ interface EditorConfig {
 One of `target` or `selector` is required; `target` wins when both are set.
 `toolbarMode` wins over `toolbarOverflow`. The deprecated
 `toolbarOverflow` compatibility alias remains supported throughout 1.x.
+`sliding` is an additive layout mode: it keeps one primary row and reveals
+overflow groups in an inline drawer. The alias `toolbarOverflow: true`
+continues to select the floating `more` mode.
 
 The React `EditorProps` surface mirrors the applicable core options through
 `toolbar`, `toolbarMode`, `toolbarOverflow`, `menubar`, `statusbar`,
@@ -245,6 +248,12 @@ toolbarOverflow: true;
 
 // After
 toolbarMode: 'more';
+```
+
+For an inline expandable drawer instead of a floating panel, use:
+
+```ts
+toolbarMode: 'sliding';
 ```
 
 `toolbarOverflow: false` maps to `toolbarMode: 'wrap'`. When both options are

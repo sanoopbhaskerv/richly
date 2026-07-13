@@ -62,6 +62,7 @@ Pattern: kebab-case, stable, semantic. Never derive from labels/i18n. One editor
 | Menubar / toolbar / content / statusbar | `editor-menubar`, `editor-toolbar`, `editor-content`, `editor-statusbar`          |
 | Toolbar button                          | `tb-<name>` (e.g. `tb-bold`, `tb-undo`, `tb-h1`)                                  |
 | Toolbar overflow                        | `tb-more`, `toolbar-more-panel`                                                   |
+| Sliding toolbar                         | `toolbar-primary`, `toolbar-sliding-drawer`, `toolbar-sliding-content`            |
 | Preview                                 | `preview-overlay`, `preview-frame`, `preview-close`                               |
 | Toolbar select                          | `tb-select-<name>`                                                                |
 | Menubar menu button                     | `menu-<name>` (e.g. `menu-file`)                                                  |
