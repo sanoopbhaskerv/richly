@@ -41,8 +41,7 @@ const colorButton = (
     `${color.label ?? 'Color'}, ${color.value}`,
     testId
   );
-  swatch.setAttribute('role', 'gridcell');
-  swatch.setAttribute('aria-selected', String(selected));
+  swatch.setAttribute('aria-pressed', String(selected));
   swatch.classList.toggle('rly-selected', selected);
   swatch.style.setProperty('--rly-swatch-color', color.value);
   return swatch;
@@ -181,14 +180,14 @@ export const createColorPickerPanel = (options: ColorPickerOptions): HTMLElement
     resetText.textContent = options.mode === 'text' ? 'Automatic' : 'No highlight';
     reset.append(resetPreview, resetText);
     reset.classList.toggle('rly-selected', !selectedColor);
-    reset.setAttribute('aria-selected', String(!selectedColor));
+    reset.setAttribute('aria-pressed', String(!selectedColor));
     reset.addEventListener('click', () => apply(null));
     root.appendChild(reset);
 
     root.appendChild(sectionLabel(doc, 'Theme colors'));
     const grid = doc.createElement('div');
     grid.className = 'rly-color-grid';
-    grid.setAttribute('role', 'grid');
+    grid.setAttribute('role', 'group');
     grid.setAttribute('aria-label', 'Theme colors');
     const swatches = options.palette.map((color) => {
       const normalized = resolveHex(color.value) ?? normalizeHex(color.value);
@@ -211,7 +210,7 @@ export const createColorPickerPanel = (options: ColorPickerOptions): HTMLElement
     recentSection.appendChild(sectionLabel(doc, 'Recent colors'));
     const recentGrid = doc.createElement('div');
     recentGrid.className = 'rly-color-recent';
-    recentGrid.setAttribute('role', 'grid');
+    recentGrid.setAttribute('role', 'group');
     recentGrid.setAttribute('aria-label', 'Recent colors');
     const recentSwatches = recent.map((color) => {
       const swatch = colorButton(

@@ -41,6 +41,9 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn playwright install --with-deps ${{ matrix.browser }}
       - run: yarn e2e --project=${{ matrix.browser }}
+      - name: Run axe accessibility audit
+        if: matrix.browser == 'chromium'
+        run: yarn a11y:audit
 
   publish:
     needs: browser
@@ -61,13 +64,15 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn release:check
       - name: Publish core
-        run: npm publish ./packages/core --access public --provenance
+        run: npm publish ./packages/core --access public --provenance --tag "$NPM_DIST_TAG"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_DIST_TAG: ${{ contains(github.ref_name, '-') && 'next' || 'latest' }}
       - name: Publish React bindings
-        run: npm publish ./packages/react --access public --provenance
+        run: npm publish ./packages/react --access public --provenance --tag "$NPM_DIST_TAG"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_DIST_TAG: ${{ contains(github.ref_name, '-') && 'next' || 'latest' }}
       - name: Create GitHub release
         run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "Richly $GITHUB_REF_NAME"
         env:

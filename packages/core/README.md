@@ -146,7 +146,7 @@ Editor.init({
 
 > **Note:** `toolbarOverflow` is deprecated in favor of `toolbarMode`.
 > `toolbarOverflow: true` maps to `toolbarMode: 'more'` and `false` to
-> `'wrap'`. It remains supported through the 0.x line.
+> `'wrap'`. It remains supported throughout 1.x.
 
 ## Toolbar
 

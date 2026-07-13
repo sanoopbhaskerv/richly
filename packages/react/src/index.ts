@@ -4,6 +4,7 @@ export type {
   Editor as CoreEditor,
   EditorConfig,
   FindReplaceArgs,
+  ImagesConfig,
   Plugin,
   ToolbarMode,
   WordCountOptions

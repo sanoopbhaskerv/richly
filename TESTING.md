@@ -91,6 +91,7 @@ yarn test              # unit (vitest)
 yarn test:coverage     # coverage report
 yarn e2e               # playwright, all browsers
 yarn e2e --project=chromium --headed   # debug one browser
+yarn a11y:audit        # axe-core against the demo and open interactive states
 ```
 
 ## 6. Definition of done (any feature PR)

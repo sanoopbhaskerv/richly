@@ -11,6 +11,7 @@
     "test": "yarn workspace @richly/core test",
     "test:coverage": "yarn workspace @richly/core test:coverage",
     "e2e": "playwright test",
+    "a11y:audit": "node scripts/a11y-audit.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --check .",
@@ -47,6 +48,7 @@
     "url": "https://github.com/sanoopbhaskerv/richly/issues"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
     "@eslint/js": "^10.0.1",

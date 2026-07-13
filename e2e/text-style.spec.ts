@@ -29,7 +29,7 @@ test.describe('text style ui', () => {
     await editor.clickButton('forecolor');
     await expect(
       editor.root.getByTestId('dd-forecolor').getByTestId('swatch-ef4444')
-    ).toHaveAttribute('aria-selected', 'true');
+    ).toHaveAttribute('aria-pressed', 'true');
     await editor.root.getByTestId('dd-forecolor').getByTestId('swatch-ef4444').press('Escape');
 
     await editor.selectWord('bravo');

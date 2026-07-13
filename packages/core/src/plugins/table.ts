@@ -1143,6 +1143,15 @@ function installInlineTableToolbar(editor: Editor): void {
   bar.setAttribute('aria-label', 'Table options');
   // Keep the cell selection while interacting with the bar (HANDOFF.md rule).
   bar.addEventListener('mousedown', (e) => e.preventDefault());
+  const buttons: HTMLButtonElement[] = [];
+
+  const focusButton = (index: number): void => {
+    const enabled = buttons.filter((button) => !button.disabled);
+    if (!enabled.length) return;
+    const target = (index + enabled.length) % enabled.length;
+    enabled.forEach((button, buttonIndex) => (button.tabIndex = buttonIndex === target ? 0 : -1));
+    enabled[target]?.focus();
+  };
 
   for (const entry of INLINE_ACTIONS) {
     if (entry === null) {
@@ -1165,9 +1174,34 @@ function installInlineTableToolbar(editor: Editor): void {
       // `position()` below will hide the bar in that case on the change event.
       if (!doc.querySelector('.rly-dialog-overlay')) editor.focus();
     });
+    buttons.push(btn);
     bar.appendChild(btn);
   }
   root.appendChild(bar);
+
+  const onToolbarKeyDown = (event: KeyboardEvent): void => {
+    const enabled = buttons.filter((button) => !button.disabled);
+    const current = enabled.indexOf(doc.activeElement as HTMLButtonElement);
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      focusButton(current + (event.key === 'ArrowRight' ? 1 : -1));
+    } else if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      focusButton(event.key === 'Home' ? 0 : enabled.length - 1);
+    } else if (event.key === 'Escape' || (event.altKey && event.key === 'F10')) {
+      event.preventDefault();
+      buttons.forEach((button) => (button.tabIndex = -1));
+      editor.focus();
+    }
+  };
+  const onEditorKeyDown = (event: KeyboardEvent): void => {
+    if (event.altKey && event.key === 'F10' && bar.classList.contains('rly-open')) {
+      event.preventDefault();
+      focusButton(0);
+    }
+  };
+  bar.addEventListener('keydown', onToolbarKeyDown);
+  body.addEventListener('keydown', onEditorKeyDown);
 
   /** Table the bar is currently anchored to (null = hidden). */
   let anchor: HTMLTableElement | null = null;
@@ -1177,6 +1211,7 @@ function installInlineTableToolbar(editor: Editor): void {
     if (!anchor?.isConnected || !body.contains(anchor)) {
       anchor = null;
       bar.classList.remove('rly-open');
+      buttons.forEach((button) => (button.tabIndex = -1));
       return;
     }
     bar.classList.add('rly-open'); // must be visible to measure
@@ -1231,6 +1266,8 @@ function installInlineTableToolbar(editor: Editor): void {
   editor.events.on('destroy', () => {
     body.removeEventListener('mousedown', onBodyMouseDown);
     body.removeEventListener('scroll', onScroll);
+    body.removeEventListener('keydown', onEditorKeyDown);
+    bar.removeEventListener('keydown', onToolbarKeyDown);
     doc.defaultView?.removeEventListener('resize', onScroll);
     bar.remove();
   });
@@ -1247,12 +1284,57 @@ function installTableContextMenu(editor: Editor): void {
   menu.setAttribute('aria-label', 'Table actions');
   menu.tabIndex = -1;
 
-  const close = (): void => menu.classList.remove('rly-open');
+  const close = (restoreFocus = false): void => {
+    menu.classList.remove('rly-open');
+    menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]').forEach((item) => {
+      item.tabIndex = -1;
+    });
+    if (restoreFocus) editor.focus();
+  };
   menu.appendChild(buildTableContext(editor, close, { testIdPrefix: 'context-', popup: true }));
+  menu
+    .querySelectorAll<HTMLButtonElement>('[role="menuitem"]')
+    .forEach((item) => (item.tabIndex = -1));
   // Preserve the cell selection while clicking commands in the floating menu.
   menu.addEventListener('mousedown', (e) => e.preventDefault());
   root.appendChild(menu);
 
+  const openAt = (
+    table: HTMLTableElement,
+    cell: HTMLTableCellElement | null,
+    clientX: number,
+    clientY: number,
+    focusFirst = false
+  ): void => {
+    placeCaretIn(editor, cell && table.contains(cell) ? cell : (table.rows[0]?.cells[0] ?? table));
+    editor.events.emit('selectionchange', undefined);
+
+    // The toolbar dropdown and context menu are alternate views of the same actions.
+    root
+      .querySelectorAll('.rly-tb-dd.rly-open')
+      .forEach((panel) => panel.classList.remove('rly-open'));
+    const rootRect = root.getBoundingClientRect();
+    menu.style.left = `${clientX - rootRect.left}px`;
+    menu.style.top = `${clientY - rootRect.top}px`;
+    menu.classList.add('rly-open');
+
+    const rect = menu.getBoundingClientRect();
+    const view = doc.defaultView;
+    if (!view) return;
+    const minLeft = 8 - rootRect.left;
+    const minTop = 8 - rootRect.top;
+    const maxLeft = view.innerWidth - rootRect.left - rect.width - 8;
+    const maxTop = view.innerHeight - rootRect.top - rect.height - 8;
+    menu.style.left = `${Math.max(minLeft, Math.min(maxLeft, clientX - rootRect.left))}px`;
+    menu.style.top = `${Math.max(minTop, Math.min(maxTop, clientY - rootRect.top))}px`;
+    if (focusFirst) {
+      const first = menu.querySelector<HTMLButtonElement>('[role="menuitem"]:not(:disabled)');
+      if (first) {
+        first.tabIndex = 0;
+        first.focus();
+      }
+    }
+  };
   const onContextMenu = (e: MouseEvent): void => {
     const target = e.target as HTMLElement;
     const table = target.closest?.('table') as HTMLTableElement | null;
@@ -1264,41 +1346,54 @@ function installTableContextMenu(editor: Editor): void {
     e.preventDefault();
     e.stopPropagation();
     const cell = target.closest?.('td,th') as HTMLTableCellElement | null;
-    placeCaretIn(editor, cell && table.contains(cell) ? cell : (table.rows[0]?.cells[0] ?? table));
-    editor.events.emit('selectionchange', undefined);
-
-    // The toolbar dropdown and context menu are alternate views of the same actions.
-    root
-      .querySelectorAll('.rly-tb-dd.rly-open')
-      .forEach((panel) => panel.classList.remove('rly-open'));
-    const rootRect = root.getBoundingClientRect();
-    menu.style.left = `${e.clientX - rootRect.left}px`;
-    menu.style.top = `${e.clientY - rootRect.top}px`;
-    menu.classList.add('rly-open');
-
-    const rect = menu.getBoundingClientRect();
-    const view = doc.defaultView;
-    if (!view) return;
-    const minLeft = 8 - rootRect.left;
-    const minTop = 8 - rootRect.top;
-    const maxLeft = view.innerWidth - rootRect.left - rect.width - 8;
-    const maxTop = view.innerHeight - rootRect.top - rect.height - 8;
-    menu.style.left = `${Math.max(minLeft, Math.min(maxLeft, e.clientX - rootRect.left))}px`;
-    menu.style.top = `${Math.max(minTop, Math.min(maxTop, e.clientY - rootRect.top))}px`;
+    openAt(table, cell, e.clientX, e.clientY);
   };
   const onDocumentMouseDown = (e: MouseEvent): void => {
     if (!menu.contains(e.target as Node)) close();
   };
   const onKeyDown = (e: KeyboardEvent): void => {
-    if (e.key === 'Escape') close();
+    if (
+      (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) &&
+      body.contains(e.target as Node)
+    ) {
+      const table = currentTable(editor);
+      const cell = currentCell(editor);
+      if (!table) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const anchor = (cell ?? table).getBoundingClientRect();
+      openAt(table, cell, anchor.left + 8, anchor.top + 8, true);
+      return;
+    }
+    if (!menu.classList.contains('rly-open')) return;
+    const items = Array.from(
+      menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not(:disabled)')
+    );
+    const index = items.indexOf(doc.activeElement as HTMLButtonElement);
+    const focusItem = (target: number): void => {
+      const next = (target + items.length) % items.length;
+      items.forEach((item, itemIndex) => (item.tabIndex = itemIndex === next ? 0 : -1));
+      items[next]?.focus();
+    };
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusItem(index + (e.key === 'ArrowDown' ? 1 : -1));
+    } else if (e.key === 'Home' || e.key === 'End') {
+      e.preventDefault();
+      focusItem(e.key === 'Home' ? 0 : items.length - 1);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      close(true);
+    }
   };
+  const onScroll = (): void => close();
   body.addEventListener('contextmenu', onContextMenu);
-  body.addEventListener('scroll', close);
+  body.addEventListener('scroll', onScroll);
   doc.addEventListener('mousedown', onDocumentMouseDown);
   doc.addEventListener('keydown', onKeyDown);
   editor.events.on('destroy', () => {
     body.removeEventListener('contextmenu', onContextMenu);
-    body.removeEventListener('scroll', close);
+    body.removeEventListener('scroll', onScroll);
     doc.removeEventListener('mousedown', onDocumentMouseDown);
     doc.removeEventListener('keydown', onKeyDown);
     menu.remove();

@@ -13,6 +13,7 @@ const fail = (message) => {
 const rootPackage = readJson('package.json');
 const core = readJson('packages/core/package.json');
 const react = readJson('packages/react/package.json');
+const demo = readJson('packages/demo/package.json');
 const semver =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 
@@ -21,6 +22,8 @@ if (core.version !== react.version)
   fail(`package versions differ: core=${core.version}, react=${react.version}`);
 if (rootPackage.version !== core.version)
   fail(`root version ${rootPackage.version} does not match package version ${core.version}`);
+if (demo.version !== core.version)
+  fail(`demo version ${demo.version} does not match package version ${core.version}`);
 if (react.dependencies?.['@richly/core'] !== `^${core.version}`)
   fail(`@richly/react must depend on @richly/core using ^${core.version}`);
 if (process.env.GITHUB_REF_TYPE === 'tag' && process.env.GITHUB_REF_NAME !== `v${core.version}`)

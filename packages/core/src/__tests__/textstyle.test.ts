@@ -224,7 +224,7 @@ describe('Text Style Commands & Queries', () => {
     button.click();
     const selected = ed.getRoot().querySelector<HTMLElement>('[data-testid="swatch-ef4444"]')!;
     expect(selected.classList.contains('rly-selected')).toBe(true);
-    expect(selected.getAttribute('aria-selected')).toBe('true');
+    expect(selected.getAttribute('aria-pressed')).toBe('true');
 
     selectText(ed, 'plain');
     ed.events.emit('selectionchange', undefined);
@@ -266,7 +266,7 @@ describe('Text Style Commands & Queries', () => {
     button.click();
     const clear = ed.getRoot().querySelector<HTMLElement>('[data-testid="swatch-none"]')!;
     expect(clear.classList.contains('rly-selected')).toBe(true);
-    expect(clear.getAttribute('aria-selected')).toBe('true');
+    expect(clear.getAttribute('aria-pressed')).toBe('true');
   });
 
   it('cancels an advanced custom color without changing content', () => {

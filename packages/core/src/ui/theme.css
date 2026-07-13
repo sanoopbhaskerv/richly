@@ -4,8 +4,8 @@
   --rly-surface-2: #f7f8fa;
   --rly-border: #e3e6ea;
   --rly-text: #1f2733;
-  --rly-text-dim: #6b7482;
-  --rly-accent: #3574f0;
+  --rly-text-dim: #626c79;
+  --rly-accent: #2f68dc;
   --rly-hover: #eef1f5;
   --rly-active: #dfe9fb;
   --rly-radius: 10px;
@@ -505,7 +505,7 @@
 }
 .rly-color-reset.rly-selected {
   background: var(--rly-active);
-  color: var(--rly-accent);
+  color: var(--rly-text);
 }
 .rly-color-reset-preview {
   box-sizing: border-box;

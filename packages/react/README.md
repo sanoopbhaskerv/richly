@@ -72,6 +72,7 @@ export function ArticleEditor() {
 | `statusbar`       | `boolean`                      | Show the statusbar (default `true`).                                       |
 | `resize`          | `boolean`                      | Show the statusbar resize grip (default `true`).                           |
 | `wordCount`       | `boolean \| WordCountOptions`  | Configure word/character/selection counts.                                 |
+| `textStyles`      | `{ colors?, fontSizes? }`      | Color swatches and font-size options.                                      |
 | `images`          | `ImagesConfig`                 | Image upload hook, accept filter, and size limit.                          |
 | `blockquoteStyle` | `boolean`                      | Set `false` to opt out of the default blockquote styling (default `true`). |
 | `plugins`         | `Plugin[]`                     | Additional plugins.                                                        |
@@ -79,7 +80,7 @@ export function ArticleEditor() {
 | `className`       | `string`                       | Class applied to the host element.                                         |
 
 > `toolbarOverflow` is deprecated in favor of `toolbarMode` (`true` → `'more'`,
-> `false` → `'wrap'`); it remains supported through the 0.x line.
+> `false` → `'wrap'`); it remains supported throughout 1.x.
 
 ## Accessing the core editor
 
@@ -123,7 +124,7 @@ import type { EditorProps, EditorHandle, CoreEditor } from '@richly/react';
 ```
 
 Common core types (`EditorConfig`, `WordCountOptions`, `ToolbarMode`, `Plugin`,
-`FindReplaceArgs`) are re-exported for convenience.
+`FindReplaceArgs`, `ImagesConfig`) are re-exported for convenience.
 
 ## Links
 
