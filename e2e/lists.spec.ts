@@ -16,9 +16,9 @@ test.describe('lists, indent, alignment (vanilla instance)', () => {
     await page.keyboard.type('beta');
 
     await editor.selectAll();
-    await editor.clickButton('bullist');
+    await editor.clickButton('bulliststyles');
     await editor.expectContentMatches(/<ul><li>alpha<\/li><li>beta<\/li><\/ul>/);
-    await editor.expectButtonActive('bullist', true);
+    await editor.expectChoiceActive('bulliststyles', 'disc', true);
 
     // Caret is in the list — Tab nests the item under its previous sibling.
     await editor.selectWord('beta');
@@ -32,28 +32,27 @@ test.describe('lists, indent, alignment (vanilla instance)', () => {
   test('numbered list toggle and switch', async () => {
     await editor.type('one');
     await editor.selectWord('one');
-    await editor.clickButton('numlist');
+    await editor.clickButton('numliststyles');
     await editor.expectContentMatches(/<ol><li>one<\/li><\/ol>/);
-    await editor.expectButtonActive('numlist', true);
+    await editor.expectChoiceActive('numliststyles', 'decimal', true);
 
-    await editor.clickButton('bullist'); // switch type in place
+    await editor.clickButton('bulliststyles'); // switch type in place
     await editor.expectContentMatches(/<ul><li>one<\/li><\/ul>/);
-    await editor.expectButtonActive('bullist', true);
-    await editor.expectButtonActive('numlist', false);
+    await editor.expectChoiceActive('bulliststyles', 'disc', true);
 
-    await editor.clickButton('bullist'); // toggle off
+    await editor.clickButton('bulliststyles'); // toggle off
     await editor.expectContentMatches(/<p>one<\/p>/);
   });
 
   test('alignment buttons set text-align and track state', async () => {
     await editor.type('centered text');
     await editor.selectWord('centered');
-    await editor.clickButton('aligncenter');
+    await editor.choose('alignment', 'center');
     await editor.expectContentMatches(/text-align:\s*center/);
-    await editor.expectButtonActive('aligncenter', true);
+    await editor.expectChoiceActive('alignment', 'center');
 
-    await editor.clickButton('alignleft');
-    await editor.expectButtonActive('alignleft', true);
+    await editor.choose('alignment', 'left');
+    await editor.expectChoiceActive('alignment', 'left');
     const html = await editor.content.innerHTML();
     expect(html).not.toContain('text-align');
   });

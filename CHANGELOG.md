@@ -7,6 +7,39 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Added accessible, command-backed toolbar menu and split-button controls with
+  shared keyboard navigation, focus restoration, selected-state reporting, and
+  plugin-facing TypeScript/TSDoc contracts.
+- Added `essential`, `standard`, and `complete` toolbar presets. Explicit
+  toolbar strings continue to take precedence, and integrations that omit a
+  preset retain the release-candidate default toolbar for compatibility.
+- Added a grouped standard authoring toolbar with explicit row composition and
+  full-width row dividers. Select All, Copy, Cut, Paste, superscript,
+  subscript, clear formatting, search, preview, visual blocks, source, and
+  fullscreen remain independent first-class controls without duplicating
+  visible insert actions in dropdowns.
+- Added a Block style menu covering Paragraph, H1–H6, Quote, and Preformatted;
+  a complete alignment menu including Justify; configurable unitless line
+  heights; and split bullet/numbered-list controls with portable marker styles.
+- Added `toolbarPreset`, `textStyles.lineHeights`, and `listStyles`
+  configuration to core and React, plus the corresponding public option types.
+
+### Changed
+
+- Updated the demo's live product preview to use the grouped `standard` preset
+  and document the expanded structure, spacing, alignment, and list features.
+- Extracted choice-menu rendering from the main toolbar renderer to keep
+  responsive layout code and accessible popup behavior independently scoped.
+
+### Fixed
+
+- Preserved valid list ownership and nesting while changing list kind or marker
+  style; commands never wrap `<li>` elements in spans or add empty items.
+- Prevented menu panel sizing from leaking into toolbar controls and causing
+  horizontal overflow at compact breakpoints.
+
 ## [1.0.0-rc.4] - 2026-07-13
 
 ### Fixed

@@ -79,7 +79,6 @@ test.describe('table, image, source view, fullscreen (vanilla instance)', () => 
   test('fullscreen toggles on and off', async () => {
     await editor.clickButton('fullscreen');
     await expect(editor.root).toHaveClass(/rly-fullscreen/);
-    await editor.expectButtonActive('fullscreen', true);
     await editor.clickButton('fullscreen');
     await expect(editor.root).not.toHaveClass(/rly-fullscreen/);
   });

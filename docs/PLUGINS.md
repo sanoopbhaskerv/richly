@@ -74,7 +74,7 @@ Useful APIs:
 - `editor.queryCommandState(name)`
 - `editor.queryCommandValue(name)`
 
-## 3. UiRegistry: buttons, toggles, panels, selects, menus
+## 3. UiRegistry: buttons, toggles, panels, selects, menus, and split buttons
 
 All toolbar/menubar entries are registered via `editor.ui`.
 
@@ -132,6 +132,48 @@ editor.ui.addButton('my-select', {
   options: [
     { label: 'Default', value: '' },
     { label: 'A', value: 'a' }
+  ]
+});
+```
+
+### Command menu
+
+Use a declarative menu when several choices change one editor value. Richly
+owns popup positioning, selection preservation, keyboard traversal, Escape,
+focus restoration, ARIA state, and test IDs.
+
+```ts
+editor.ui.addButton('density', {
+  type: 'menu',
+  icon: 'lineheight',
+  tooltip: 'Density',
+  valueCommand: 'Density',
+  showLabel: true,
+  items: [
+    { value: 'compact', label: 'Compact', command: 'Density', args: 'compact' },
+    { value: 'comfortable', label: 'Comfortable', command: 'Density', args: 'comfortable' }
+  ]
+});
+```
+
+### Split button
+
+A split button keeps a frequent primary action one click away while exposing
+variants from its chevron. Menu selections become the primary button's
+last-used arguments unless an item declares `repeatable: false`.
+
+```ts
+editor.ui.addButton('callout', {
+  type: 'split',
+  icon: 'blockquote',
+  tooltip: 'Callout',
+  command: 'Callout',
+  args: { kind: 'info' },
+  valueCommand: 'CalloutKind',
+  items: [
+    { value: 'info', label: 'Information', command: 'Callout', args: { kind: 'info' } },
+    { value: 'warning', label: 'Warning', command: 'Callout', args: { kind: 'warning' } },
+    { value: 'none', label: 'Remove callout', command: 'RemoveCallout', repeatable: false }
   ]
 });
 ```

@@ -45,10 +45,11 @@ The supported entry points are `@richly/core`, `@richly/core/theme.css`, and
 `@richly/core` exports these runtime values and types:
 
 ```text
-Editor, openDialog, sanitize, DEFAULT_COLORS, DEFAULT_FONT_SIZES
+Editor, openDialog, sanitize, TOOLBAR_PRESETS, DEFAULT_COLORS, DEFAULT_FONT_SIZES
 Bookmark, ButtonSpec, Command, DialogField, DialogResult, DialogSpec,
-EditorConfig, EditorEvents, FindReplaceArgs, ImagesConfig, Plugin,
-ToolbarMode, WordCountOptions
+EditorConfig, EditorEvents, FindReplaceArgs, ImagesConfig, LineHeightOption,
+ListStyleOption, MenuControl, Plugin, SplitControl, ToolbarMenuItem,
+ToolbarMode, ToolbarPreset, WordCountOptions
 ```
 
 `@richly/react` exports `Editor`, `EditorProps`, `EditorHandle`, `CoreEditor`,
@@ -70,6 +71,7 @@ interface EditorConfig {
   selector?: string;
   initialContent?: string;
   toolbar?: string;
+  toolbarPreset?: 'essential' | 'standard' | 'complete';
   toolbarMode?: 'wrap' | 'more' | 'sliding';
   /** @deprecated; true = more, false = wrap */
   toolbarOverflow?: boolean;
@@ -89,6 +91,11 @@ interface EditorConfig {
     colors?: string[];
     themeColors?: string[];
     fontSizes?: string[];
+    lineHeights?: Array<{ label: string; value: string }>;
+  };
+  listStyles?: {
+    bullets?: Array<{ label: string; value: string }>;
+    numbers?: Array<{ label: string; value: string }>;
   };
   images?: {
     upload?: (file: File) => Promise<{ src: string; alt?: string }>;
@@ -106,6 +113,11 @@ One of `target` or `selector` is required; `target` wins when both are set.
 overflow groups in an inline drawer. The alias `toolbarOverflow: true`
 continues to select the floating `more` mode.
 
+An explicit `toolbar` string wins over `toolbarPreset`. Presets are additive;
+applications that omit both options retain the release-candidate default.
+Within toolbar strings, `|` separates an atomic group and `||` starts an
+intentional row in `wrap` mode.
+
 `textStyles.themeColors` prepends brand colors to both the text-color and
 highlight-color palettes. Duplicates within `themeColors` and matching base HEX
 entries are removed. The existing `textStyles.colors` option continues to
@@ -113,10 +125,10 @@ replace the base palette; when both are provided, theme colors appear first and
 the replacement palette follows.
 
 The React `EditorProps` surface mirrors the applicable core options through
-`toolbar`, `toolbarMode`, `toolbarOverflow`, `menubar`, `statusbar`,
-`wordCount`, `resize`, `textStyles`, `images`, `blockquoteStyle`, `plugins`,
-and `testIdPrefix`, and adds `value`, `initialValue`, `onChange`, `onInit`, and
-`className`.
+`toolbar`, `toolbarPreset`, `toolbarMode`, `toolbarOverflow`, `menubar`,
+`statusbar`, `wordCount`, `resize`, `textStyles`, `listStyles`, `images`,
+`blockquoteStyle`, `plugins`, and `testIdPrefix`, and adds `value`,
+`initialValue`, `onChange`, `onInit`, and `className`.
 
 ### Built-in commands and arguments
 
@@ -135,8 +147,9 @@ SourceCode, Preview, VisualBlocks, ToggleFullscreen,
 TableInsertRowBefore, TableInsertRowAfter, TableInsertColBefore,
 TableInsertColAfter, TableDeleteRow, TableDeleteCol, TableDelete,
 TableMergeCells, TableSplitCell,
-FormatBlock:h1, FormatBlock:h2, FormatBlock:h3, FormatBlock:p,
-FormatBlock:blockquote
+FormatBlock:h1, FormatBlock:h2, FormatBlock:h3, FormatBlock:h4,
+FormatBlock:h5, FormatBlock:h6, FormatBlock:p, FormatBlock:pre,
+FormatBlock:blockquote, RemoveList
 ```
 
 Commands with arguments use these shapes. Optional arguments on dialog-backed
@@ -147,6 +160,8 @@ FormatBlock: string | { tag?: string };
 ForeColor: string; // empty string removes the color
 BackColor: string; // empty string removes the highlight
 FontSize: string; // empty string removes the explicit size
+LineHeight: string; // configured unitless value; empty removes explicit spacing
+ApplyList: { kind: 'ul' | 'ol'; style?: string };
 InsertLink: { href: string; text?: string } | undefined;
 InsertImage: { src: string; alt?: string } | undefined;
 InsertTable: { rows?: number; cols?: number };

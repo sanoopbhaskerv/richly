@@ -113,6 +113,7 @@ Editor.init({
   target, // HTMLElement to mount into
   selector: '#editor', // …or a CSS selector (alternative to target)
   initialContent: '<p></p>', // starting HTML
+  toolbarPreset: 'standard', // 'essential' | 'standard' | 'complete'
   toolbar: 'bold italic | h1 h2', // toolbar spec (see below)
   toolbarMode: 'wrap', // 'wrap' (default) | 'more' | 'sliding'
   menubar: true, // set false to hide the menubar
@@ -120,7 +121,8 @@ Editor.init({
   resize: true, // set false to remove the resize grip
   wordCount: true, // true | false | { words, characters, selection }
   images: { upload: uploadFn }, // image upload hook (see below)
-  textStyles: { themeColors, colors, fontSizes }, // theme colors + swatches + size presets
+  textStyles: { themeColors, colors, fontSizes, lineHeights },
+  listStyles: { bullets, numbers }, // optional labels/subsets for portable markers
   blockquoteStyle: true, // set false to opt out of the default blockquote look
   plugins: [myPlugin], // additional plugins
   testIdPrefix: 'editor' // prefix for chrome data-testids
@@ -133,13 +135,15 @@ Editor.init({
 | `selector`        | `string`                                | —          | CSS selector for the mount point.                              |
 | `initialContent`  | `string`                                | `''`       | Initial HTML, sanitized on load.                               |
 | `toolbar`         | `string`                                | full set   | Space/`\|`-separated toolbar spec.                             |
+| `toolbarPreset`   | `essential \| standard \| complete`     | —          | Named grouped composition; `toolbar` takes precedence.         |
 | `toolbarMode`     | `'wrap' \| 'more' \| 'sliding'`         | `'wrap'`   | Wrap groups, float overflow, or expand it in an inline drawer. |
 | `menubar`         | `boolean`                               | `true`     | Show the menubar.                                              |
 | `statusbar`       | `boolean`                               | `true`     | Show the statusbar.                                            |
 | `resize`          | `boolean`                               | `true`     | Show the statusbar resize grip.                                |
 | `wordCount`       | `boolean \| WordCountOptions`           | `true`     | Word/character/selection counts in the statusbar.              |
 | `images`          | `ImagesConfig`                          | —          | Upload hook, accept filter, and size limit.                    |
-| `textStyles`      | `{ themeColors?, colors?, fontSizes? }` | presets    | Theme colors, swatches, and Format-menu font-size presets.     |
+| `textStyles`      | `{ colors?, fontSizes?, lineHeights? }` | presets    | Color, font-size, and unitless line-height choices.            |
+| `listStyles`      | `{ bullets?, numbers? }`                | presets    | Relabel or restrict supported portable list markers.           |
 | `blockquoteStyle` | `boolean`                               | `true`     | Set `false` to opt out of Richly's default blockquote styling. |
 | `plugins`         | `Plugin[]`                              | `[]`       | Extra plugins registered after the defaults.                   |
 | `testIdPrefix`    | `string`                                | `'editor'` | Prefix for `data-testid` hooks on the editor chrome.           |
@@ -151,13 +155,25 @@ Editor.init({
 ## Toolbar
 
 The toolbar is a string of command button names. Use `|` to insert a group
-separator. The default toolbar is:
+separator and `||` to start an intentional row in `wrap` mode. Named presets
+offer a scalable starting point:
+
+```ts
+Editor.init({ target, toolbarPreset: 'standard' });
+```
+
+- `essential` keeps common inline, clipboard, color, link, and cleanup tools.
+- `standard` groups the full everyday authoring workflow into two rows.
+- `complete` adds the remaining direct insert controls, including horizontal rule.
+
+Existing integrations that omit both `toolbar` and `toolbarPreset` retain the
+release-candidate default toolbar. The complete command-token surface includes:
 
 ```
 undo redo | selectall copy cut paste |
 bold italic underline strikethrough superscript subscript |
-forecolor backcolor fontsize | h1 h2 paragraph blockquote |
-alignleft aligncenter alignright | bullist numlist outdent indent |
+forecolor backcolor fontsize lineheight | blockstyle |
+alignment | bulliststyles numliststyles outdent indent |
 link unlink table image | findreplace preview visualblocks |
 code fullscreen removeformat
 ```
@@ -167,9 +183,18 @@ Provide your own subset to trim it down:
 ```ts
 Editor.init({
   target,
-  toolbar: 'bold italic underline | h1 h2 | bullist numlist | link'
+  toolbar: 'undo redo | copy cut paste || bold italic | blockstyle | alignment'
 });
 ```
+
+`blockstyle` contains Paragraph, H1–H6, Quote, and Preformatted. `alignment`
+contains left, center, right, and justify. `bulliststyles` supports disc,
+circle, and square markers; `numliststyles` supports decimal, lower/upper alpha,
+lower/upper Roman, and decimal-leading-zero. The split button's primary half
+repeats the current/last style, while its chevron opens all variants.
+
+Line-height choices default to Normal, 1, 1.15, 1.25, 1.5, 1.75, 2, 2.5,
+and 3. Richly stores them as unitless block styles so spacing follows font size.
 
 With `toolbarMode: 'more'`, groups that do not fit on one row collapse into a
 floating **More** panel. With `'sliding'`, the same groups appear in an

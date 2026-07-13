@@ -4,6 +4,7 @@ import {
   type EditorConfig,
   type ImagesConfig,
   type Plugin,
+  type ToolbarPreset,
   type ToolbarMode,
   type WordCountOptions
 } from '@richly/core';
@@ -15,6 +16,8 @@ export interface EditorProps {
   onChange?: (html: string) => void;
   onInit?: (editor: CoreEditor) => void;
   toolbar?: string;
+  /** Named toolbar composition. An explicit `toolbar` string takes precedence. */
+  toolbarPreset?: ToolbarPreset;
   toolbarMode?: ToolbarMode;
   /** @deprecated Use `toolbarMode="more"` instead. */
   toolbarOverflow?: boolean;
@@ -23,6 +26,7 @@ export interface EditorProps {
   wordCount?: boolean | WordCountOptions;
   resize?: boolean;
   textStyles?: EditorConfig['textStyles'];
+  listStyles?: EditorConfig['listStyles'];
   images?: ImagesConfig;
   /** Set false to omit Richly's default blockquote styling. Default true. */
   blockquoteStyle?: boolean;
@@ -60,6 +64,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(prop
       target: hostRef.current!,
       initialContent: props.value ?? props.initialValue ?? '',
       toolbar: props.toolbar,
+      toolbarPreset: props.toolbarPreset,
       toolbarMode: props.toolbarMode,
       toolbarOverflow: props.toolbarOverflow,
       menubar: props.menubar,
@@ -67,6 +72,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(prop
       wordCount: props.wordCount,
       resize: props.resize,
       textStyles: props.textStyles,
+      listStyles: props.listStyles,
       images: props.images,
       blockquoteStyle: props.blockquoteStyle,
       plugins: props.plugins,

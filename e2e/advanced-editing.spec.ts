@@ -89,7 +89,7 @@ test.describe('advanced editing', () => {
 
     await editor.root.getByTestId('menu-view').click();
     await editor.root.getByTestId('menuitem-visualblocks').click();
-    await expect(editor.button('visualblocks')).toHaveAttribute('aria-pressed', 'true');
+    await expect(editor.content).toHaveClass(/rly-visual-blocks/);
 
     await editor.root.getByTestId('menu-view').click();
     await editor.root.getByTestId('menuitem-preview').click();

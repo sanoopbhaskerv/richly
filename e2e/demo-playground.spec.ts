@@ -8,7 +8,7 @@ test.describe('demo configuration playground', () => {
 
     await expect(page.getByTestId('demo-playground')).toBeVisible();
     await expect(page.getByTestId('demo-config-toolbar-mode')).toHaveValue('wrap');
-    await expect(page.getByTestId('demo-config-toolbar-preset')).toHaveValue('full');
+    await expect(page.getByTestId('demo-config-toolbar-preset')).toHaveValue('standard');
     await expect(page.getByTestId('demo-config-output')).toContainText("toolbarMode: 'wrap'");
 
     await expect(page.getByTestId('editor-root')).toBeVisible();

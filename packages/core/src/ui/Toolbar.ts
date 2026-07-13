@@ -1,7 +1,9 @@
 import type { Editor } from '../editor/Editor';
 import type { ToolbarMode } from '../editor/Editor';
+import type { ToolbarMenuItem } from './UiRegistry';
 import { icons } from './icons';
 import { formatShortcutLabel } from './Shortcut';
+import { renderChoiceControl } from './ChoiceControl';
 
 let slidingDrawerId = 0;
 const SLIDING_ANIMATION_SETTLE_MS = 300;
@@ -14,6 +16,11 @@ export class Toolbar {
   private toggles: { name: string; el: HTMLButtonElement; command: string }[] = [];
   private selects: { name: string; el: HTMLSelectElement; command: string }[] = [];
   private valueIndicators: { el: HTMLButtonElement; command: string }[] = [];
+  private choiceMenus: {
+    valueCommand?: string;
+    label?: HTMLElement;
+    entries: { item: ToolbarMenuItem; el: HTMLButtonElement }[];
+  }[] = [];
   private buttons: HTMLElement[] = [];
   private sections: HTMLElement[][] = [];
   private moreWrap: HTMLElement | null = null;
@@ -45,188 +52,215 @@ export class Toolbar {
 
   private render(spec: string): void {
     const doc = this.container.ownerDocument;
-    const groups = spec.split('|').map((g) => g.trim().split(/\s+/).filter(Boolean));
-    groups.forEach((names, gi) => {
-      const section: HTMLElement[] = [];
-      if (gi > 0) {
-        const sep = doc.createElement('div');
-        sep.className = 'rly-tb-sep';
-        this.container.appendChild(sep);
-        section.push(sep);
+    // `|` separates atomic groups; `||` starts an intentional visual row in
+    // wrap mode. Overflow/sliding modes ignore row breaks and continue to move
+    // complete groups, preserving their existing responsive behavior.
+    const rows = spec
+      .split(/\|\|/)
+      .map((row) => row.split('|').map((group) => group.trim().split(/\s+/).filter(Boolean)));
+    rows.forEach((groups, rowIndex) => {
+      if (rowIndex > 0) {
+        const rowBreak = doc.createElement('div');
+        rowBreak.className = 'rly-tb-row-break';
+        rowBreak.setAttribute('aria-hidden', 'true');
+        this.container.appendChild(rowBreak);
       }
-      const groupEl = doc.createElement('div');
-      groupEl.className = 'rly-tb-group';
-      for (const name of names) {
-        const buttonSpec = this.editor.ui.buttons.get(name);
-        if (!buttonSpec) continue;
-        if (buttonSpec.type === 'component') {
-          groupEl.appendChild(buttonSpec.render(this.editor));
-          continue;
+      groups.forEach((names, groupIndex) => {
+        const section: HTMLElement[] = [];
+        if (groupIndex > 0) {
+          const sep = doc.createElement('div');
+          sep.className = 'rly-tb-sep';
+          this.container.appendChild(sep);
+          section.push(sep);
         }
-        if (buttonSpec.type === 'select') {
-          const select = doc.createElement('select');
-          select.className = 'rly-tb-select';
-          select.dataset.testid = `tb-select-${name}`;
-          select.setAttribute('aria-label', buttonSpec.tooltip);
-          buttonSpec.options.forEach((optionSpec) => {
-            const option = doc.createElement('option');
-            option.textContent = optionSpec.label;
-            option.value = optionSpec.value;
-            select.appendChild(option);
-          });
-          select.addEventListener('change', () => {
-            this.editor.execCommand(buttonSpec.command, select.value);
-          });
-          groupEl.appendChild(select);
-          this.selects.push({ name, el: select, command: buttonSpec.command });
-          this.buttons.push(select);
-          continue;
-        }
-
-        const btn = doc.createElement('button');
-        btn.type = 'button';
-        btn.className = 'rly-tb-btn';
-        btn.dataset.testid = `tb-${name}`;
-        btn.setAttribute('aria-label', buttonSpec.tooltip);
-        // data-tooltip drives the CSS ::after tooltip; no native title so the OS
-        // tooltip doesn't double-show.
-        const tooltipText = buttonSpec.shortcut
-          ? `${buttonSpec.tooltip} (${formatShortcutLabel(buttonSpec.shortcut, doc)})`
-          : buttonSpec.tooltip;
-        btn.innerHTML = icons[buttonSpec.icon] ?? buttonSpec.icon;
-        if (buttonSpec.type === 'toggle') btn.setAttribute('aria-pressed', 'false');
-        // Preventing mousedown focus loss keeps the content selection intact.
-        btn.addEventListener('mousedown', (e) => e.preventDefault());
-
-        if (buttonSpec.type === 'panel') {
-          // Dropdown button (e.g. table grid picker).
-          const wrap = doc.createElement('div');
-          wrap.className = 'rly-tb-wrap';
-          // Tooltip on the wrap so ::after anchors to the full button area.
-          wrap.dataset.tooltip = tooltipText;
-          const dd = doc.createElement('div');
-          dd.className = 'rly-tb-dd';
-          dd.dataset.testid = `dd-${name}`;
-          // Simple panels keep the content selection live. Rich interactive
-          // panels restore their saved bookmark before applying a command.
-          dd.addEventListener('mousedown', (e) => {
-            const target = e.target as Element | null;
-            if (target?.closest('.rly-color-picker[data-view="custom"]')) return;
-            e.preventDefault();
-          });
-          dd.addEventListener('click', (e) => e.stopPropagation());
-          const resetPosition = (): void => {
-            dd.style.left = '';
-            dd.style.right = '';
-            dd.style.top = '';
-            dd.style.bottom = '';
-            dd.style.marginTop = '';
-            dd.style.marginBottom = '';
-          };
-          const positionPanel = (): void => {
-            const view = doc.defaultView;
-            if (!view) return;
-            const update = (): void => {
-              if (!dd.classList.contains('rly-open')) return;
-              resetPosition();
-              const panelRect = dd.getBoundingClientRect();
-              const wrapRect = wrap.getBoundingClientRect();
-              const margin = 8;
-              const naturalLeft = wrapRect.right - panelRect.width;
-              const clampedLeft = Math.max(
-                margin,
-                Math.min(view.innerWidth - panelRect.width - margin, naturalLeft)
-              );
-              dd.style.left = `${clampedLeft - wrapRect.left}px`;
-              dd.style.right = 'auto';
-
-              const fitsBelow = wrapRect.bottom + 4 + panelRect.height <= view.innerHeight - margin;
-              const fitsAbove = wrapRect.top - 4 - panelRect.height >= margin;
-              if (!fitsBelow && fitsAbove) {
-                dd.style.top = 'auto';
-                dd.style.bottom = '100%';
-                dd.style.marginTop = '0';
-                dd.style.marginBottom = '4px';
-              } else if (!fitsBelow) {
-                dd.style.top = `${margin - wrapRect.top}px`;
-                dd.style.marginTop = '0';
-              }
-            };
-            // Update immediately for view switches, then once after layout so
-            // font loading and responsive styles cannot leave stale bounds.
-            update();
-            view.requestAnimationFrame(update);
-          };
-          const close = (): void => {
-            resetPosition();
-            dd.classList.remove('rly-open');
-            btn.setAttribute('aria-expanded', 'false');
-          };
-          dd.addEventListener('rly-panel-resize', positionPanel);
-          const panelContent = buttonSpec.panel(this.editor, close);
-          dd.appendChild(panelContent);
-          if (panelContent.classList.contains('rly-color-picker')) {
-            dd.classList.add('rly-tb-dd-color');
+        const groupEl = doc.createElement('div');
+        groupEl.className = 'rly-tb-group';
+        for (const name of names) {
+          const buttonSpec = this.editor.ui.buttons.get(name);
+          if (!buttonSpec) continue;
+          if (buttonSpec.type === 'component') {
+            groupEl.appendChild(buttonSpec.render(this.editor));
+            continue;
           }
-          if (buttonSpec.valueCommand) {
-            btn.classList.add('rly-value-indicator');
-            this.valueIndicators.push({ el: btn, command: buttonSpec.valueCommand });
-          }
-          btn.setAttribute('aria-haspopup', 'true');
-          btn.setAttribute('aria-expanded', 'false');
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const wasOpen = dd.classList.contains('rly-open');
-            doc.querySelectorAll('.rly-tb-dd').forEach((p) => {
-              const el = p as HTMLElement;
-              el.style.left = '';
-              el.style.right = '';
-              el.style.top = '';
-              el.style.bottom = '';
-              el.style.marginTop = '';
-              el.style.marginBottom = '';
-              el.classList.remove('rly-open');
-              el.parentElement
-                ?.querySelector(':scope > button')
-                ?.setAttribute('aria-expanded', 'false');
+          if (buttonSpec.type === 'select') {
+            const select = doc.createElement('select');
+            select.className = 'rly-tb-select';
+            select.dataset.testid = `tb-select-${name}`;
+            select.setAttribute('aria-label', buttonSpec.tooltip);
+            buttonSpec.options.forEach((optionSpec) => {
+              const option = doc.createElement('option');
+              option.textContent = optionSpec.label;
+              option.value = optionSpec.value;
+              select.appendChild(option);
             });
-            if (!wasOpen) {
-              // Reset to CSS default so getBoundingClientRect reflects the
-              // natural (right: 0) position before we override it.
+            select.addEventListener('change', () => {
+              this.editor.execCommand(buttonSpec.command, select.value);
+            });
+            groupEl.appendChild(select);
+            this.selects.push({ name, el: select, command: buttonSpec.command });
+            this.buttons.push(select);
+            continue;
+          }
+
+          if (buttonSpec.type === 'menu' || buttonSpec.type === 'split') {
+            const { element, focusables, state } = renderChoiceControl(
+              this.editor,
+              this.container,
+              name,
+              buttonSpec
+            );
+            groupEl.appendChild(element);
+            this.buttons.push(...focusables);
+            this.choiceMenus.push(state);
+            continue;
+          }
+
+          const btn = doc.createElement('button');
+          btn.type = 'button';
+          btn.className = 'rly-tb-btn';
+          btn.dataset.testid = `tb-${name}`;
+          btn.setAttribute('aria-label', buttonSpec.tooltip);
+          // data-tooltip drives the CSS ::after tooltip; no native title so the OS
+          // tooltip doesn't double-show.
+          const tooltipText = buttonSpec.shortcut
+            ? `${buttonSpec.tooltip} (${formatShortcutLabel(buttonSpec.shortcut, doc)})`
+            : buttonSpec.tooltip;
+          btn.innerHTML = icons[buttonSpec.icon] ?? buttonSpec.icon;
+          if (buttonSpec.type === 'toggle') btn.setAttribute('aria-pressed', 'false');
+          // Preventing mousedown focus loss keeps the content selection intact.
+          btn.addEventListener('mousedown', (e) => e.preventDefault());
+
+          if (buttonSpec.type === 'panel') {
+            // Dropdown button (e.g. table grid picker).
+            const wrap = doc.createElement('div');
+            wrap.className = 'rly-tb-wrap';
+            // Tooltip on the wrap so ::after anchors to the full button area.
+            wrap.dataset.tooltip = tooltipText;
+            const dd = doc.createElement('div');
+            dd.className = 'rly-tb-dd';
+            dd.dataset.testid = `dd-${name}`;
+            // Simple panels keep the content selection live. Rich interactive
+            // panels restore their saved bookmark before applying a command.
+            dd.addEventListener('mousedown', (e) => {
+              const target = e.target as Element | null;
+              if (target?.closest('.rly-color-picker[data-view="custom"]')) return;
+              e.preventDefault();
+            });
+            dd.addEventListener('click', (e) => e.stopPropagation());
+            const resetPosition = (): void => {
               dd.style.left = '';
               dd.style.right = '';
-              dd.classList.add('rly-open');
-              btn.setAttribute('aria-expanded', 'true');
-              dd.firstElementChild?.dispatchEvent(
-                new (doc.defaultView?.Event ?? Event)('rly-panel-open')
-              );
-              positionPanel();
+              dd.style.top = '';
+              dd.style.bottom = '';
+              dd.style.marginTop = '';
+              dd.style.marginBottom = '';
+            };
+            const positionPanel = (): void => {
+              const view = doc.defaultView;
+              if (!view) return;
+              const update = (): void => {
+                if (!dd.classList.contains('rly-open')) return;
+                resetPosition();
+                const panelRect = dd.getBoundingClientRect();
+                const wrapRect = wrap.getBoundingClientRect();
+                const margin = 8;
+                const naturalLeft = wrapRect.right - panelRect.width;
+                const clampedLeft = Math.max(
+                  margin,
+                  Math.min(view.innerWidth - panelRect.width - margin, naturalLeft)
+                );
+                dd.style.left = `${clampedLeft - wrapRect.left}px`;
+                dd.style.right = 'auto';
+
+                const fitsBelow =
+                  wrapRect.bottom + 4 + panelRect.height <= view.innerHeight - margin;
+                const fitsAbove = wrapRect.top - 4 - panelRect.height >= margin;
+                if (!fitsBelow && fitsAbove) {
+                  dd.style.top = 'auto';
+                  dd.style.bottom = '100%';
+                  dd.style.marginTop = '0';
+                  dd.style.marginBottom = '4px';
+                } else if (!fitsBelow) {
+                  dd.style.top = `${margin - wrapRect.top}px`;
+                  dd.style.marginTop = '0';
+                }
+              };
+              // Update immediately for view switches, then once after layout so
+              // font loading and responsive styles cannot leave stale bounds.
+              update();
+              view.requestAnimationFrame(update);
+            };
+            const close = (): void => {
+              resetPosition();
+              dd.classList.remove('rly-open');
+              btn.setAttribute('aria-expanded', 'false');
+            };
+            dd.addEventListener('rly-panel-resize', positionPanel);
+            const panelContent = buttonSpec.panel(this.editor, close);
+            dd.appendChild(panelContent);
+            if (panelContent.classList.contains('rly-color-picker')) {
+              dd.classList.add('rly-tb-dd-color');
             }
-          });
-          doc.addEventListener('click', close);
-          this.editor.events.on('destroy', () => doc.removeEventListener('click', close));
-          wrap.append(btn, dd);
-          groupEl.appendChild(wrap);
-        } else {
-          // Plain button (momentary or toggle) gets the tooltip directly.
-          btn.dataset.tooltip = tooltipText;
-          btn.addEventListener('click', () => {
-            this.editor.execCommand(
-              buttonSpec.command,
-              buttonSpec.type === 'button' ? buttonSpec.args : undefined
-            );
-            // Don't steal focus back if the command opened a modal dialog.
-            if (!doc.querySelector('.rly-dialog-overlay')) this.editor.focus();
-          });
-          groupEl.appendChild(btn);
-          if (buttonSpec.type === 'toggle')
-            this.toggles.push({ name, el: btn, command: buttonSpec.command });
+            if (buttonSpec.valueCommand) {
+              btn.classList.add('rly-value-indicator');
+              this.valueIndicators.push({ el: btn, command: buttonSpec.valueCommand });
+            }
+            btn.setAttribute('aria-haspopup', 'true');
+            btn.setAttribute('aria-expanded', 'false');
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const wasOpen = dd.classList.contains('rly-open');
+              doc.querySelectorAll('.rly-tb-dd').forEach((p) => {
+                const el = p as HTMLElement;
+                el.style.left = '';
+                el.style.right = '';
+                el.style.top = '';
+                el.style.bottom = '';
+                el.style.marginTop = '';
+                el.style.marginBottom = '';
+                el.classList.remove('rly-open');
+                el.parentElement
+                  ?.querySelector(':scope > button')
+                  ?.setAttribute('aria-expanded', 'false');
+              });
+              if (!wasOpen) {
+                // Reset to CSS default so getBoundingClientRect reflects the
+                // natural (right: 0) position before we override it.
+                dd.style.left = '';
+                dd.style.right = '';
+                dd.classList.add('rly-open');
+                btn.setAttribute('aria-expanded', 'true');
+                dd.firstElementChild?.dispatchEvent(
+                  new (doc.defaultView?.Event ?? Event)('rly-panel-open')
+                );
+                positionPanel();
+              }
+            });
+            doc.addEventListener('click', close);
+            this.editor.events.on('destroy', () => doc.removeEventListener('click', close));
+            wrap.append(btn, dd);
+            groupEl.appendChild(wrap);
+          } else {
+            // Plain button (momentary or toggle) gets the tooltip directly.
+            btn.dataset.tooltip = tooltipText;
+            btn.addEventListener('click', () => {
+              this.editor.execCommand(
+                buttonSpec.command,
+                buttonSpec.type === 'button' ? buttonSpec.args : undefined
+              );
+              // Don't steal focus back if the command opened a modal dialog.
+              if (!doc.querySelector('.rly-dialog-overlay')) this.editor.focus();
+            });
+            groupEl.appendChild(btn);
+            if (buttonSpec.type === 'toggle')
+              this.toggles.push({ name, el: btn, command: buttonSpec.command });
+          }
+          this.buttons.push(btn);
         }
-        this.buttons.push(btn);
-      }
-      this.container.appendChild(groupEl);
-      section.push(groupEl);
-      this.sections.push(section);
+        this.container.appendChild(groupEl);
+        section.push(groupEl);
+        this.sections.push(section);
+      });
     });
   }
 
@@ -641,6 +675,18 @@ export class Toolbar {
   }
 
   refresh(): void {
+    for (const choice of this.choiceMenus) {
+      const value = choice.valueCommand ? this.editor.queryCommandValue(choice.valueCommand) : '';
+      const selected = choice.entries.find(({ item }) => item.value === value);
+      for (const entry of choice.entries) {
+        const active = entry === selected;
+        entry.el.classList.toggle('rly-active', active);
+        // Only radio-style value menus expose checked state. Action menus use
+        // role="menuitem", where aria-checked would be invalid and misleading.
+        if (choice.valueCommand) entry.el.setAttribute('aria-checked', String(active));
+      }
+      if (choice.label && selected) choice.label.textContent = selected.item.label;
+    }
     for (const indicator of this.valueIndicators) {
       const value = this.editor.queryCommandValue(indicator.command);
       if (value) indicator.el.style.setProperty('--rly-control-value', value);

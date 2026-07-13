@@ -45,7 +45,7 @@ test.describe('basic formatting (vanilla instance)', () => {
 
   test('heading + statusbar element path and word count', async () => {
     await editor.selectWord('hello');
-    await editor.clickButton('h1');
+    await editor.choose('blockstyle', 'h1');
     await editor.expectContentContains('<h1>');
     await expect(editor.root.getByTestId('status-elpath')).toContainText('h1');
     await editor.expectWordCount('3 words');
@@ -67,6 +67,9 @@ test.describe('basic formatting (vanilla instance)', () => {
     expect(toolbarBox.height).toBeGreaterThan(50);
     await expect(editor.button('selectall')).toBeVisible();
     await expect(editor.button('removeformat')).toBeVisible();
+    await expect(editor.button('code')).toBeVisible();
+    await expect(editor.button('copy')).toBeVisible();
+    await expect(editor.root.locator('.rly-tb-row-break')).toHaveCount(1);
     await expect(editor.button('more')).toHaveCount(0);
   });
 

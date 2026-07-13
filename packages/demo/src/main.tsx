@@ -1,6 +1,11 @@
 import '@richly/core/theme.css';
 import './demo.css';
-import { Editor as VanillaEditor, type ToolbarMode } from '@richly/core';
+import {
+  Editor as VanillaEditor,
+  TOOLBAR_PRESETS,
+  type ToolbarMode,
+  type ToolbarPreset
+} from '@richly/core';
 import { Editor as ReactEditor } from '@richly/react';
 import { createRoot } from 'react-dom/client';
 import { StrictMode, useEffect, useRef, useState } from 'react';
@@ -25,17 +30,7 @@ const uploadImage = async (file: File): Promise<{ src: string; alt?: string }> =
   return { src: dataUrl, alt: file.name.replace(/\.[^.]+$/, '') };
 };
 
-const FULL_TOOLBAR =
-  'undo redo | bold italic highlight | selectall copy cut paste | underline strikethrough superscript subscript | forecolor backcolor fontsize | h1 h2 paragraph blockquote | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink table image | findreplace preview visualblocks | code fullscreen removeformat';
-
-const TOOLBAR_PRESETS = {
-  full: FULL_TOOLBAR,
-  focused:
-    'undo redo | bold italic underline | forecolor backcolor fontsize | h1 h2 paragraph blockquote | bullist numlist | link image table | findreplace removeformat',
-  essential: 'undo redo | bold italic | forecolor backcolor | link | removeformat'
-} as const;
-
-type ToolbarPreset = keyof typeof TOOLBAR_PRESETS;
+const FULL_TOOLBAR = TOOLBAR_PRESETS.complete.replace('bold italic', 'bold italic highlight');
 
 // Keep the first two demo colors stable: the integration fixtures exercise these
 // values as part of the public `textStyles.themeColors` example.
@@ -47,8 +42,9 @@ const PLAYGROUND_CONTENT = `
   <blockquote>Clean output. Flexible APIs. Built for developers.</blockquote>
   <h2>Things to try</h2>
   <ul>
-    <li>Select text and apply a brand color or an exact custom color.</li>
-    <li>Switch between wrap, more, and sliding toolbar modes.</li>
+    <li>Open Block style to choose Paragraph, Quote, Preformatted, or H1–H6.</li>
+    <li>Adjust line height, justify a paragraph, or switch list marker styles.</li>
+    <li>Use clipboard actions directly or their platform-native shortcuts.</li>
     <li>Insert a table or image, then inspect the sanitized HTML output.</li>
   </ul>`;
 
@@ -76,7 +72,7 @@ const BooleanControl = ({
 
 function PlaygroundApp(): JSX.Element {
   const [toolbarMode, setToolbarMode] = useState<ToolbarMode>('wrap');
-  const [toolbarPreset, setToolbarPreset] = useState<ToolbarPreset>('full');
+  const [toolbarPreset, setToolbarPreset] = useState<ToolbarPreset>('standard');
   const [menubar, setMenubar] = useState(true);
   const [statusbar, setStatusbar] = useState(true);
   const [resize, setResize] = useState(true);
@@ -90,8 +86,6 @@ function PlaygroundApp(): JSX.Element {
   const hostRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<ReturnType<typeof VanillaEditor.init> | null>(null);
   const contentRef = useRef(PLAYGROUND_CONTENT);
-  const toolbar = TOOLBAR_PRESETS[toolbarPreset];
-
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
@@ -101,7 +95,7 @@ function PlaygroundApp(): JSX.Element {
       target: host,
       testIdPrefix: 'editor',
       initialContent: contentRef.current,
-      toolbar,
+      toolbarPreset,
       toolbarMode,
       menubar,
       statusbar,
@@ -134,14 +128,14 @@ function PlaygroundApp(): JSX.Element {
     statusbar,
     themeColors,
     themeColorsEnabled,
-    toolbar,
+    toolbarPreset,
     toolbarMode,
     wordCount
   ]);
 
   const resetConfiguration = (): void => {
     setToolbarMode('wrap');
-    setToolbarPreset('full');
+    setToolbarPreset('standard');
     setMenubar(true);
     setStatusbar(true);
     setResize(true);
@@ -168,7 +162,7 @@ function PlaygroundApp(): JSX.Element {
     'Editor.init({',
     '  target,',
     `  toolbarMode: '${toolbarMode}',`,
-    `  toolbar: '${toolbar}',`,
+    `  toolbarPreset: '${toolbarPreset}',`,
     `  menubar: ${menubar},`,
     `  statusbar: ${statusbar},`,
     `  resize: ${resize},`,
@@ -228,8 +222,8 @@ function PlaygroundApp(): JSX.Element {
             data-testid="demo-config-toolbar-preset"
             onChange={(event) => setToolbarPreset(event.target.value as ToolbarPreset)}
           >
-            <option value="full">Full editing suite</option>
-            <option value="focused">Focused writing</option>
+            <option value="standard">Standard — grouped authoring</option>
+            <option value="complete">Complete — every authoring tool</option>
             <option value="essential">Essential formatting</option>
           </select>
         </div>

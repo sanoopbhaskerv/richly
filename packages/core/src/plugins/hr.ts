@@ -31,5 +31,10 @@ export const hrPlugin: Plugin = {
       text: 'Horizontal rule',
       command: 'InsertHorizontalRule'
     });
+    editor.ui.addButton('hr', {
+      icon: 'horizontalrule',
+      tooltip: 'Horizontal rule',
+      command: 'InsertHorizontalRule'
+    });
   }
 };

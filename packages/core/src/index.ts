@@ -1,15 +1,24 @@
-export { Editor } from './editor/Editor';
+export { Editor, TOOLBAR_PRESETS } from './editor/Editor';
 export type {
   EditorConfig,
   EditorEvents,
   ImagesConfig,
+  LineHeightOption,
+  ListStyleOption,
+  ToolbarPreset,
   ToolbarMode,
   WordCountOptions
 } from './editor/Editor';
 export type { Plugin } from './plugins';
 export type { FindReplaceArgs } from './plugins/documenttools';
 export type { Command } from './commands/Registry';
-export type { ButtonSpec, ComponentControl } from './ui/UiRegistry';
+export type {
+  ButtonSpec,
+  ComponentControl,
+  MenuControl,
+  SplitControl,
+  ToolbarMenuItem
+} from './ui/UiRegistry';
 export { openDialog } from './ui/Dialog';
 export type { DialogField, DialogResult, DialogSpec } from './ui/Dialog';
 export {

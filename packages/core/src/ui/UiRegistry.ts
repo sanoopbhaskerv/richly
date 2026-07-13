@@ -5,6 +5,21 @@ export interface SelectOption {
   value: string;
 }
 
+/** A command-backed choice rendered inside a toolbar menu or split button. */
+export interface ToolbarMenuItem {
+  /** Stable value returned by the control's `valueCommand`. */
+  value: string;
+  label: string;
+  /** Optional icon key (ui/icons.ts) or raw SVG/text. */
+  icon?: string;
+  command: string;
+  args?: unknown;
+  /** Set false for one-off choices that a split primary button must not remember. */
+  repeatable?: boolean;
+  /** Draw a visual separator immediately before this choice. */
+  separatorBefore?: boolean;
+}
+
 export interface ButtonControl {
   type: 'button';
   /** Icon key (ui/icons.ts) or raw SVG/text. */
@@ -49,13 +64,46 @@ export interface SelectControl {
   options: SelectOption[];
 }
 
+/** A single toolbar trigger that opens a command-backed choice menu. */
+export interface MenuControl {
+  type: 'menu';
+  icon: string;
+  tooltip: string;
+  items: ToolbarMenuItem[];
+  /** Command queried to mark the selected item and update an optional live label. */
+  valueCommand?: string;
+  /** Show the selected item's label beside the icon. */
+  showLabel?: boolean;
+}
+
+/**
+ * A two-part control: the primary button repeats the current/last choice while
+ * the chevron opens the complete choice menu.
+ */
+export interface SplitControl {
+  type: 'split';
+  icon: string;
+  tooltip: string;
+  command: string;
+  args?: unknown;
+  items: ToolbarMenuItem[];
+  /** Command queried to mark the selected variant. */
+  valueCommand?: string;
+}
+
 export interface ComponentControl {
   type: 'component';
   render: (editor: Editor) => HTMLElement;
 }
 
 export type ButtonSpec =
-  ButtonControl | ToggleControl | PanelControl | SelectControl | ComponentControl;
+  | ButtonControl
+  | ToggleControl
+  | PanelControl
+  | SelectControl
+  | MenuControl
+  | SplitControl
+  | ComponentControl;
 
 type LegacyButtonSpec = {
   icon: string;

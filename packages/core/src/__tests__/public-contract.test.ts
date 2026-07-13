@@ -57,6 +57,7 @@ describe('1.0 public contract tripwires', () => {
         'blockquoteStyle',
         'images',
         'initialContent',
+        'listStyles',
         'menubar',
         'plugins',
         'resize',
@@ -68,6 +69,7 @@ describe('1.0 public contract tripwires', () => {
         'toolbar',
         'toolbarMode',
         'toolbarOverflow',
+        'toolbarPreset',
         'wordCount'
       ].sort()
     );
@@ -75,7 +77,7 @@ describe('1.0 public contract tripwires', () => {
 
   it('freezes the textStyles personalization surface', () => {
     expect(interfaceMembers('src/editor/Editor.ts', 'EditorConfig').textStyles).toBe(
-      '{ colors?: string[]; themeColors?: string[]; fontSizes?: string[]; }'
+      '{ colors?: string[]; themeColors?: string[]; fontSizes?: string[]; lineHeights?: LineHeightOption[]; }'
     );
   });
 
@@ -86,6 +88,7 @@ describe('1.0 public contract tripwires', () => {
         'className',
         'images',
         'initialValue',
+        'listStyles',
         'menubar',
         'onChange',
         'onInit',
@@ -97,6 +100,7 @@ describe('1.0 public contract tripwires', () => {
         'toolbar',
         'toolbarMode',
         'toolbarOverflow',
+        'toolbarPreset',
         'value',
         'wordCount'
       ].sort()
@@ -128,8 +132,11 @@ describe('1.0 public contract tripwires', () => {
 
     expect([...registry.commands.keys()].sort()).toEqual(
       [
+        'Alignment',
+        'ApplyList',
         'BackColor',
         'Bold',
+        'BulletListStyle',
         'CellProps',
         'Copy',
         'Cut',
@@ -141,7 +148,11 @@ describe('1.0 public contract tripwires', () => {
         'FormatBlock:h1',
         'FormatBlock:h2',
         'FormatBlock:h3',
+        'FormatBlock:h4',
+        'FormatBlock:h5',
+        'FormatBlock:h6',
         'FormatBlock:p',
+        'FormatBlock:pre',
         'Indent',
         'InsertHorizontalRule',
         'InsertImage',
@@ -154,11 +165,14 @@ describe('1.0 public contract tripwires', () => {
         'JustifyFull',
         'JustifyLeft',
         'JustifyRight',
+        'LineHeight',
+        'NumberListStyle',
         'Outdent',
         'Paste',
         'Preview',
         'Redo',
         'RemoveFormat',
+        'RemoveList',
         'RowProps',
         'SelectAll',
         'SourceCode',
@@ -248,6 +262,7 @@ describe('1.0 public contract tripwires', () => {
         'font-size',
         'font-family',
         'line-height',
+        'list-style-type',
         'margin-left',
         'margin-right',
         'padding-left',

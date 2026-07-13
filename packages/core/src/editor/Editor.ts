@@ -16,6 +16,8 @@ export interface EditorConfig {
   initialContent?: string;
   /** Toolbar spec, e.g. "undo redo | bold italic underline strikethrough | h1 h2 paragraph blockquote | removeformat" */
   toolbar?: string;
+  /** Named progressive-disclosure toolbar. An explicit `toolbar` string takes precedence. */
+  toolbarPreset?: ToolbarPreset;
   /** Toolbar layout. `wrap` is the default; `more` floats overflow; `sliding` expands inline. */
   toolbarMode?: ToolbarMode;
   /** @deprecated Use `toolbarMode: 'more'` instead. */
@@ -37,9 +39,16 @@ export interface EditorConfig {
     /** Brand/theme colors placed before the configured or built-in palette. */
     themeColors?: string[];
     fontSizes?: string[];
+    /** Replace the unitless line-height choices shown by the line-height menu. */
+    lineHeights?: LineHeightOption[];
   };
   /** Image upload settings used by the image plugin and clipboard/drop routing. */
   images?: ImagesConfig;
+  /** Restrict or relabel the standards-based list variants shown by split buttons. */
+  listStyles?: {
+    bullets?: ListStyleOption[];
+    numbers?: ListStyleOption[];
+  };
   /**
    * Set false to omit Richly's default blockquote styling (accent border,
    * tinted background, rounded corner). The `blockquote` element itself is
@@ -48,6 +57,22 @@ export interface EditorConfig {
    * fighting Richly's rule. Default true.
    */
   blockquoteStyle?: boolean;
+}
+
+/** A sanitized, unitless line-height choice exposed by the toolbar. */
+export interface LineHeightOption {
+  /** Localizable text shown in the menu, for example `Comfortable`. */
+  label: string;
+  /** Unitless CSS value. An empty value removes the declaration and restores normal spacing. */
+  value: string;
+}
+
+/** A supported CSS list marker exposed by the bullet or numbered-list menu. */
+export interface ListStyleOption {
+  /** Localizable text shown in the variant menu. */
+  label: string;
+  /** Standards-based `list-style-type` value accepted by Richly. */
+  value: string;
 }
 
 export interface ImagesConfig {
@@ -69,6 +94,9 @@ export function getEditorConfig(editor: Editor): Readonly<EditorConfig> {
 }
 
 export type ToolbarMode = 'wrap' | 'more' | 'sliding';
+
+/** Built-in toolbar compositions, from compact inline editing to full authoring. */
+export type ToolbarPreset = 'essential' | 'standard' | 'complete';
 
 export interface WordCountOptions {
   words?: boolean;
@@ -92,7 +120,23 @@ export interface EditorEvents extends Record<string, unknown> {
   destroy: void;
 }
 
-const DEFAULT_TOOLBAR =
+/**
+ * Stable, command-token compositions used by core and the demo. Applications
+ * can still supply an arbitrary toolbar string for complete control.
+ */
+export const TOOLBAR_PRESETS: Readonly<Record<ToolbarPreset, string>> = {
+  essential:
+    'undo redo | selectall copy cut paste | bold italic underline | forecolor backcolor | link | removeformat',
+  standard:
+    'undo redo | selectall copy cut paste | blockstyle | bold italic underline strikethrough superscript subscript removeformat | findreplace preview visualblocks code fullscreen || forecolor backcolor fontsize lineheight | bulliststyles numliststyles | alignment outdent indent | link unlink image table',
+  complete:
+    'undo redo | selectall copy cut paste | blockstyle | bold italic underline strikethrough superscript subscript removeformat | findreplace preview visualblocks code fullscreen || forecolor backcolor fontsize lineheight | bulliststyles numliststyles | alignment outdent indent | link unlink image table hr'
+};
+
+// Preserve the pre-preset default for applications that omit both toolbar
+// options. The redesigned demo opts into `standard`; existing integrations do
+// not receive a surprise toolbar reordering during the release-candidate line.
+const LEGACY_DEFAULT_TOOLBAR =
   'undo redo | bold italic | selectall copy cut paste | underline strikethrough superscript subscript | forecolor backcolor fontsize | h1 h2 paragraph blockquote | alignleft aligncenter alignright | bullist numlist outdent indent | link unlink table image | findreplace preview visualblocks | code fullscreen removeformat';
 
 export class Editor {
@@ -132,7 +176,10 @@ export class Editor {
     const toolbarEl = this.root.querySelector<HTMLElement>('.rly-toolbar')!;
     const toolbarMode: ToolbarMode =
       config.toolbarMode ?? (config.toolbarOverflow ? 'more' : 'wrap');
-    new Toolbar(this, toolbarEl, config.toolbar ?? DEFAULT_TOOLBAR, toolbarMode);
+    const toolbar =
+      config.toolbar ??
+      (config.toolbarPreset ? TOOLBAR_PRESETS[config.toolbarPreset] : LEGACY_DEFAULT_TOOLBAR);
+    new Toolbar(this, toolbarEl, toolbar, toolbarMode);
     if (config.statusbar !== false) {
       new Statusbar(
         this,

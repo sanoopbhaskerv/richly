@@ -116,6 +116,24 @@ export class EditorPage {
     await this.button(name).click();
   }
 
+  /** Choose a command from a declarative menu or split-button variant list. */
+  async choose(control: string, value: string, split = false): Promise<void> {
+    const trigger = this.root.getByTestId(`tb-${control}${split ? '-menu' : ''}`);
+    await trigger.click();
+    await this.root.getByTestId(`menuitem-${control}-${value}`).click();
+  }
+
+  /** Assert the command value reflected by a menu item. */
+  async expectChoiceActive(control: string, value: string, split = false): Promise<void> {
+    const trigger = this.root.getByTestId(`tb-${control}${split ? '-menu' : ''}`);
+    await trigger.click();
+    await expect(this.root.getByTestId(`menuitem-${control}-${value}`)).toHaveAttribute(
+      'aria-checked',
+      'true'
+    );
+    await trigger.press('Escape');
+  }
+
   /** Raw DOM html minus caret-filler chars (U+FEFF) — assertions target content semantics. */
   private async html(): Promise<string> {
     return (await this.content.innerHTML()).replace(/﻿/g, '');

@@ -1,4 +1,5 @@
 import type { Plugin } from './types';
+import type { Editor } from '../editor/Editor';
 import { blocksInRange } from '../dom/DomUtils';
 
 const ALIGNS: { name: string; command: string; value: string; icon: string; tooltip: string }[] = [
@@ -32,6 +33,16 @@ const ALIGNS: { name: string; command: string; value: string; icon: string; tool
   }
 ];
 
+/** Return the shared alignment for the selection, or an empty string for mixed blocks. */
+function selectedAlignment(editor: Editor): string {
+  const range = editor.selection.getRange();
+  if (!range) return '';
+  const values = blocksInRange(range, editor.getBody()).map(
+    (block) => block.style.textAlign || 'left'
+  );
+  return values.length && values.every((value) => value === values[0]) ? values[0]! : '';
+}
+
 export const alignPlugin: Plugin = {
   name: 'align',
   init(editor) {
@@ -59,5 +70,28 @@ export const alignPlugin: Plugin = {
       });
       editor.ui.addToggleButton(a.name, { icon: a.icon, tooltip: a.tooltip, command: a.command });
     }
+
+    // One menu exposes the full paragraph-alignment model while the legacy
+    // individual buttons remain available to existing toolbar strings.
+    editor.commands.register('Alignment', {
+      execute: (ed, args) => {
+        const value = typeof args === 'string' ? args : (args as { value?: string })?.value;
+        const match = ALIGNS.find((alignment) => alignment.value === value);
+        if (match) ed.execCommand(match.command);
+      },
+      queryValue: (ed) => selectedAlignment(ed)
+    });
+    editor.ui.addButton('alignment', {
+      type: 'menu',
+      icon: 'alignleft',
+      tooltip: 'Alignment',
+      valueCommand: 'Alignment',
+      items: ALIGNS.map((alignment) => ({
+        value: alignment.value,
+        label: alignment.tooltip,
+        icon: alignment.icon,
+        command: alignment.command
+      }))
+    });
   }
 };

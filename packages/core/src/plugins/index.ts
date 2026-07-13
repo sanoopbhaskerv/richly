@@ -15,6 +15,8 @@ import { clipboardPlugin } from './clipboard';
 import { documentToolsPlugin } from './documenttools';
 import { textStylePlugin } from './textstyle';
 import { textSelectionToolbarPlugin } from './textselectiontoolbar';
+import { lineHeightPlugin } from './lineheight';
+import { toolbarMenusPlugin } from './toolbarmenus';
 
 export type { Plugin } from './types';
 
@@ -35,5 +37,7 @@ export const corePlugins: Plugin[] = [
   sourceCodePlugin,
   fullscreenPlugin,
   textStylePlugin,
+  lineHeightPlugin,
+  toolbarMenusPlugin,
   textSelectionToolbarPlugin
 ];

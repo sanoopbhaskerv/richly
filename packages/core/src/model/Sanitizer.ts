@@ -62,6 +62,7 @@ export const SANITIZER_SCHEMA = {
     'font-size',
     'font-family',
     'line-height',
+    'list-style-type',
     'margin-left',
     'margin-right',
     'padding-left', // indent + table alignment
