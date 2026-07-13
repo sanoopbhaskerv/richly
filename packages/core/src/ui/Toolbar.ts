@@ -412,7 +412,7 @@ export class Toolbar {
       // development. Ignore a queued measurement from the destroyed instance.
       if (destroyed || !this.container.isConnected) return;
       const width = this.availableToolbarWidth();
-      console.log('refresh sliding', { width, lastWidth, force });
+
       // A connected editor can still be temporarily hidden or waiting for its
       // grid track to resolve. Do not commit that transient width as the last
       // successfully distributed layout.
@@ -579,13 +579,7 @@ export class Toolbar {
       (Number.isFinite(rightPadding) ? rightPadding : 0);
     // Never trust only the toolbar width: min-content flex/grid layouts can
     // report a toolbar wider than its consumer host.
-    console.log('availableToolbarWidth', {
-      container: this.container,
-      containerWidth: this.container.clientWidth,
-      parentWidth: this.container.parentElement?.clientWidth,
-      grandparentWidth: this.container.parentElement?.parentElement?.clientWidth,
-      padding
-    });
+
     const boundaries = this.toolbarWidthBoundaries();
     const boundaryWidths = boundaries.map((boundary) => {
       const boundaryStyles = view?.getComputedStyle(boundary);
@@ -599,7 +593,7 @@ export class Toolbar {
       // rounds to an integer. Fall back for jsdom and genuinely unmeasured boxes.
       return rectWidth > 0 ? Math.max(0, rectWidth - borderWidth) : boundary.clientWidth;
     });
-    console.log('availableToolbarWidth', { boundaryWidths, padding });
+
     if (boundaryWidths.length === 0 || boundaryWidths.some((width) => width <= 0)) return 0;
     return Math.min(...boundaryWidths) - padding;
   }
