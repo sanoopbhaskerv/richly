@@ -60,22 +60,23 @@ export function ArticleEditor() {
 
 `EditorProps` extends the core configuration. All props are optional.
 
-| Prop           | Type                           | Description                                             |
-| -------------- | ------------------------------ | ------------------------------------------------------- |
-| `value`        | `string`                       | Controlled HTML value. Pair with `onChange`.            |
-| `initialValue` | `string`                       | Initial HTML for uncontrolled use.                      |
-| `onChange`     | `(html: string) => void`       | Called with sanitized HTML on every edit.               |
-| `onInit`       | `(editor: CoreEditor) => void` | Receives the underlying core `Editor` once mounted.     |
-| `toolbar`      | `string`                       | Toolbar spec (see the core README).                     |
-| `toolbarMode`  | `'wrap' \| 'more'`             | Wrap groups (default) or collapse into a **More** menu. |
-| `menubar`      | `boolean`                      | Show the menubar (default `true`).                      |
-| `statusbar`    | `boolean`                      | Show the statusbar (default `true`).                    |
-| `resize`       | `boolean`                      | Show the statusbar resize grip (default `true`).        |
-| `wordCount`    | `boolean \| WordCountOptions`  | Configure word/character/selection counts.              |
-| `images`       | `ImagesConfig`                 | Image upload hook, accept filter, and size limit.       |
-| `plugins`      | `Plugin[]`                     | Additional plugins.                                     |
-| `testIdPrefix` | `string`                       | Prefix for editor-chrome `data-testid` hooks.           |
-| `className`    | `string`                       | Class applied to the host element.                      |
+| Prop              | Type                           | Description                                                                |
+| ----------------- | ------------------------------ | -------------------------------------------------------------------------- |
+| `value`           | `string`                       | Controlled HTML value. Pair with `onChange`.                               |
+| `initialValue`    | `string`                       | Initial HTML for uncontrolled use.                                         |
+| `onChange`        | `(html: string) => void`       | Called with sanitized HTML on every edit.                                  |
+| `onInit`          | `(editor: CoreEditor) => void` | Receives the underlying core `Editor` once mounted.                        |
+| `toolbar`         | `string`                       | Toolbar spec (see the core README).                                        |
+| `toolbarMode`     | `'wrap' \| 'more'`             | Wrap groups (default) or collapse into a **More** menu.                    |
+| `menubar`         | `boolean`                      | Show the menubar (default `true`).                                         |
+| `statusbar`       | `boolean`                      | Show the statusbar (default `true`).                                       |
+| `resize`          | `boolean`                      | Show the statusbar resize grip (default `true`).                           |
+| `wordCount`       | `boolean \| WordCountOptions`  | Configure word/character/selection counts.                                 |
+| `images`          | `ImagesConfig`                 | Image upload hook, accept filter, and size limit.                          |
+| `blockquoteStyle` | `boolean`                      | Set `false` to opt out of the default blockquote styling (default `true`). |
+| `plugins`         | `Plugin[]`                     | Additional plugins.                                                        |
+| `testIdPrefix`    | `string`                       | Prefix for editor-chrome `data-testid` hooks.                              |
+| `className`       | `string`                       | Class applied to the host element.                                         |
 
 > `toolbarOverflow` is deprecated in favor of `toolbarMode` (`true` → `'more'`,
 > `false` → `'wrap'`); it remains supported through the 0.x line.

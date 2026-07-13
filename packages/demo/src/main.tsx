@@ -7,6 +7,7 @@ import { highlightPlugin } from '../../../examples/highlight-plugin';
 import { createWordGoalPlugin } from '../../../examples/word-goal-plugin';
 
 const shouldFailUpload = new URLSearchParams(window.location.search).has('imgfail');
+const blockquoteStyle = !new URLSearchParams(window.location.search).has('noBlockquoteStyle');
 
 const uploadImage = async (file: File): Promise<{ src: string; alt?: string }> => {
   await new Promise((resolve) => setTimeout(resolve, 150));
@@ -46,6 +47,7 @@ VanillaEditor.init({
   target: document.getElementById('vanilla-clean-host')!,
   testIdPrefix: 'editor-clean',
   images: { upload: uploadImage },
+  blockquoteStyle,
   initialContent: `
     <h1>Vanilla build (Standard)</h1>
     <p>This instance has <strong>no custom plugins</strong> registered. It uses default plugins and toolbar configurations.</p>`

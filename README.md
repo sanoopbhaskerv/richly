@@ -21,6 +21,8 @@ editors side by side, including the custom plugin examples.
 - IME-aware input and sanitized rich-text/plain-text paste handling.
 - Search and replace, visual block outlines, document preview, and configurable
   word/character counts.
+- Opinionated defaults you can opt out of — e.g. `blockquoteStyle: false` drops
+  Richly's default blockquote look so you can fully own it with your own CSS.
 
 ## Packages
 

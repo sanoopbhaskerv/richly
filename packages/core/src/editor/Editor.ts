@@ -37,6 +37,14 @@ export interface EditorConfig {
   };
   /** Image upload settings used by the image plugin and clipboard/drop routing. */
   images?: ImagesConfig;
+  /**
+   * Set false to omit Richly's default blockquote styling (accent border,
+   * tinted background, rounded corner). The `blockquote` element itself is
+   * unaffected — only the `.rly-blockquote-styled` presentation hook is
+   * withheld, so you can style `.rly-content blockquote` yourself without
+   * fighting Richly's rule. Default true.
+   */
+  blockquoteStyle?: boolean;
 }
 
 export interface ImagesConfig {
@@ -155,6 +163,7 @@ export class Editor {
 
     this.body = doc.createElement('div');
     this.body.className = 'rly-content';
+    if (this.config.blockquoteStyle !== false) this.body.classList.add('rly-blockquote-styled');
     this.body.contentEditable = 'true';
     this.body.spellcheck = true;
     this.body.dataset.testid = `${p}-content`;

@@ -9,8 +9,18 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Added custom color pickers to the text-color and background-color palettes,
-  with selection-aware values and active states for custom and cleared colors.
+- Added `blockquoteStyle` to `EditorConfig` (and the `@richly/react`
+  `<Editor>` props). Default `true` preserves Richly's accent-bordered
+  blockquote look; set `false` to withhold that presentation hook entirely so
+  consumer CSS can style `blockquote` without a specificity fight.
+
+## [0.7.0] - 2026-07-13
+
+### Added
+
+- Added custom color dialogs to the text-color and background-color palettes,
+  with selection-aware previews, explicit Save/Cancel actions, and active
+  states for custom and cleared colors.
 - Added a `Deploy demo` GitHub Actions workflow that publishes
   `@richly/demo` to GitHub Pages on every push to `main`, plus a
   GH Pages-aware `base` path in the demo's Vite config. Linked the live demo
@@ -150,7 +160,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Firefox inline-format and link commands now recognize selections whose range
   boundaries surround the inline element from its parent node.
 
-[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/sanoopbhaskerv/richly/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.4.0...v0.5.0

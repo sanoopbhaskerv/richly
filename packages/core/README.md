@@ -38,6 +38,7 @@ same core.
 - [Events](#events)
 - [Commands](#commands)
 - [Find and replace](#find-and-replace)
+- [Blockquote styling](#blockquote-styling)
 - [Theming](#theming)
 - [Plugins](#plugins)
 - [TypeScript](#typescript)
@@ -120,26 +121,28 @@ Editor.init({
   wordCount: true, // true | false | { words, characters, selection }
   images: { upload: uploadFn }, // image upload hook (see below)
   textStyles: { colors, fontSizes }, // swatch + font-size presets
+  blockquoteStyle: true, // set false to opt out of the default blockquote look
   plugins: [myPlugin], // additional plugins
   testIdPrefix: 'editor' // prefix for chrome data-testids
 });
 ```
 
-| Option           | Type                          | Default    | Description                                                      |
-| ---------------- | ----------------------------- | ---------- | ---------------------------------------------------------------- |
-| `target`         | `HTMLElement`                 | —          | Element to mount into. Required unless `selector` is given.      |
-| `selector`       | `string`                      | —          | CSS selector for the mount point.                                |
-| `initialContent` | `string`                      | `''`       | Initial HTML, sanitized on load.                                 |
-| `toolbar`        | `string`                      | full set   | Space/`\|`-separated toolbar spec.                               |
-| `toolbarMode`    | `'wrap' \| 'more'`            | `'wrap'`   | Wrap groups onto new rows, or keep one row with a **More** menu. |
-| `menubar`        | `boolean`                     | `true`     | Show the menubar.                                                |
-| `statusbar`      | `boolean`                     | `true`     | Show the statusbar.                                              |
-| `resize`         | `boolean`                     | `true`     | Show the statusbar resize grip.                                  |
-| `wordCount`      | `boolean \| WordCountOptions` | `true`     | Word/character/selection counts in the statusbar.                |
-| `images`         | `ImagesConfig`                | —          | Upload hook, accept filter, and size limit.                      |
-| `textStyles`     | `{ colors?, fontSizes? }`     | presets    | Color swatches and font-size options.                            |
-| `plugins`        | `Plugin[]`                    | `[]`       | Extra plugins registered after the defaults.                     |
-| `testIdPrefix`   | `string`                      | `'editor'` | Prefix for `data-testid` hooks on the editor chrome.             |
+| Option            | Type                          | Default    | Description                                                      |
+| ----------------- | ----------------------------- | ---------- | ---------------------------------------------------------------- |
+| `target`          | `HTMLElement`                 | —          | Element to mount into. Required unless `selector` is given.      |
+| `selector`        | `string`                      | —          | CSS selector for the mount point.                                |
+| `initialContent`  | `string`                      | `''`       | Initial HTML, sanitized on load.                                 |
+| `toolbar`         | `string`                      | full set   | Space/`\|`-separated toolbar spec.                               |
+| `toolbarMode`     | `'wrap' \| 'more'`            | `'wrap'`   | Wrap groups onto new rows, or keep one row with a **More** menu. |
+| `menubar`         | `boolean`                     | `true`     | Show the menubar.                                                |
+| `statusbar`       | `boolean`                     | `true`     | Show the statusbar.                                              |
+| `resize`          | `boolean`                     | `true`     | Show the statusbar resize grip.                                  |
+| `wordCount`       | `boolean \| WordCountOptions` | `true`     | Word/character/selection counts in the statusbar.                |
+| `images`          | `ImagesConfig`                | —          | Upload hook, accept filter, and size limit.                      |
+| `textStyles`      | `{ colors?, fontSizes? }`     | presets    | Color swatches and font-size options.                            |
+| `blockquoteStyle` | `boolean`                     | `true`     | Set `false` to opt out of Richly's default blockquote styling.   |
+| `plugins`         | `Plugin[]`                    | `[]`       | Extra plugins registered after the defaults.                     |
+| `testIdPrefix`    | `string`                      | `'editor'` | Prefix for `data-testid` hooks on the editor chrome.             |
 
 > **Note:** `toolbarOverflow` is deprecated in favor of `toolbarMode`.
 > `toolbarOverflow: true` maps to `toolbarMode: 'more'` and `false` to
@@ -205,8 +208,9 @@ corner handles.
 
 Customize the color swatches and font-size options offered by the toolbar. The
 built-in defaults are exported so you can extend rather than replace them.
-Both the text-color and background-color palettes also include a native custom
-color picker for colors outside the configured presets.
+Both the text-color and background-color palettes also include a custom-color
+dialog with an explicit preview, Save, and Cancel flow for colors outside the
+configured presets.
 
 ```ts
 import { Editor, DEFAULT_COLORS, DEFAULT_FONT_SIZES } from '@richly/core';
@@ -314,6 +318,32 @@ or `Mod+F`. It is a live search session: type a query to see a match counter
 **Replace** for one at a time, and **Replace All** for the rest. Match case and
 whole-word options are available; highlight marks never appear in
 `getContent()`.
+
+## Blockquote styling
+
+By default, `<blockquote>` gets Richly's opinionated look — an accent-colored
+left border, a tinted background, and a rounded corner. Not every consumer
+wants that; set `blockquoteStyle: false` to opt out and fall back to the
+browser's plain `<blockquote>` rendering:
+
+```ts
+Editor.init({ target, blockquoteStyle: false });
+```
+
+With the default styling withheld, nothing in Richly's stylesheet targets
+blockquotes anymore, so your own CSS applies with no specificity fight:
+
+```css
+.rly-content blockquote {
+  border-left: 4px solid #94a3b8;
+  font-style: italic;
+  padding-left: 1em;
+}
+```
+
+`blockquoteStyle: false` only withholds the presentation hook — the editing
+behavior (Enter/Backspace escaping the quote, keyboard shortcuts, sanitizer
+rules) is unaffected either way.
 
 ## Theming
 
