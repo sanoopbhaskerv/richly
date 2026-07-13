@@ -1,20 +1,26 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Editor } from '../editor/Editor';
+import { Toolbar } from '../ui/Toolbar';
 import { createTestEditor, destroyAll } from './test-utils';
 
 let ed: Editor | undefined;
 afterEach(() => {
   if (ed) destroyAll(ed);
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
-function mockToolbarLayout(initialWidth: number): { setWidth: (width: number) => void } {
+function mockToolbarLayout(
+  initialWidth: number,
+  initialGroupWidth = 70
+): { setWidth: (width: number) => void; setGroupWidth: (width: number) => void } {
   let width = initialWidth;
+  let groupWidth = initialGroupWidth;
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(() => width);
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function () {
     const element = this as HTMLElement;
     const elementWidth = element.classList.contains('rly-tb-group')
-      ? 70
+      ? groupWidth
       : element.classList.contains('rly-tb-sep')
         ? 10
         : element.classList.contains('rly-toolbar-sliding-toggle')
@@ -40,6 +46,9 @@ function mockToolbarLayout(initialWidth: number): { setWidth: (width: number) =>
     setWidth(nextWidth: number): void {
       width = nextWidth;
       window.dispatchEvent(new Event('resize'));
+    },
+    setGroupWidth(nextWidth: number): void {
+      groupWidth = nextWidth;
     }
   };
 }
@@ -119,6 +128,223 @@ describe('toolbar mode', () => {
     expect(button.getAttribute('aria-label')).toBe('Show more tools');
     expect(drawer.getAttribute('aria-hidden')).toBe('true');
     expect(drawer.classList.contains('rly-open')).toBe(false);
+  });
+
+  it('keeps the leading tool group visible at extremely narrow measured widths', () => {
+    mockToolbarLayout(80);
+    ed = createSlidingEditor();
+    const primary = ed.getRoot().querySelector<HTMLElement>('[data-testid="toolbar-primary"]')!;
+    const drawer = ed
+      .getRoot()
+      .querySelector<HTMLElement>('[data-testid="toolbar-sliding-drawer"]')!;
+
+    expect(primary.querySelector('[data-testid="tb-bold"]')).not.toBeNull();
+    expect(primary.querySelector('[data-testid="tb-italic"]')).not.toBeNull();
+    expect(drawer.querySelector('[data-testid="tb-bold"]')).toBeNull();
+    expect(primary.querySelector('[data-testid="tb-more"]')).not.toBeNull();
+  });
+
+  it('prioritizes core formatting ahead of clipboard tools in the default sliding toolbar', () => {
+    mockToolbarLayout(190);
+    const target = document.createElement('div');
+    document.body.appendChild(target);
+    ed = Editor.init({ target, initialContent: '<p>content</p>', toolbarMode: 'sliding' });
+    const primary = ed.getRoot().querySelector<HTMLElement>('[data-testid="toolbar-primary"]')!;
+    const drawer = ed
+      .getRoot()
+      .querySelector<HTMLElement>('[data-testid="toolbar-sliding-drawer"]')!;
+
+    expect(primary.querySelector('[data-testid="tb-undo"]')).not.toBeNull();
+    expect(primary.querySelector('[data-testid="tb-bold"]')).not.toBeNull();
+    expect(primary.querySelector('[data-testid="tb-italic"]')).not.toBeNull();
+    expect(drawer.querySelector('[data-testid="tb-selectall"]')).not.toBeNull();
+  });
+
+  it('does not count the sliding toggle auto margin as required content width', () => {
+    mockToolbarLayout(190);
+    const getComputedStyle = window.getComputedStyle.bind(window);
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((element, pseudoElement) => {
+      const styles = getComputedStyle(element, pseudoElement);
+      if (!(element as HTMLElement).classList.contains('rly-toolbar-sliding-toggle')) {
+        return styles;
+      }
+      return new Proxy(styles, {
+        get(target, property, receiver) {
+          if (property === 'marginLeft') return '2.281px';
+          return Reflect.get(target, property, receiver) as unknown;
+        }
+      });
+    });
+
+    ed = createSlidingEditor();
+    const primary = ed.getRoot().querySelector<HTMLElement>('[data-testid="toolbar-primary"]')!;
+
+    expect(primary.querySelector('[data-testid="tb-bold"]')).not.toBeNull();
+    expect(primary.querySelector('[data-testid="tb-underline"]')).not.toBeNull();
+    expect(primary.querySelector('[data-testid="tb-h1"]')).toBeNull();
+  });
+
+  it('coalesces repeated resize observations into the final animation frame', () => {
+    let notifyResize = (): void => undefined;
+    class ResizeObserverMock {
+      constructor(callback: ResizeObserverCallback) {
+        notifyResize = () => callback([], this as unknown as ResizeObserver);
+      }
+      observe(): void {}
+      disconnect(): void {}
+      unobserve(): void {}
+    }
+    vi.stubGlobal('ResizeObserver', ResizeObserverMock);
+    const layout = mockToolbarLayout(155);
+    const frames: FrameRequestCallback[] = [];
+    vi.mocked(window.requestAnimationFrame).mockImplementation((callback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    ed = createSlidingEditor();
+    const primary = ed.getRoot().querySelector<HTMLElement>('[data-testid="toolbar-primary"]')!;
+    const more = primary.querySelector<HTMLButtonElement>('[data-testid="tb-more"]')!;
+
+    expect(primary.querySelector('[data-testid="tb-underline"]')).toBeNull();
+    expect(frames).toHaveLength(1);
+    frames.shift()!(0);
+
+    layout.setWidth(300);
+    notifyResize();
+    notifyResize();
+    notifyResize();
+    expect(frames).toHaveLength(1);
+    frames.shift()!(16);
+
+    expect(primary.querySelector('[data-testid="tb-underline"]')).not.toBeNull();
+    expect(primary.querySelector('[data-testid="tb-h2"]')).not.toBeNull();
+    expect(more.parentElement?.hidden).toBe(true);
+  });
+
+  it('uses the pre-mutation width for the complete redistribution pass', () => {
+    mockToolbarLayout(300);
+    const frames: FrameRequestCallback[] = [];
+    vi.mocked(window.requestAnimationFrame).mockImplementation((callback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    const availableWidth = vi
+      .spyOn(
+        Toolbar.prototype as unknown as { availableToolbarWidth(): number },
+        'availableToolbarWidth'
+      )
+      .mockReturnValueOnce(300)
+      .mockReturnValue(80);
+
+    ed = createSlidingEditor();
+    const primary = ed.getRoot().querySelector<HTMLElement>('[data-testid="toolbar-primary"]')!;
+
+    expect(availableWidth).toHaveBeenCalledTimes(1);
+    expect(primary.querySelector('[data-testid="tb-h2"]')).not.toBeNull();
+    expect(frames).toHaveLength(1);
+  });
+
+  it('cancels the queued initial measurement when the editor is destroyed', () => {
+    mockToolbarLayout(155);
+    const frames: FrameRequestCallback[] = [];
+    const cancelledFrames: number[] = [];
+    vi.mocked(window.requestAnimationFrame).mockImplementation((callback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((frame) => {
+      cancelledFrames.push(frame);
+    });
+    const availableWidth = vi
+      .spyOn(
+        Toolbar.prototype as unknown as { availableToolbarWidth(): number },
+        'availableToolbarWidth'
+      )
+      .mockReturnValue(155);
+
+    ed = createSlidingEditor();
+    expect(availableWidth).toHaveBeenCalledTimes(1);
+    expect(frames).toHaveLength(1);
+
+    ed.destroy();
+    frames[0]!(16);
+
+    expect(cancelledFrames).toEqual([1]);
+    expect(availableWidth).toHaveBeenCalledTimes(1);
+    ed = undefined;
+  });
+
+  it('waits for a containing grid to resolve through React host wrappers', () => {
+    let settled = false;
+    let notifyResize = (): void => undefined;
+    const observed = new Set<Element>();
+    class ResizeObserverMock {
+      constructor(callback: ResizeObserverCallback) {
+        notifyResize = () => callback([], this as unknown as ResizeObserver);
+      }
+      observe(target: Element): void {
+        observed.add(target);
+      }
+      disconnect(): void {}
+      unobserve(): void {}
+    }
+    vi.stubGlobal('ResizeObserver', ResizeObserverMock);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () {
+      const element = this as HTMLElement;
+      if (!settled && element.dataset.gridBoundary === 'true') return 0;
+      return settled ? 300 : 120;
+    });
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      const element = this as HTMLElement;
+      const width = element.classList.contains('rly-tb-group')
+        ? 70
+        : element.classList.contains('rly-tb-sep')
+          ? 10
+          : element.classList.contains('rly-toolbar-sliding-toggle')
+            ? 32
+            : 0;
+      return {
+        x: 0,
+        y: 0,
+        top: 0,
+        right: width,
+        bottom: 30,
+        left: 0,
+        width,
+        height: 30,
+        toJSON: () => ({})
+      } as DOMRect;
+    });
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      callback(0);
+      return 1;
+    });
+
+    const grid = document.createElement('div');
+    grid.dataset.gridBoundary = 'true';
+    const configuredHost = document.createElement('div');
+    const reactHost = document.createElement('div');
+    configuredHost.appendChild(reactHost);
+    grid.appendChild(configuredHost);
+    document.body.appendChild(grid);
+    ed = Editor.init({
+      target: reactHost,
+      initialContent: '<p>content</p>',
+      toolbar: 'bold italic | underline strikethrough | h1 h2',
+      toolbarMode: 'sliding'
+    });
+    const primary = ed.getRoot().querySelector<HTMLElement>('[data-testid="toolbar-primary"]')!;
+    const more = primary.querySelector<HTMLButtonElement>('[data-testid="tb-more"]')!;
+
+    expect(observed.has(grid)).toBe(true);
+    expect(primary.querySelector('[data-testid="tb-h2"]')).not.toBeNull();
+    expect(more.parentElement?.hidden).toBe(true);
+
+    settled = true;
+    notifyResize();
+
+    expect(primary.querySelector('[data-testid="tb-h2"]')).not.toBeNull();
+    expect(more.parentElement?.hidden).toBe(true);
   });
 
   it('collapses sliding mode with Escape and restores focus to its disclosure', () => {

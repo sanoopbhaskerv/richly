@@ -281,7 +281,12 @@ export class Toolbar {
     this.morePanel = panel;
     this.buttons.push(button);
 
-    const refresh = (): void => this.refreshOverflow();
+    let destroyed = false;
+    let initialFrame: number | null = null;
+    const refresh = (): void => {
+      if (destroyed || !this.container.isConnected) return;
+      this.refreshOverflow();
+    };
     const observer = view?.ResizeObserver ? new view.ResizeObserver(refresh) : null;
     observer?.observe(this.container);
     // A flex/grid consumer can allow the toolbar to report its intrinsic width
@@ -293,12 +298,15 @@ export class Toolbar {
     }
     view?.addEventListener('resize', refresh);
     this.editor.events.on('destroy', () => {
+      destroyed = true;
       observer?.disconnect();
       view?.removeEventListener('resize', refresh);
       doc.removeEventListener('click', onDocumentClick);
+      if (initialFrame !== null) view?.cancelAnimationFrame(initialFrame);
+      initialFrame = null;
     });
 
-    if (view?.requestAnimationFrame) view.requestAnimationFrame(refresh);
+    if (view?.requestAnimationFrame) initialFrame = view.requestAnimationFrame(refresh);
     else queueMicrotask(refresh);
   }
 
@@ -396,20 +404,65 @@ export class Toolbar {
     this.container.addEventListener('keydown', onKeyDown);
 
     let lastWidth = Number.NaN;
+    let refreshFrame: number | null = null;
+    let pendingForce = false;
+    let destroyed = false;
     const refresh = (force = false): void => {
+      // React StrictMode intentionally mounts, destroys, and mounts again in
+      // development. Ignore a queued measurement from the destroyed instance.
+      if (destroyed || !this.container.isConnected) return;
       const width = this.availableToolbarWidth();
+      console.log('refresh sliding', { width, lastWidth, force });
+      // A connected editor can still be temporarily hidden or waiting for its
+      // grid track to resolve. Do not commit that transient width as the last
+      // successfully distributed layout.
+      if (width <= 0) return;
       if (!force && width === lastWidth) return;
+      // Measure once before moving any groups. Restoring every group to the
+      // primary row can temporarily affect intrinsic grid sizing; measuring a
+      // second time after that mutation could distribute against a stale width.
+      this.refreshSliding(width);
       lastWidth = width;
-      this.refreshSliding();
     };
-    const observer = view?.ResizeObserver ? new view.ResizeObserver(() => refresh()) : null;
-    observer?.observe(primary);
-    const onResize = (): void => refresh();
+    const scheduleRefresh = (force = false): void => {
+      if (destroyed) return;
+      pendingForce ||= force;
+      if (refreshFrame !== null) return;
+
+      const run = (): void => {
+        refreshFrame = null;
+        if (destroyed) return;
+        const shouldForce = pendingForce;
+        pendingForce = false;
+        refresh(shouldForce);
+      };
+
+      if (view?.requestAnimationFrame) {
+        // The sentinel also supports synchronous rAF mocks without leaving the
+        // scheduler permanently marked as pending after `run` has completed.
+        refreshFrame = -1;
+        const frame = view.requestAnimationFrame(run);
+        if (refreshFrame !== null) refreshFrame = frame;
+      } else {
+        refreshFrame = -1;
+        queueMicrotask(run);
+      }
+    };
+    const observer = view?.ResizeObserver ? new view.ResizeObserver(() => scheduleRefresh()) : null;
+    for (const boundary of this.toolbarWidthBoundaries()) observer?.observe(boundary);
+    const onResize = (): void => scheduleRefresh();
+    const onLoad = (): void => scheduleRefresh(true);
     view?.addEventListener('resize', onResize);
+    if (doc.readyState === 'loading') view?.addEventListener('load', onLoad, { once: true });
+    void doc.fonts?.ready.then(() => scheduleRefresh(true));
     this.editor.events.on('destroy', () => {
+      destroyed = true;
       observer?.disconnect();
       view?.removeEventListener('resize', onResize);
+      view?.removeEventListener('load', onLoad);
       this.container.removeEventListener('keydown', onKeyDown);
+      if (refreshFrame !== null && refreshFrame >= 0) view?.cancelAnimationFrame(refreshFrame);
+      refreshFrame = null;
       if (this.slidingOverflowTimer !== null) {
         view?.clearTimeout(this.slidingOverflowTimer);
         this.slidingOverflowTimer = null;
@@ -419,11 +472,10 @@ export class Toolbar {
     // Run once synchronously to avoid a visible wrapped frame, then remeasure
     // after layout settles for browser font and sub-pixel sizing differences.
     refresh(true);
-    if (view?.requestAnimationFrame) view.requestAnimationFrame(() => refresh(true));
-    else queueMicrotask(() => refresh(true));
+    scheduleRefresh(true);
   }
 
-  private refreshSliding(): void {
+  private refreshSliding(availableWidth = this.availableToolbarWidth()): void {
     const primary = this.slidingPrimary;
     const toggleWrap = this.slidingToggleWrap;
     const content = this.slidingContent;
@@ -436,17 +488,20 @@ export class Toolbar {
     content.replaceChildren();
     toggleWrap.hidden = true;
 
-    const availableWidth = this.availableToolbarWidth();
-    if (availableWidth <= 0 || this.occupiedWidth(primary) <= availableWidth) {
+    let occupiedWidth = this.occupiedWidth(primary);
+    if (availableWidth <= 0 || occupiedWidth <= availableWidth) {
       this.setSlidingOpen(false);
       this.repositionToolbarDropdowns();
       return;
     }
 
     toggleWrap.hidden = false;
-    for (let index = this.sections.length - 1; index >= 0; index--) {
-      if (this.occupiedWidth(primary) <= availableWidth) break;
+    // The first group contains the highest-priority controls and remains in the
+    // primary row even when the host is exceptionally narrow.
+    for (let index = this.sections.length - 1; index > 0; index--) {
+      if (occupiedWidth <= availableWidth) break;
       content.prepend(...this.sections[index]!);
+      occupiedWidth = this.occupiedWidth(primary);
     }
 
     if (content.childElementCount === 0) {
@@ -524,13 +579,39 @@ export class Toolbar {
       (Number.isFinite(rightPadding) ? rightPadding : 0);
     // Never trust only the toolbar width: min-content flex/grid layouts can
     // report a toolbar wider than its consumer host.
-    const boundaryWidths = [
-      this.container.clientWidth,
-      this.container.parentElement?.clientWidth,
-      this.container.parentElement?.parentElement?.clientWidth
-    ].filter((width): width is number => typeof width === 'number' && width > 0);
-    if (boundaryWidths.length === 0) return 0;
+    console.log('availableToolbarWidth', {
+      container: this.container,
+      containerWidth: this.container.clientWidth,
+      parentWidth: this.container.parentElement?.clientWidth,
+      grandparentWidth: this.container.parentElement?.parentElement?.clientWidth,
+      padding
+    });
+    const boundaries = this.toolbarWidthBoundaries();
+    const boundaryWidths = boundaries.map((boundary) => {
+      const boundaryStyles = view?.getComputedStyle(boundary);
+      const borderLeft = Number.parseFloat(boundaryStyles?.borderLeftWidth ?? '0');
+      const borderRight = Number.parseFloat(boundaryStyles?.borderRightWidth ?? '0');
+      const borderWidth =
+        (Number.isFinite(borderLeft) ? borderLeft : 0) +
+        (Number.isFinite(borderRight) ? borderRight : 0);
+      const rectWidth = boundary.getBoundingClientRect().width;
+      // DOMRect retains fractional grid/flex track sizes whereas clientWidth
+      // rounds to an integer. Fall back for jsdom and genuinely unmeasured boxes.
+      return rectWidth > 0 ? Math.max(0, rectWidth - borderWidth) : boundary.clientWidth;
+    });
+    console.log('availableToolbarWidth', { boundaryWidths, padding });
+    if (boundaryWidths.length === 0 || boundaryWidths.some((width) => width <= 0)) return 0;
     return Math.min(...boundaryWidths) - padding;
+  }
+
+  private toolbarWidthBoundaries(): HTMLElement[] {
+    const boundaries: HTMLElement[] = [];
+    let boundary: HTMLElement | null = this.container;
+    while (boundary) {
+      boundaries.push(boundary);
+      boundary = boundary.parentElement;
+    }
+    return boundaries;
   }
 
   private occupiedWidth(parent: HTMLElement): number {
@@ -545,9 +626,16 @@ export class Toolbar {
       const childStyles = view?.getComputedStyle(child);
       const marginLeft = Number.parseFloat(childStyles?.marginLeft ?? '0');
       const marginRight = Number.parseFloat(childStyles?.marginRight ?? '0');
+      // These controls use margin-left:auto only to align themselves at the end
+      // of the row. Chromium exposes the resolved free space as a pixel margin;
+      // counting it as required content width prevents the total from shrinking
+      // as groups are moved into overflow.
+      const hasAutoStartMargin =
+        child.classList.contains('rly-toolbar-overflow') ||
+        child.classList.contains('rly-toolbar-sliding-toggle');
       return (
         child.getBoundingClientRect().width +
-        (Number.isFinite(marginLeft) ? marginLeft : 0) +
+        (!hasAutoStartMargin && Number.isFinite(marginLeft) ? marginLeft : 0) +
         (Number.isFinite(marginRight) ? marginRight : 0)
       );
     };

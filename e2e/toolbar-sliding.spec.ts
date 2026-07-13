@@ -19,6 +19,10 @@ test.describe('sliding toolbar mode', () => {
     const collapsedContent = (await editor.content.boundingBox())!;
 
     expect(collapsedToolbar.height).toBeLessThan(50);
+    await expect(primary.getByTestId('tb-undo')).toBeVisible();
+    await expect(primary.getByTestId('tb-redo')).toBeVisible();
+    await expect(primary.getByTestId('tb-bold')).toBeVisible();
+    await expect(primary.getByTestId('tb-italic')).toBeVisible();
     expect(await more.getAttribute('aria-haspopup')).toBeNull();
     await expect(more).toHaveAttribute('aria-expanded', 'false');
     await expect(drawer).toHaveAttribute('aria-hidden', 'true');
@@ -97,6 +101,51 @@ test.describe('sliding toolbar mode', () => {
     expect((await editor.toolbar.boundingBox())!.height).toBeLessThan(50);
   });
 
+  test('settles on the final grid width during continuous viewport resizing', async ({ page }) => {
+    const primary = editor.toolbar.getByTestId('toolbar-primary');
+    const drawer = editor.root.getByTestId('toolbar-sliding-drawer');
+
+    for (const width of [700, 1500, 760, 1420, 810, 1360, 900, 1280]) {
+      await page.setViewportSize({ width, height: 760 });
+    }
+
+    await expect(primary.getByTestId('tb-undo')).toBeVisible();
+    await expect(primary.getByTestId('tb-redo')).toBeVisible();
+    await expect(primary.getByTestId('tb-bold')).toBeVisible();
+    await expect(primary.getByTestId('tb-italic')).toBeVisible();
+    await expect(drawer.getByTestId('tb-bold')).toHaveCount(0);
+    await expect(drawer.getByTestId('tb-forecolor')).toHaveCount(1);
+  });
+
+  test('retains fitting groups in a fractional two-column grid track', async ({ page }) => {
+    await page.setViewportSize({ width: 1415, height: 900 });
+    const primary = editor.toolbar.getByTestId('toolbar-primary');
+    const toolbarBox = (await editor.toolbar.boundingBox())!;
+
+    expect(toolbarBox.width).toBeGreaterThan(630);
+    expect(toolbarBox.width).toBeLessThan(631);
+    await expect(primary.getByTestId('tb-undo')).toBeVisible();
+    await expect(primary.getByTestId('tb-bold')).toBeVisible();
+    await expect(primary.getByTestId('tb-selectall')).toBeVisible();
+    await expect(primary.getByTestId('tb-underline')).toBeVisible();
+  });
+
+  test('uses the resolved grid width on repeated React StrictMode initial loads', async ({
+    page
+  }) => {
+    for (let load = 0; load < 5; load++) {
+      await page.reload();
+      const root = page.getByTestId('reditor-clean-root');
+      const primary = root.getByTestId('toolbar-primary');
+
+      await expect(root).toHaveCount(1);
+      await expect(primary.getByTestId('tb-undo')).toBeVisible();
+      await expect(primary.getByTestId('tb-redo')).toBeVisible();
+      await expect(primary.getByTestId('tb-bold')).toBeVisible();
+      await expect(primary.getByTestId('tb-italic')).toBeVisible();
+    }
+  });
+
   test('supports disclosure keyboard navigation and restores focus on Escape', async ({ page }) => {
     const more = editor.button('more');
     const drawer = editor.root.getByTestId('toolbar-sliding-drawer');
@@ -132,6 +181,9 @@ test.describe('sliding toolbar mode', () => {
     const colorPanel = editor.root.getByTestId('dd-forecolor');
     await page.setViewportSize({ width: 360, height: 760 });
     await expect(colorPanel).toBeVisible();
+    await expect
+      .poll(async () => (await colorPanel.boundingBox())?.x ?? Number.NEGATIVE_INFINITY)
+      .toBeGreaterThanOrEqual(8);
     const colorPanelBox = (await colorPanel.boundingBox())!;
     expect(colorPanelBox.x).toBeGreaterThanOrEqual(8);
     expect(colorPanelBox.x + colorPanelBox.width).toBeLessThanOrEqual(352);
