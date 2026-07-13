@@ -7,7 +7,7 @@ test.describe('blockquote styling opt-out', () => {
     await editor.goto();
     await editor.clear();
     await editor.type('quoted text');
-    await page.keyboard.press('ControlOrMeta+a');
+    await editor.selectWord('quoted');
     await editor.button('blockquote').click();
 
     const bq = editor.content.locator('blockquote');
@@ -22,7 +22,7 @@ test.describe('blockquote styling opt-out', () => {
     await expect(editor.content).toBeVisible();
     await editor.clear();
     await editor.type('quoted text');
-    await page.keyboard.press('ControlOrMeta+a');
+    await editor.selectWord('quoted');
     await editor.button('blockquote').click();
 
     const bq = editor.content.locator('blockquote');
