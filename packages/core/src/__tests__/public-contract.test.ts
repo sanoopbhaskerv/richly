@@ -25,7 +25,11 @@ function interfaceMembers(file: string, interfaceName: string): Record<string, s
     declaration.members.flatMap((member) => {
       if (!ts.isPropertySignature(member) || !member.name || !member.type) return [];
       const name = member.name.getText(source);
-      const type = member.type.getText(source).replace(/\s+/g, ' ').trim();
+      const type = member.type
+        .getText(source)
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
       return [[name, type]];
     })
   );
@@ -66,6 +70,12 @@ describe('1.0 public contract tripwires', () => {
         'toolbarOverflow',
         'wordCount'
       ].sort()
+    );
+  });
+
+  it('freezes the textStyles personalization surface', () => {
+    expect(interfaceMembers('src/editor/Editor.ts', 'EditorConfig').textStyles).toBe(
+      '{ colors?: string[]; themeColors?: string[]; fontSizes?: string[]; }'
     );
   });
 

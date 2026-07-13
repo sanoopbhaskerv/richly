@@ -1,6 +1,7 @@
 import type { Plugin } from './types';
 import { getEditorConfig, type Editor } from '../editor/Editor';
 import { createColorPickerPanel } from '../ui/colorpicker/ColorPicker';
+import { normalizeHex } from '../ui/colorpicker/ColorUtils';
 import { createFontSizeControl, type FontSizeCommandArgs } from '../ui/FontSizeControl';
 import {
   applyStyledSpan,
@@ -73,10 +74,29 @@ const COLOR_LABELS: Record<string, string> = {
   '#000000': 'Black'
 };
 
+const colorIdentity = (color: string): string =>
+  (normalizeHex(color) ?? color.trim()).toLowerCase();
+
+function prependThemeColors(themeColors: string[], palette: string[]): string[] {
+  if (!themeColors.length) return palette;
+
+  const seenThemeColors = new Set<string>();
+  const theme = themeColors.flatMap((rawColor) => {
+    const color = rawColor.trim();
+    if (!color) return [];
+    const identity = colorIdentity(color);
+    if (seenThemeColors.has(identity)) return [];
+    seenThemeColors.add(identity);
+    return [color];
+  });
+
+  return [...theme, ...palette.filter((color) => !seenThemeColors.has(colorIdentity(color)))];
+}
+
 function textStyleOptions(editor: Editor): { colors: string[]; fontSizes: string[] } {
   const cfg = getEditorConfig(editor).textStyles;
   return {
-    colors: cfg?.colors ?? DEFAULT_COLORS,
+    colors: prependThemeColors(cfg?.themeColors ?? [], cfg?.colors ?? DEFAULT_COLORS),
     fontSizes: cfg?.fontSizes ?? DEFAULT_FONT_SIZES
   };
 }
@@ -92,7 +112,7 @@ function createColorPanel(
     close,
     palette: textStyleOptions(editor).colors.map((color) => ({
       value: color,
-      label: COLOR_LABELS[color.toLowerCase()] ?? `Color ${color}`
+      label: COLOR_LABELS[(normalizeHex(color) ?? color).toLowerCase()] ?? `Color ${color}`
     })),
     getCurrentColor: () => editor.queryCommandValue(command),
     onApply: (color) => editor.execCommand(command, color ?? '')

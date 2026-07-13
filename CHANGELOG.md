@@ -11,6 +11,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 - Added `toolbarMode: 'sliding'`, which keeps a single primary toolbar row and
   reveals overflow groups in an accessible, animated inline drawer.
+- Added `textStyles.themeColors` to place brand colors first in both the text
+  and highlight palettes while retaining the configured or built-in palette.
 
 ## [1.0.0-rc.1] - 2026-07-13
 

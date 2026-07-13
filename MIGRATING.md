@@ -87,6 +87,7 @@ interface EditorConfig {
   testIdPrefix?: string;
   textStyles?: {
     colors?: string[];
+    themeColors?: string[];
     fontSizes?: string[];
   };
   images?: {
@@ -104,6 +105,12 @@ One of `target` or `selector` is required; `target` wins when both are set.
 `sliding` is an additive layout mode: it keeps one primary row and reveals
 overflow groups in an inline drawer. The alias `toolbarOverflow: true`
 continues to select the floating `more` mode.
+
+`textStyles.themeColors` prepends brand colors to both the text-color and
+highlight-color palettes. Duplicates within `themeColors` and matching base HEX
+entries are removed. The existing `textStyles.colors` option continues to
+replace the base palette; when both are provided, theme colors appear first and
+the replacement palette follows.
 
 The React `EditorProps` surface mirrors the applicable core options through
 `toolbar`, `toolbarMode`, `toolbarOverflow`, `menubar`, `statusbar`,

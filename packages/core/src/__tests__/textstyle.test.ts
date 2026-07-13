@@ -231,6 +231,70 @@ describe('Text Style Commands & Queries', () => {
     expect(button.style.getPropertyValue('--rly-control-value')).toBe('');
   });
 
+  it('prepends deduplicated theme colors to both built-in color palettes', () => {
+    const target = document.createElement('div');
+    document.body.appendChild(target);
+    ed = Editor.init({
+      target,
+      initialContent: '<p>themed</p>',
+      toolbar: 'forecolor backcolor',
+      textStyles: { themeColors: [' #123456 ', '#fff', '#123456'] }
+    });
+
+    const paletteTestIds = (name: 'forecolor' | 'backcolor'): string[] => {
+      ed.getRoot().querySelector<HTMLButtonElement>(`[data-testid="tb-${name}"]`)!.click();
+      const values = Array.from(
+        ed
+          .getRoot()
+          .querySelectorAll<HTMLElement>(
+            `[data-testid="dd-${name}"] .rly-color-grid .rly-color-swatch`
+          )
+      ).map((swatch) => swatch.dataset.testid ?? '');
+      ed.getRoot().querySelector<HTMLButtonElement>(`[data-testid="tb-${name}"]`)!.click();
+      return values;
+    };
+
+    const expectedStart = ['swatch-123456', 'swatch-fff', 'swatch-fee2e2'];
+    const foreColors = paletteTestIds('forecolor');
+    const backColors = paletteTestIds('backcolor');
+
+    expect(foreColors.slice(0, 3)).toEqual(expectedStart);
+    expect(backColors.slice(0, 3)).toEqual(expectedStart);
+    expect(foreColors.filter((value) => value === 'swatch-123456')).toHaveLength(1);
+    expect(foreColors).not.toContain('swatch-ffffff');
+    expect(
+      ed
+        .getRoot()
+        .querySelector('[data-testid="dd-backcolor"] [data-testid="swatch-fff"]')
+        ?.getAttribute('aria-label')
+    ).toBe('White, #fff');
+  });
+
+  it('prepends theme colors to a replacement colors palette', () => {
+    const target = document.createElement('div');
+    document.body.appendChild(target);
+    ed = Editor.init({
+      target,
+      initialContent: '<p>themed</p>',
+      toolbar: 'forecolor',
+      textStyles: {
+        themeColors: ['#0f766e', '#be123c'],
+        colors: ['#be123c', '#abcdef']
+      }
+    });
+
+    ed.getRoot().querySelector<HTMLButtonElement>('[data-testid="tb-forecolor"]')!.click();
+    const swatches = Array.from(
+      ed
+        .getRoot()
+        .querySelectorAll<HTMLElement>(
+          '[data-testid="dd-forecolor"] .rly-color-grid .rly-color-swatch'
+        )
+    ).map((swatch) => swatch.dataset.testid);
+
+    expect(swatches).toEqual(['swatch-0f766e', 'swatch-be123c', 'swatch-abcdef']);
+  });
+
   it('applies advanced custom colors and tracks recent and cleared states', () => {
     ed = createTestEditor('<p>plain custom</p>');
     selectText(ed, 'custom');

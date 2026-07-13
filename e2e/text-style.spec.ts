@@ -60,6 +60,18 @@ test.describe('text style ui', () => {
       .toBe('rgb(220, 252, 231)');
   });
 
+  test('configured theme colors are available to text and highlight palettes', async () => {
+    await editor.selectWord('bravo');
+    await editor.clickButton('forecolor');
+    await editor.root.getByTestId('dd-forecolor').getByTestId('swatch-0f766e').click();
+    await editor.expectContentMatches(/color:\s*(#0f766e|rgb\(15,\s*118,\s*110\))/i);
+
+    await editor.selectWord('charlie');
+    await editor.clickButton('backcolor');
+    await editor.root.getByTestId('dd-backcolor').getByTestId('swatch-be123c').click();
+    await editor.expectContentMatches(/background-color:\s*(#be123c|rgb\(190,\s*18,\s*60\))/i);
+  });
+
   test('none swatch clears color style', async () => {
     await editor.selectWord('bravo');
     await editor.clickButton('forecolor');
@@ -285,7 +297,7 @@ test.describe('text style ui', () => {
     const reset = panel.getByTestId('swatch-none');
     await expect(reset).toBeFocused();
     await reset.press('Tab');
-    const focusedSwatch = panel.getByTestId('swatch-fee2e2');
+    const focusedSwatch = panel.getByTestId('swatch-0f766e');
     await expect(focusedSwatch).toBeFocused();
     const before = await page.evaluate(() => window.scrollY);
     await page.keyboard.press('ArrowDown');

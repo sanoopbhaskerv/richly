@@ -32,7 +32,10 @@ export interface EditorConfig {
   testIdPrefix?: string;
   /** Configure color swatches and Format-menu font size presets. */
   textStyles?: {
+    /** Replace Richly's built-in palette for both text and highlight colors. */
     colors?: string[];
+    /** Brand/theme colors placed before the configured or built-in palette. */
+    themeColors?: string[];
     fontSizes?: string[];
   };
   /** Image upload settings used by the image plugin and clipboard/drop routing. */

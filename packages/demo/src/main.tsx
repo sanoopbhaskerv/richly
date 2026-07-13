@@ -32,6 +32,7 @@ VanillaEditor.init({
   target: document.getElementById('vanilla-host')!,
   testIdPrefix: 'editor',
   images: { upload: uploadImage },
+  textStyles: { themeColors: ['#0f766e', '#be123c'] },
   plugins: [
     highlightPlugin,
     createWordGoalPlugin({ goal: 50, testId: 'status-vanilla-word-goal' })

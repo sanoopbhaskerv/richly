@@ -120,29 +120,29 @@ Editor.init({
   resize: true, // set false to remove the resize grip
   wordCount: true, // true | false | { words, characters, selection }
   images: { upload: uploadFn }, // image upload hook (see below)
-  textStyles: { colors, fontSizes }, // swatches + Format-menu size presets
+  textStyles: { themeColors, colors, fontSizes }, // theme colors + swatches + size presets
   blockquoteStyle: true, // set false to opt out of the default blockquote look
   plugins: [myPlugin], // additional plugins
   testIdPrefix: 'editor' // prefix for chrome data-testids
 });
 ```
 
-| Option            | Type                            | Default    | Description                                                    |
-| ----------------- | ------------------------------- | ---------- | -------------------------------------------------------------- |
-| `target`          | `HTMLElement`                   | —          | Element to mount into. Required unless `selector` is given.    |
-| `selector`        | `string`                        | —          | CSS selector for the mount point.                              |
-| `initialContent`  | `string`                        | `''`       | Initial HTML, sanitized on load.                               |
-| `toolbar`         | `string`                        | full set   | Space/`\|`-separated toolbar spec.                             |
-| `toolbarMode`     | `'wrap' \| 'more' \| 'sliding'` | `'wrap'`   | Wrap groups, float overflow, or expand it in an inline drawer. |
-| `menubar`         | `boolean`                       | `true`     | Show the menubar.                                              |
-| `statusbar`       | `boolean`                       | `true`     | Show the statusbar.                                            |
-| `resize`          | `boolean`                       | `true`     | Show the statusbar resize grip.                                |
-| `wordCount`       | `boolean \| WordCountOptions`   | `true`     | Word/character/selection counts in the statusbar.              |
-| `images`          | `ImagesConfig`                  | —          | Upload hook, accept filter, and size limit.                    |
-| `textStyles`      | `{ colors?, fontSizes? }`       | presets    | Color swatches and Format-menu font-size presets.              |
-| `blockquoteStyle` | `boolean`                       | `true`     | Set `false` to opt out of Richly's default blockquote styling. |
-| `plugins`         | `Plugin[]`                      | `[]`       | Extra plugins registered after the defaults.                   |
-| `testIdPrefix`    | `string`                        | `'editor'` | Prefix for `data-testid` hooks on the editor chrome.           |
+| Option            | Type                                    | Default    | Description                                                    |
+| ----------------- | --------------------------------------- | ---------- | -------------------------------------------------------------- |
+| `target`          | `HTMLElement`                           | —          | Element to mount into. Required unless `selector` is given.    |
+| `selector`        | `string`                                | —          | CSS selector for the mount point.                              |
+| `initialContent`  | `string`                                | `''`       | Initial HTML, sanitized on load.                               |
+| `toolbar`         | `string`                                | full set   | Space/`\|`-separated toolbar spec.                             |
+| `toolbarMode`     | `'wrap' \| 'more' \| 'sliding'`         | `'wrap'`   | Wrap groups, float overflow, or expand it in an inline drawer. |
+| `menubar`         | `boolean`                               | `true`     | Show the menubar.                                              |
+| `statusbar`       | `boolean`                               | `true`     | Show the statusbar.                                            |
+| `resize`          | `boolean`                               | `true`     | Show the statusbar resize grip.                                |
+| `wordCount`       | `boolean \| WordCountOptions`           | `true`     | Word/character/selection counts in the statusbar.              |
+| `images`          | `ImagesConfig`                          | —          | Upload hook, accept filter, and size limit.                    |
+| `textStyles`      | `{ themeColors?, colors?, fontSizes? }` | presets    | Theme colors, swatches, and Format-menu font-size presets.     |
+| `blockquoteStyle` | `boolean`                               | `true`     | Set `false` to opt out of Richly's default blockquote styling. |
+| `plugins`         | `Plugin[]`                              | `[]`       | Extra plugins registered after the defaults.                   |
+| `testIdPrefix`    | `string`                                | `'editor'` | Prefix for `data-testid` hooks on the editor chrome.           |
 
 > **Note:** `toolbarOverflow` is deprecated in favor of `toolbarMode`.
 > `toolbarOverflow: true` maps to `toolbarMode: 'more'` and `false` to
@@ -213,20 +213,25 @@ Arrow Up/Down, or click −/+ to apply it to the complete selection. Clearing th
 field removes explicit sizing and returns the text to its inherited size. Mixed
 selections display the computed size at the first selected text position.
 
-Customize the color swatches and font-size presets offered by the Format menu.
-The built-in defaults are exported so you can extend rather than replace them.
+Place product or brand colors first with `themeColors`, replace the remaining
+color swatches with `colors`, and customize the font-size presets offered by
+the Format menu. `themeColors` is shared by the text-color and highlight-color
+palettes. Duplicate theme/base HEX values appear only once. The built-in
+defaults are exported for consumers that want to construct a complete custom
+palette.
+
 Both the text-color and background-color palettes include a Richly-native
 advanced picker in the same popover. It provides saturation/brightness, hue,
 opacity, synchronized HEX and slider views, recent colors, presets, and an
 explicit Cancel/Done flow for colors outside the configured swatches.
 
 ```ts
-import { Editor, DEFAULT_COLORS, DEFAULT_FONT_SIZES } from '@richly/core';
+import { Editor } from '@richly/core';
 
 Editor.init({
   target,
   textStyles: {
-    colors: [...DEFAULT_COLORS, '#00b894'],
+    themeColors: ['#0f766e', '#be123c'],
     fontSizes: ['14px', '16px', '20px', '28px'] // default: 12/14/16/18/24/32px
   }
 });
