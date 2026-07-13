@@ -23,26 +23,32 @@
   --demo-code-bg: #11131a;
   --demo-code-text: #b8f3d2;
   --demo-shadow: 0 18px 50px rgba(29, 38, 64, 0.1);
+  --brand-wordmark: #0b0c5e;
 }
 
 html[data-theme='dark'] {
   color-scheme: dark;
-  --demo-bg: #090b11;
+  --demo-bg: #0b1020;
   --demo-bg-accent: rgba(124, 58, 237, 0.16);
   --demo-surface: rgba(17, 20, 29, 0.9);
   --demo-surface-solid: #12151e;
   --demo-surface-muted: #0e1119;
   --demo-border: #272c3a;
   --demo-border-strong: #373d4f;
-  --demo-text: #f5f7ff;
-  --demo-text-muted: #aab2c5;
-  --demo-text-faint: #8993a9;
+  --demo-text: #f2f3ff;
+  --demo-text-muted: #b8beda;
+  --demo-text-faint: #858daf;
   --demo-accent: #9b7cf7;
   --demo-accent-strong: #b49cff;
   --demo-accent-soft: rgba(124, 58, 237, 0.2);
   --demo-code-bg: #080a0f;
   --demo-code-text: #a7f3d0;
   --demo-shadow: 0 22px 70px rgba(0, 0, 0, 0.34);
+  --brand-wordmark: #f2f3ff;
+  --rly-bg: #0b1020;
+  --rly-text-primary: #f2f3ff;
+  --rly-text-secondary: #b8beda;
+  --rly-text-muted: #858daf;
 }
 
 * {
@@ -104,17 +110,25 @@ a {
 }
 
 .brand-mark {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 12px;
-  color: #ffffff;
-  background: linear-gradient(145deg, #a855f7, #4f46e5);
-  box-shadow: 0 8px 24px rgba(109, 56, 213, 0.35);
-  font-size: 20px;
-  font-weight: 800;
+  display: inline-flex;
+  width: 50px;
+  height: 50px;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid rgba(11, 12, 94, 0.12);
+  box-shadow:
+    0 10px 24px rgba(22, 28, 120, 0.26),
+    0 2px 6px rgba(16, 18, 82, 0.2);
+}
+
+.brand-mark img {
+  width: 50px;
+  height: 50px;
+  display: block;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 .brand-name,
@@ -123,9 +137,11 @@ a {
 }
 
 .brand-name {
-  font-size: 18px;
-  font-weight: 760;
+  font-size: 40px;
+  font-weight: 700;
   letter-spacing: -0.02em;
+  color: var(--brand-wordmark);
+  line-height: 1;
 }
 
 .brand-subtitle {
@@ -660,8 +676,18 @@ html[data-theme='dark'] .fixture-chip--new {
   }
 
   .brand-mark {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .brand-mark svg {
+    width: 38px;
+    height: 38px;
+  }
+
+  .brand-mark img {
+    width: 38px;
+    height: 38px;
   }
 
   .brand-subtitle {

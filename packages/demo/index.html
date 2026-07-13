@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,10 +12,11 @@
   <body>
     <header class="app-header">
       <a class="brand" href="#playground" aria-label="Richly playground home">
-        <span class="brand-mark" aria-hidden="true">R</span>
+        <span class="brand-mark" aria-hidden="true">
+          <img src="/assets/richly_logo.png" alt="" />
+        </span>
         <span>
           <span class="brand-name">Richly</span>
-          <span class="brand-subtitle">Editor playground</span>
         </span>
       </a>
       <div class="header-actions">
@@ -33,7 +34,7 @@
           type="button"
           data-testid="theme-toggle"
           aria-label="Toggle light and dark theme"
-          aria-pressed="true"
+          aria-pressed="false"
           onclick="
             const root = document.documentElement;
             const isDark = root.dataset.theme === 'dark';
@@ -43,6 +44,9 @@
         >
           <span aria-hidden="true">◐</span> Theme
         </button>
+        <a class="header-cta" href="https://github.com/sanoopbhaskerv/richly#install">
+          Get Richly <span aria-hidden="true">→</span>
+        </a>
       </div>
     </header>
 
