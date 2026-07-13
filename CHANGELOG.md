@@ -7,6 +7,12 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Rendered portable `Mod` shortcuts as native platform labels in toolbar
+  tooltips as well as menus: `⌘` symbols on Apple platforms and `Ctrl` modifier
+  names on Windows and Linux.
+
 ## [1.0.0-rc.3] - 2026-07-13
 
 ### Fixed

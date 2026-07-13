@@ -1,6 +1,7 @@
 import type { Editor } from '../editor/Editor';
 import type { ToolbarMode } from '../editor/Editor';
 import { icons } from './icons';
+import { formatShortcutLabel } from './Shortcut';
 
 let slidingDrawerId = 0;
 const SLIDING_ANIMATION_SETTLE_MS = 300;
@@ -90,7 +91,7 @@ export class Toolbar {
         // data-tooltip drives the CSS ::after tooltip; no native title so the OS
         // tooltip doesn't double-show.
         const tooltipText = buttonSpec.shortcut
-          ? `${buttonSpec.tooltip} (${buttonSpec.shortcut})`
+          ? `${buttonSpec.tooltip} (${formatShortcutLabel(buttonSpec.shortcut, doc)})`
           : buttonSpec.tooltip;
         btn.innerHTML = icons[buttonSpec.icon] ?? buttonSpec.icon;
         if (buttonSpec.type === 'toggle') btn.setAttribute('aria-pressed', 'false');

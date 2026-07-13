@@ -1,14 +1,7 @@
 import type { Editor } from '../editor/Editor';
+import { formatShortcutLabel } from './Shortcut';
 
 const MENU_ORDER = ['file', 'edit', 'view', 'insert', 'format', 'tools', 'table', 'help'];
-
-function shortcutLabel(shortcut: string, doc: Document): string {
-  const isMac = /Mac|iP/.test(doc.defaultView?.navigator.platform ?? '');
-  return shortcut
-    .replace(/Mod\+/g, isMac ? '⌘' : 'Ctrl+')
-    .replace(/Shift\+/g, isMac ? '⇧' : 'Shift+')
-    .replace(/Alt\+/g, isMac ? '⌥' : 'Alt+');
-}
 
 /**
  * Registry-driven menubar. Only menus that have registered items are shown.
@@ -67,7 +60,7 @@ export class Menubar {
         if (item.shortcut) {
           const kbd = doc.createElement('span');
           kbd.className = 'rly-kbd';
-          kbd.textContent = shortcutLabel(item.shortcut, doc);
+          kbd.textContent = formatShortcutLabel(item.shortcut, doc);
           entry.appendChild(kbd);
         }
         entry.addEventListener('mousedown', (e) => e.preventDefault()); // keep content selection

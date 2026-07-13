@@ -12,7 +12,7 @@ export interface ButtonControl {
   tooltip: string;
   command: string;
   args?: unknown;
-  /** Optional shortcut label appended to tooltip, e.g. "Mod+B". */
+  /** Portable shortcut notation appended as a platform-aware tooltip, e.g. `Mod+B`. */
   shortcut?: string;
 }
 
@@ -22,7 +22,7 @@ export interface ToggleControl {
   icon: string;
   tooltip: string;
   command: string;
-  /** Optional shortcut label appended to tooltip, e.g. "Mod+B". */
+  /** Portable shortcut notation appended as a platform-aware tooltip, e.g. `Mod+B`. */
   shortcut?: string;
 }
 
@@ -38,7 +38,7 @@ export interface PanelControl {
   panel: (editor: Editor, close: () => void) => HTMLElement;
   /** Optional command whose current value is rendered by the icon. */
   valueCommand?: string;
-  /** Optional shortcut label appended to tooltip, e.g. "Mod+B". */
+  /** Portable shortcut notation appended as a platform-aware tooltip, e.g. `Mod+B`. */
   shortcut?: string;
 }
 
