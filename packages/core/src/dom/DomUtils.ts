@@ -336,14 +336,27 @@ export function closestStyledSpanAncestor(
  * Removes the specified style property from the given range.
  * If the style is set on an ancestor span, the span is split around the range
  * so only the text within the selection has the style removed.
+ * Structural and cross-block selections use the same block-local normalization
+ * as style application, preserving list and block structure while unwrapping.
  *
  * @param range - The document range from which to remove the style.
  * @param prop - The CSS style property to remove (e.g., 'color', 'background-color').
  * @param root - The editor root container to bound the DOM traversal.
- * @returns The updated range.
+ * @returns A connected range selecting the content from which the style was removed.
  */
 export function removeStyledSpan(range: Range, prop: string, root: HTMLElement): Range {
   const doc = range.startContainer.ownerDocument!;
+  const inlineRanges = inlineRangesForBlocks(range, root);
+  if (shouldUseInlineRanges(range, inlineRanges)) {
+    const cleanedRanges = new Array<Range>(inlineRanges.length);
+    // Work backwards for the same reason as application: extracting or
+    // unwrapping a later block must not disturb an earlier saved boundary.
+    for (let index = inlineRanges.length - 1; index >= 0; index--) {
+      cleanedRanges[index] = removeStyledSpan(inlineRanges[index]!, prop, root);
+    }
+    return combineRanges(cleanedRanges);
+  }
+
   const ancestor =
     closestStyledSpanAncestor(range.commonAncestorContainer, prop, root) ??
     closestStyledSpanAncestor(range.startContainer, prop, root);
@@ -544,7 +557,108 @@ function isAtAbsoluteEnd(node: Node, offset: number, ancestor: Node): boolean {
   return curr === ancestor;
 }
 
-/** Wrap the range in (or merge into) a span carrying `prop: value`. */
+/**
+ * Convert a browser selection into ranges that are safe for inline wrappers.
+ *
+ * Native selections are not guaranteed to start and end in text nodes. For
+ * example, dragging over the first list item can produce a range from `UL:0`
+ * to `LI:0` on the second item. Extracting that range directly includes the
+ * first `<li>` and an empty slice of the second. A `<span>` around that
+ * fragment is invalid HTML, and browsers repair it by moving or inserting list
+ * items.
+ *
+ * Each returned range is clipped to one leaf block. The strict overlap checks
+ * intentionally discard blocks that merely touch the selection boundary, such
+ * as the second item in the `LI:0` example above.
+ *
+ * @param range - Native selection range to normalize.
+ * @param root - Editor body that bounds block discovery.
+ * @returns Non-collapsed, block-local ranges in document order.
+ */
+function inlineRangesForBlocks(range: Range, root: HTMLElement): Range[] {
+  if (range.collapsed) return [range];
+
+  const doc = range.startContainer.ownerDocument!;
+  const rangeType = doc.defaultView?.Range ?? Range;
+  return blocksInRange(range, root).flatMap((block) => {
+    const blockRange = doc.createRange();
+    blockRange.selectNodeContents(block);
+    const overlaps =
+      range.compareBoundaryPoints(rangeType.START_TO_END, blockRange) > 0 &&
+      range.compareBoundaryPoints(rangeType.END_TO_START, blockRange) < 0;
+    if (!overlaps) return [];
+
+    const inlineRange = doc.createRange();
+    if (block.contains(range.startContainer)) {
+      inlineRange.setStart(range.startContainer, range.startOffset);
+    } else {
+      inlineRange.setStart(blockRange.startContainer, blockRange.startOffset);
+    }
+    if (block.contains(range.endContainer)) {
+      inlineRange.setEnd(range.endContainer, range.endOffset);
+    } else {
+      inlineRange.setEnd(blockRange.endContainer, blockRange.endOffset);
+    }
+    return inlineRange.collapsed ? [] : [inlineRange];
+  });
+}
+
+/**
+ * Restore one visible selection after several block-local mutations.
+ *
+ * The individual ranges must be supplied in document order and must remain
+ * connected after their mutations complete.
+ *
+ * @param ranges - Updated ranges returned by each block-local operation.
+ * @returns A range spanning from the first updated start to the last updated end.
+ */
+function combineRanges(ranges: Range[]): Range {
+  const first = ranges[0]!;
+  const last = ranges[ranges.length - 1]!;
+  const out = first.startContainer.ownerDocument!.createRange();
+  out.setStart(first.startContainer, first.startOffset);
+  out.setEnd(last.endContainer, last.endOffset);
+  return out;
+}
+
+/**
+ * Whether styling must use the clipped ranges instead of the native range.
+ *
+ * A single clipped range still matters: a structural selection may contain
+ * only one non-empty block while its original boundaries include whole block
+ * elements. Comparing all four boundary fields prevents that original range
+ * from reaching `extractContents()` and creating `<span><li>…</li></span>`.
+ *
+ * @param range - Original native selection range.
+ * @param inlineRanges - Block-local candidates derived from that range.
+ * @returns `true` when the operation must recurse over the clipped ranges.
+ */
+function shouldUseInlineRanges(range: Range, inlineRanges: Range[]): boolean {
+  if (inlineRanges.length !== 1) return inlineRanges.length > 1;
+  const inlineRange = inlineRanges[0]!;
+  return (
+    range.startContainer !== inlineRange.startContainer ||
+    range.startOffset !== inlineRange.startOffset ||
+    range.endContainer !== inlineRange.endContainer ||
+    range.endOffset !== inlineRange.endOffset
+  );
+}
+
+/**
+ * Apply an inline CSS property without allowing a styling span to cross a
+ * block boundary.
+ *
+ * Cross-block and structural browser selections are first normalized into
+ * block-local ranges. Existing style spans are split, reused, and merged where
+ * possible so repeated formatting does not create redundant nesting. Passing
+ * an empty value delegates to {@link removeStyledSpan}.
+ *
+ * @param range - Selection whose textual content should be formatted.
+ * @param prop - CSS property name, such as `color` or `background-color`.
+ * @param value - CSS property value; an empty value removes the property.
+ * @param root - Editor body that bounds ancestor and block traversal.
+ * @returns A connected range selecting the formatted content.
+ */
 export function applyStyledSpan(
   range: Range,
   prop: string,
@@ -554,6 +668,17 @@ export function applyStyledSpan(
   const doc = range.startContainer.ownerDocument!;
   if (!value) {
     return removeStyledSpan(range, prop, root);
+  }
+
+  const inlineRanges = inlineRangesForBlocks(range, root);
+  if (shouldUseInlineRanges(range, inlineRanges)) {
+    const styledRanges = new Array<Range>(inlineRanges.length);
+    // Work backwards so mutations in a later block cannot invalidate the
+    // boundary nodes saved for an earlier block.
+    for (let index = inlineRanges.length - 1; index >= 0; index--) {
+      styledRanges[index] = applyStyledSpan(inlineRanges[index]!, prop, value, root);
+    }
+    return combineRanges(styledRanges);
   }
 
   // Optimize: If the range selects the exact contents of an existing style span ancestor,

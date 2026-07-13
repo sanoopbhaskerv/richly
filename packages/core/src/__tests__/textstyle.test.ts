@@ -76,8 +76,10 @@ describe('Text Style Commands & Queries', () => {
     ed = createTestEditor('<ol><li>first</li><li>second</li><li>third</li><li>last</li></ol>');
     const items = ed.getBody().querySelectorAll('li');
     const range = document.createRange();
+    // Ending at offset 0 of the fourth item selects the first three items only;
+    // the boundary item must remain unstyled and must not become an empty item.
     range.setStart(items[0]!.firstChild!, 0);
-    range.setEnd(items[2]!.firstChild!, items[2]!.textContent!.length);
+    range.setEnd(items[3]!.firstChild!, 0);
     ed.selection.setRange(range);
 
     ed.execCommand('BackColor', '#fef9c3');
@@ -85,11 +87,17 @@ describe('Text Style Commands & Queries', () => {
     expect(ed.getBody().querySelectorAll('li')).toHaveLength(4);
     expect(normalizeHtml(ed.getContent())).toBe(
       normalizeHtml(
-        '<ol><li><span style="background-color: #fef9c3">first</span></li>' +
-          '<li><span style="background-color: #fef9c3">second</span></li>' +
-          '<li><span style="background-color: #fef9c3">third</span></li>' +
+        '<ol><li><span style="background-color: rgb(254, 249, 195)">first</span></li>' +
+          '<li><span style="background-color: rgb(254, 249, 195)">second</span></li>' +
+          '<li><span style="background-color: rgb(254, 249, 195)">third</span></li>' +
           '<li>last</li></ol>'
       )
+    );
+
+    ed.execCommand('BackColor', '');
+    expect(ed.getBody().querySelectorAll('li')).toHaveLength(4);
+    expect(ed.getContent()).toBe(
+      '<ol><li>first</li><li>second</li><li>third</li><li>last</li></ol>'
     );
   });
 

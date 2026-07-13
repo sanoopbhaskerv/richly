@@ -61,6 +61,28 @@ describe('Styled-span engine', () => {
     );
   });
 
+  it('does not wrap list items when a structural selection ends at the next item boundary', () => {
+    ed = createTestEditor('<ul><li>first</li><li>second</li><li>last</li></ul>');
+    const body = ed.getBody();
+    const list = body.querySelector('ul')!;
+    const items = list.querySelectorAll('li');
+    const range = document.createRange();
+    // This is the structural Range produced by browsers when a drag selects
+    // the first item and stops at the leading edge of the second item.
+    range.setStart(list, 0);
+    range.setEnd(items[1]!, 0);
+
+    applyStyledSpan(range, 'background-color', '#fef9c3', body);
+
+    expect(body.querySelector('span > li')).toBeNull();
+    expect(normalizeHtml(ed.getContent())).toBe(
+      normalizeHtml(
+        '<ul><li><span style="background-color: rgb(254, 249, 195)">first</span></li>' +
+          '<li>second</li><li>last</li></ul>'
+      )
+    );
+  });
+
   it('removeStyledSpan removes property and unwraps if empty', () => {
     ed = createTestEditor('<p><span style="color: red">hello</span> world</p>');
     selectText(ed, 'hello');

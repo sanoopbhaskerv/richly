@@ -72,6 +72,78 @@ test.describe('text style ui', () => {
     await editor.expectContentMatches(/background-color:\s*(#be123c|rgb\(190,\s*18,\s*60\))/i);
   });
 
+  test('background color preserves list structure when the last item is excluded', async () => {
+    await editor.content.evaluate((element) => {
+      element.innerHTML = '<ol><li>first</li><li>second</li><li>third</li><li>last</li></ol>';
+      element.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      const items = element.querySelectorAll('li');
+      const range = document.createRange();
+      // The fourth text node is a boundary only. This covers the multi-block
+      // counterpart to the structural single-item selection below.
+      range.setStart(items[0]!.firstChild!, 0);
+      range.setEnd(items[3]!.firstChild!, 0);
+      const selection = window.getSelection()!;
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+
+    await editor.clickButton('backcolor');
+    await editor.root.getByTestId('dd-backcolor').getByTestId('swatch-fef9c3').click();
+
+    const listState = await editor.content.evaluate((element) =>
+      Array.from(element.querySelectorAll('li')).map((item) => ({
+        text: item.textContent,
+        background: item.querySelector<HTMLElement>('span')?.style.backgroundColor ?? ''
+      }))
+    );
+    expect(listState).toEqual([
+      { text: 'first', background: 'rgb(254, 249, 195)' },
+      { text: 'second', background: 'rgb(254, 249, 195)' },
+      { text: 'third', background: 'rgb(254, 249, 195)' },
+      { text: 'last', background: '' }
+    ]);
+  });
+
+  test('background color on the first list item does not wrap list elements', async () => {
+    await editor.content.evaluate((element) => {
+      element.innerHTML = '<ul><li>first</li><li>second</li><li>third</li></ul>';
+      element.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      const list = element.querySelector('ul')!;
+      const items = list.querySelectorAll('li');
+      const range = document.createRange();
+      // Reproduce a real drag boundary: the selection contains the first
+      // item's content but ends structurally at offset 0 of the second item.
+      range.setStart(list, 0);
+      range.setEnd(items[1]!, 0);
+      const selection = window.getSelection()!;
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+
+    await editor.clickButton('backcolor');
+    await editor.root.getByTestId('dd-backcolor').getByTestId('swatch-f97316').click();
+
+    const listState = await editor.content.evaluate((element) => ({
+      itemCount: element.querySelectorAll('li').length,
+      invalidWrapperCount: element.querySelectorAll('span > li').length,
+      items: Array.from(element.querySelectorAll('li')).map((item) => ({
+        text: item.textContent,
+        background: item.querySelector<HTMLElement>('span')?.style.backgroundColor ?? ''
+      }))
+    }));
+    expect(listState).toEqual({
+      itemCount: 3,
+      invalidWrapperCount: 0,
+      items: [
+        { text: 'first', background: 'rgb(249, 115, 22)' },
+        { text: 'second', background: '' },
+        { text: 'third', background: '' }
+      ]
+    });
+  });
+
   test('none swatch clears color style', async () => {
     await editor.selectWord('bravo');
     await editor.clickButton('forecolor');
