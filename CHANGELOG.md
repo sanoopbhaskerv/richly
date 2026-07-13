@@ -7,6 +7,16 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.0-rc.3] - 2026-07-13
+
+### Fixed
+
+- Preserved ordered and unordered list structure when applying or removing
+  text and background styles across list-item selections. Inline formatting is
+  now clipped inside each selected `<li>`, including selections ending at
+  offset `0` of the next item, preventing invalid `<span><li>…</li></span>`
+  wrappers, empty items, and extra bullets.
+
 ## [1.0.0-rc.2] - 2026-07-13
 
 ### Added
@@ -229,7 +239,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Firefox inline-format and link commands now recognize selections whose range
   boundaries surround the inline element from its parent node.
 
-[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.2...HEAD
+[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.3...HEAD
+[1.0.0-rc.3]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.2...v1.0.0-rc.3
 [1.0.0-rc.2]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/sanoopbhaskerv/richly/compare/v0.9.0...v1.0.0-rc.1
 [0.9.0]: https://github.com/sanoopbhaskerv/richly/compare/v0.8.0...v0.9.0
