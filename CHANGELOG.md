@@ -39,6 +39,10 @@ and releases follow [Semantic Versioning](https://semver.org/).
   and document the expanded structure, spacing, alignment, and list features.
 - Extracted choice-menu rendering from the main toolbar renderer to keep
   responsive layout code and accessible popup behavior independently scoped.
+- Refactored the toolbar into a stable coordinator with focused rendering,
+  panel, command-state, keyboard, measurement, overflow, and sliding modules.
+  The public constructor, toolbar specifications, DOM contract, accessibility
+  behavior, and responsive selection preservation remain unchanged.
 
 ### Fixed
 

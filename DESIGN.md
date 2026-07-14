@@ -41,6 +41,32 @@ the CSS cascade. Development bundlers resolve those imports directly, while
 `packages/core/scripts/copy-theme.mjs` inlines them into one dependency-free
 `dist/theme.css`. The public import remains `@richly/core/theme.css`.
 
+### Toolbar composition
+
+`packages/core/src/ui/Toolbar.ts` is the stable editor-facing coordinator. It
+renders one internal model, selects a responsive strategy, subscribes command
+state refresh, and installs keyboard navigation. Feature behavior is separated
+under `packages/core/src/ui/toolbar/` by responsibility:
+
+```text
+Toolbar
+├── ToolbarRenderer + ToolbarPanelControl  control DOM and panel lifecycle
+├── ToolbarState                          command state → rendered state
+├── ToolbarKeyboard                       roving tabindex in live DOM order
+└── ToolbarLayoutServices
+    ├── ToolbarMetrics                    shared width measurements
+    ├── OverflowToolbar                   floating More panel strategy
+    └── SlidingToolbar                    in-flow disclosure strategy
+```
+
+These dependencies flow in one direction: renderers never choose responsive
+policy, layout strategies never query command state, and feature controls move
+only as atomic sections. New layout modes should consume
+`ToolbarLayoutServices`; new control types should extend `ToolbarRenderer` or a
+dedicated renderer without reaching into overflow/sliding controllers. The
+public `Toolbar` constructor, toolbar-spec syntax, DOM classes, accessibility
+attributes, and test IDs remain compatibility boundaries.
+
 ## Public API
 
 ```ts
