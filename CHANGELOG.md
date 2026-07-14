@@ -7,6 +7,15 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed inline formatting (Bold, Italic, Underline, Strikethrough) and link
+  insertion across a multi-block selection. They previously wrapped the whole
+  cross-block fragment in one inline element — nesting block elements inside an
+  inline tag and corrupting the document (e.g. a stray empty `<li>`). Each
+  block's slice is now formatted independently via the shared
+  `inlineRangesForBlocks` path already used by the color/font-size commands.
+
 ## [1.0.0-rc.5] - 2026-07-14
 
 ### Added

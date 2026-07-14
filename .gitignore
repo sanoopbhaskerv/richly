@@ -16,3 +16,4 @@ CLAUDE.md
 .graphifyignore
 .idea
 PLAN-1.0.md
+.playwright-mcp/

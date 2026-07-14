@@ -1,6 +1,13 @@
 import type { Plugin } from './types';
 import type { Editor } from '../editor/Editor';
-import { applyInline, closestTag, closestTagInRange, unwrap } from '../dom/DomUtils';
+import {
+  applyInline,
+  closestTag,
+  closestTagInRange,
+  combineRanges,
+  inlineRangesForBlocks,
+  unwrap
+} from '../dom/DomUtils';
 import { openDialog } from '../ui/Dialog';
 
 interface LinkArgs {
@@ -57,10 +64,15 @@ function insertLink(editor: Editor, args: LinkArgs): void {
     after.collapse(true);
     editor.selection.setRange(after);
   } else {
-    const out = applyInline(range, 'a');
-    const a = out.commonAncestorContainer as HTMLElement;
-    a.setAttribute('href', href);
-    editor.selection.setRange(out);
+    // Per block so a cross-block selection yields one <a> per paragraph rather
+    // than an <a> illegally wrapping block elements.
+    const subRanges = inlineRangesForBlocks(range, editor.getBody());
+    const outRanges = subRanges.map((subRange) => {
+      const out = applyInline(subRange, 'a');
+      (out.commonAncestorContainer as HTMLElement).setAttribute('href', href);
+      return out;
+    });
+    if (outRanges.length) editor.selection.setRange(combineRanges(outRanges));
   }
   editor.events.emit('change', editor.getContent());
 }

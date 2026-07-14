@@ -4,6 +4,8 @@ import {
   applyInline,
   removeInline,
   removeAllInline,
+  inlineRangesForBlocks,
+  combineRanges,
   closestTag,
   closestTagInRange,
   isEmptyElement,
@@ -103,9 +105,30 @@ function toggleInline(editor: Editor, tag: string): void {
     return;
   }
   const body = editor.getBody();
-  const active = !!closestTagInRange(range, tag, body);
-  const out = active ? removeInline(range, tag, body) : applyInline(range, tag);
-  editor.selection.setRange(out);
+  const subRanges = inlineRangesForBlocks(range, body);
+
+  // Single slice: keep the raw range so parent-boundary selections (e.g.
+  // Firefox double-click placing offsets on the parent block) still reach
+  // removeInline's ancestor-split path unchanged.
+  if (subRanges.length <= 1) {
+    const active = !!closestTagInRange(range, tag, body);
+    const out = active ? removeInline(range, tag, body) : applyInline(range, tag);
+    editor.selection.setRange(out);
+    body.normalize();
+    editor.events.emit('change', editor.getContent());
+    return;
+  }
+
+  // Multi-block selection: format each block's slice independently. Wrapping a
+  // cross-block fragment in one inline element nests block elements inside an
+  // inline tag, corrupting structure (e.g. a stray empty <li>). Each slice
+  // stays within its own block, so mutating one never invalidates the others.
+  // Toggle off only when every slice is already fully formatted.
+  const active = subRanges.every((r) => !!closestTagInRange(r, tag, body));
+  const outRanges = subRanges.map((r) =>
+    active ? removeInline(r, tag, body) : applyInline(r, tag)
+  );
+  editor.selection.setRange(combineRanges(outRanges));
   body.normalize();
   editor.events.emit('change', editor.getContent());
 }

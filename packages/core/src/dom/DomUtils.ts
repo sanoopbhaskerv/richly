@@ -575,7 +575,7 @@ function isAtAbsoluteEnd(node: Node, offset: number, ancestor: Node): boolean {
  * @param root - Editor body that bounds block discovery.
  * @returns Non-collapsed, block-local ranges in document order.
  */
-function inlineRangesForBlocks(range: Range, root: HTMLElement): Range[] {
+export function inlineRangesForBlocks(range: Range, root: HTMLElement): Range[] {
   if (range.collapsed) return [range];
 
   const doc = range.startContainer.ownerDocument!;
@@ -612,7 +612,7 @@ function inlineRangesForBlocks(range: Range, root: HTMLElement): Range[] {
  * @param ranges - Updated ranges returned by each block-local operation.
  * @returns A range spanning from the first updated start to the last updated end.
  */
-function combineRanges(ranges: Range[]): Range {
+export function combineRanges(ranges: Range[]): Range {
   const first = ranges[0]!;
   const last = ranges[ranges.length - 1]!;
   const out = first.startContainer.ownerDocument!.createRange();
