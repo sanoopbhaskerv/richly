@@ -47,6 +47,38 @@ export class OverflowToolbar {
     this.panel.setAttribute('aria-label', 'More editor tools');
     this.panel.addEventListener('mousedown', (event) => event.preventDefault());
 
+    /** Keep the floating overflow surface inside the current viewport. */
+    const positionPanel = (): void => {
+      if (!view || !this.panel.classList.contains('rly-open')) return;
+      this.panel.style.left = '';
+      this.panel.style.right = '0';
+      this.panel.style.top = '100%';
+      this.panel.style.bottom = '';
+      this.panel.style.marginTop = '4px';
+      this.panel.style.marginBottom = '';
+      this.panel.style.maxHeight = '';
+
+      const margin = 8;
+      const triggerRect = this.wrap.getBoundingClientRect();
+      const panelRect = this.panel.getBoundingClientRect();
+      if (panelRect.left < margin) {
+        this.panel.style.left = `${margin - triggerRect.left}px`;
+        this.panel.style.right = 'auto';
+      }
+
+      const below = view.innerHeight - triggerRect.bottom - margin - 4;
+      const above = triggerRect.top - margin - 4;
+      const placeAbove = panelRect.height > below && above > below;
+      const availableHeight = Math.max(80, placeAbove ? above : below);
+      this.panel.style.maxHeight = `${availableHeight}px`;
+      if (placeAbove) {
+        this.panel.style.top = 'auto';
+        this.panel.style.bottom = '100%';
+        this.panel.style.marginTop = '';
+        this.panel.style.marginBottom = '4px';
+      }
+    };
+
     const close = (): void => {
       this.panel.classList.remove('rly-open');
       this.panel
@@ -61,10 +93,19 @@ export class OverflowToolbar {
       if (open) {
         this.panel.classList.add('rly-open');
         this.toggleButton.setAttribute('aria-expanded', 'true');
+        positionPanel();
+        view?.requestAnimationFrame(positionPanel);
       }
     });
     const onDocumentClick = (): void => close();
+    const onDocumentKeydown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape' || !this.panel.classList.contains('rly-open')) return;
+      event.preventDefault();
+      close();
+      this.toggleButton.focus();
+    };
     doc.addEventListener('click', onDocumentClick);
+    doc.addEventListener('keydown', onDocumentKeydown);
 
     this.wrap.append(this.toggleButton, this.panel);
     container.appendChild(this.wrap);
@@ -83,12 +124,19 @@ export class OverflowToolbar {
     if (container.parentElement?.parentElement) {
       observer?.observe(container.parentElement.parentElement);
     }
-    view?.addEventListener('resize', refresh);
+    const onViewportChange = (): void => {
+      refresh();
+      positionPanel();
+    };
+    view?.addEventListener('resize', onViewportChange);
+    view?.addEventListener('scroll', positionPanel, true);
     editor.events.on('destroy', () => {
       destroyed = true;
       observer?.disconnect();
-      view?.removeEventListener('resize', refresh);
+      view?.removeEventListener('resize', onViewportChange);
+      view?.removeEventListener('scroll', positionPanel, true);
       doc.removeEventListener('click', onDocumentClick);
+      doc.removeEventListener('keydown', onDocumentKeydown);
       if (initialFrame !== null) view?.cancelAnimationFrame(initialFrame);
       initialFrame = null;
     });

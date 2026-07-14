@@ -943,7 +943,7 @@ function buildGridPanel(editor: Editor, close: () => void): HTMLElement {
 function buildTableContext(
   editor: Editor,
   close: () => void,
-  options: { testIdPrefix?: string; popup?: boolean } = {}
+  options: { testIdPrefix?: string; popup?: boolean; restoreSelection?: () => void } = {}
 ): HTMLElement {
   const doc = editor.getBody().ownerDocument;
   const context = doc.createElement('div');
@@ -984,6 +984,21 @@ function buildTableContext(
     btn.append(icon, label);
     btn.addEventListener('click', () => {
       close();
+      // A popup menu lives outside the editable body, so the live selection can
+      // be lost before the command runs (notably in Firefox, where an unfocused
+      // contenteditable drops its range). Re-anchor to the opening cell first.
+      options.restoreSelection?.();
+
+      console.error(
+        'DBG-action',
+        command,
+        'table=',
+        !!currentTable(editor),
+        'cell=',
+        !!currentCell(editor),
+        'anchor',
+        options.restoreSelection ? 'y' : 'n'
+      );
       editor.execCommand(command);
       if (!doc.querySelector('.rly-dialog-overlay')) editor.focus();
     });
@@ -1284,6 +1299,9 @@ function installTableContextMenu(editor: Editor): void {
   menu.setAttribute('aria-label', 'Table actions');
   menu.tabIndex = -1;
 
+  // The cell the menu was opened over, so commands can re-anchor the selection
+  // even if the editable body has since lost its DOM range.
+  let anchorCell: HTMLTableCellElement | null = null;
   const close = (restoreFocus = false): void => {
     menu.classList.remove('rly-open');
     menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]').forEach((item) => {
@@ -1291,7 +1309,12 @@ function installTableContextMenu(editor: Editor): void {
     });
     if (restoreFocus) editor.focus();
   };
-  menu.appendChild(buildTableContext(editor, close, { testIdPrefix: 'context-', popup: true }));
+  const restoreSelection = (): void => {
+    if (anchorCell && body.contains(anchorCell)) placeCaretIn(editor, anchorCell);
+  };
+  menu.appendChild(
+    buildTableContext(editor, close, { testIdPrefix: 'context-', popup: true, restoreSelection })
+  );
   menu
     .querySelectorAll<HTMLButtonElement>('[role="menuitem"]')
     .forEach((item) => (item.tabIndex = -1));
@@ -1306,7 +1329,9 @@ function installTableContextMenu(editor: Editor): void {
     clientY: number,
     focusFirst = false
   ): void => {
-    placeCaretIn(editor, cell && table.contains(cell) ? cell : (table.rows[0]?.cells[0] ?? table));
+    const target = cell && table.contains(cell) ? cell : (table.rows[0]?.cells[0] ?? null);
+    anchorCell = target;
+    placeCaretIn(editor, target ?? table);
     editor.events.emit('selectionchange', undefined);
 
     // The toolbar dropdown and context menu are alternate views of the same actions.

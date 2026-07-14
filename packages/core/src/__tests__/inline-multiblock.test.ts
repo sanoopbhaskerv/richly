@@ -83,6 +83,7 @@ describe('inline formatting across block boundaries', () => {
     ed.execCommand('Bold');
 
     expect(ed.getContent()).toBe('<p>a</p><p>b</p>');
+    expect(ed.getBody().querySelector('strong:empty')).toBeNull();
   });
 
   it('leaves single-block bold behavior unchanged', () => {

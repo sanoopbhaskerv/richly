@@ -152,6 +152,26 @@ function selectAll(editor: Editor): void {
   editor.events.emit('selectionchange', undefined);
 }
 
+/**
+ * Populate a native copy/cut event with Richly's structural selection HTML.
+ *
+ * Chromium may otherwise serialize the browser-computed appearance of the
+ * selected nodes, turning a simple same-editor round trip into a verbose style
+ * span. Supplying the clean fragment also keeps native keyboard shortcuts and
+ * the toolbar clipboard commands on the same serialization contract.
+ */
+function writeNativeClipboard(event: ClipboardEvent, payload: ClipboardPayload): boolean {
+  if (!event.clipboardData) return false;
+  try {
+    event.clipboardData.setData('text/plain', payload.text);
+    event.clipboardData.setData('text/html', payload.html);
+    event.preventDefault();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export const clipboardPlugin: Plugin = {
   name: 'clipboard',
   init(editor) {
@@ -200,9 +220,27 @@ export const clipboardPlugin: Plugin = {
       shortcut: 'Mod+V'
     });
 
-    const capture = (): void => {
+    const capture = (event: ClipboardEvent): void => {
       const payload = selectedPayload(editor);
-      if (payload) internalClipboard = payload;
+      if (!payload) return;
+      internalClipboard = payload;
+      writeNativeClipboard(event, payload);
+    };
+    const captureCut = (event: ClipboardEvent): void => {
+      const range = editor.selection.getRange();
+      const payload = selectedPayload(editor);
+      if (!range || !payload) return;
+      internalClipboard = payload;
+      if (!writeNativeClipboard(event, payload)) return;
+
+      // preventDefault transfers responsibility for the deletion to Richly.
+      // Emit input so normalization, undo coalescing, and consumer callbacks
+      // follow the same path as a browser-performed cut.
+      range.deleteContents();
+      const EventConstructor = editor.getBody().ownerDocument.defaultView?.InputEvent ?? Event;
+      editor
+        .getBody()
+        .dispatchEvent(new EventConstructor('input', { bubbles: true, cancelable: false }));
     };
 
     const uploadableFiles = (files: FileList | null): File[] => {
@@ -225,11 +263,11 @@ export const clipboardPlugin: Plugin = {
     const body = editor.getBody();
     body.addEventListener('paste', onPasteFiles);
     body.addEventListener('copy', capture);
-    body.addEventListener('cut', capture);
+    body.addEventListener('cut', captureCut);
     editor.events.on('destroy', () => {
       body.removeEventListener('paste', onPasteFiles);
       body.removeEventListener('copy', capture);
-      body.removeEventListener('cut', capture);
+      body.removeEventListener('cut', captureCut);
     });
   }
 };

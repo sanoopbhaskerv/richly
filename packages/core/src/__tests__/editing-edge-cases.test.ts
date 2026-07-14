@@ -6,6 +6,54 @@ let ed: Editor;
 afterEach(() => destroyAll(ed));
 
 describe('editing edge cases', () => {
+  it('moves Home/End within a block and Mod+End to the document boundary', () => {
+    ed = createTestEditor('<p>alpha</p><p>omega</p>');
+    placeCursor(ed, 'alpha', 2);
+
+    ed.getBody().dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true })
+    );
+    const first = ed.getBody().querySelector('p')!;
+    expect(ed.selection.getRange()?.startContainer).toBe(first);
+    expect(ed.selection.getRange()?.startOffset).toBe(first.childNodes.length);
+
+    ed.getBody().dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true })
+    );
+    expect(ed.selection.getRange()?.startContainer).toBe(first);
+    expect(ed.selection.getRange()?.startOffset).toBe(0);
+
+    ed.getBody().dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'End', ctrlKey: true, bubbles: true, cancelable: true })
+    );
+    const last = ed.getBody().querySelectorAll('p')[1]!;
+    expect(ed.selection.getRange()?.startContainer).toBe(last);
+    expect(ed.selection.getRange()?.startOffset).toBe(last.childNodes.length);
+  });
+
+  it('normalizes an entirely deleted document without retaining an empty list', () => {
+    ed = createTestEditor('<h1>Heading</h1><ul><li>item</li></ul>');
+    ed.getBody().innerHTML = '<h1><br></h1><ul> </ul>';
+    ed.getBody().dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+    expect(ed.getContent()).toBe('<p><br></p>');
+    expect(ed.getBody().querySelector('ul')).toBeNull();
+  });
+
+  it('preserves intentional empty paragraphs created in an otherwise blank document', () => {
+    ed = createTestEditor('<p><br></p><p><br></p>');
+    ed.getBody().dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+    expect(ed.getBody().querySelectorAll(':scope > p')).toHaveLength(2);
+  });
+
+  it('normalizes an empty list even when the browser retains an empty item', () => {
+    ed = createTestEditor('<ul><li><br></li></ul>');
+    ed.getBody().dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+    expect(ed.getContent()).toBe('<p><br></p>');
+  });
+
   it('commits an IME composition as one change and one undo step', () => {
     ed = createTestEditor('<p>start</p>');
     const body = ed.getBody();
@@ -105,5 +153,14 @@ describe('editing edge cases', () => {
     ed.execCommand('RemoveFormat');
 
     expect(ed.getContent()).toBe('<p>aabbcc</p>');
+  });
+
+  it('RemoveFormat peels a font-size ancestor around an exact text selection', () => {
+    ed = createTestEditor('<p><span style="font-size: 16.5px"><em>formatted</em></span></p>');
+    selectText(ed, 'formatted');
+
+    ed.execCommand('RemoveFormat');
+
+    expect(ed.getContent()).toBe('<p>formatted</p>');
   });
 });

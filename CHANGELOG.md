@@ -9,6 +9,20 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Restored deterministic Home/End navigation inside the current block and
+  Mod+Home/End navigation to the first or last leaf block.
+- Normalized fully deleted documents to one empty paragraph instead of keeping
+  orphan block containers such as an empty `<ul>`.
+- Removed empty inline wrappers left at multi-block formatting boundaries and
+  made Clear formatting peel styled spans such as custom font sizes.
+- Closed pointer-opened toolbar choice menus on Escape and restored focus to
+  their triggers, even when focus remained in the editor.
+- Kept the floating More tools panel within the viewport by flipping it above
+  its trigger or constraining it to an internally scrollable height.
+- Contained narrow menubars by wrapping menu buttons without clipping their
+  dropdown panels.
+- Serialized native copy and cut events from Richly's clean selection fragment
+  so same-editor paste no longer imports browser-computed style noise.
 - Fixed inline formatting (Bold, Italic, Underline, Strikethrough) and link
   insertion across a multi-block selection. They previously wrapped the whole
   cross-block fragment in one inline element — nesting block elements inside an

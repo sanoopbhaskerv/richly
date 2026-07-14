@@ -1,5 +1,8 @@
 /** Remove inline placement left by a previously positioned toolbar panel. */
 export function resetToolbarDropdownPosition(dropdown: HTMLElement): void {
+  // `position` is cleared too because overflow-panel triggers pin their panel
+  // with `position: fixed` to escape the scroll container's clip.
+  dropdown.style.position = '';
   dropdown.style.left = '';
   dropdown.style.right = '';
   dropdown.style.top = '';

@@ -129,6 +129,22 @@ describe('grouped toolbar UI', () => {
     expect(document.activeElement).toBe(trigger);
   });
 
+  it('closes a pointer-opened choice menu on document Escape', () => {
+    createEditor('<p>hello</p>', { toolbar: 'alignment' });
+    const trigger = editor
+      .getRoot()
+      .querySelector<HTMLButtonElement>('[data-testid="tb-alignment"]')!;
+    const menu = editor.getRoot().querySelector<HTMLElement>('[data-testid="dd-alignment"]')!;
+
+    trigger.click();
+    editor.getBody().focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+    expect(menu.classList.contains('rly-open')).toBe(false);
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(trigger);
+  });
+
   it('keeps action-menu items distinct from radio-style value choices', () => {
     createEditor('<p>hello</p>', { toolbar: 'moretools blockstyle' });
     const root = editor.getRoot();

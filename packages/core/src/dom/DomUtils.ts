@@ -108,6 +108,21 @@ export function isEmptyElement(el: Element): boolean {
 }
 const isEmpty = isEmptyElement;
 
+/**
+ * Remove empty inline formatting elements left behind by range boundary splits.
+ *
+ * This cleanup is intended for completed, non-collapsed formatting commands.
+ * Callers must not run it while a collapsed-format caret container is pending,
+ * because those containers deliberately hold only {@link CARET_FILLER}.
+ *
+ * @param root - Editing subtree to clean.
+ */
+export function removeEmptyInlineElements(root: ParentNode): void {
+  root.querySelectorAll(INLINE_FORMAT_TAGS.join(',')).forEach((element) => {
+    if (isEmptyElement(element)) element.remove();
+  });
+}
+
 /** Leaf block elements intersecting the range (for multi-block commands like align/lists). */
 export function blocksInRange(range: Range, root: HTMLElement): HTMLElement[] {
   const all = Array.from(root.querySelectorAll<HTMLElement>(BLOCK_TAGS.join(',')));
@@ -244,7 +259,7 @@ export function removeAllInline(range: Range, root: HTMLElement): Range {
   // Peel formatting ancestors one at a time — removeInline splits them properly
   // so text outside the selection keeps its formatting.
   for (let guard = 0; guard < 20; guard++) {
-    const tag = Object.keys(TAG_ALIASES).find(
+    const tag = INLINE_FORMAT_TAGS.find(
       (t) => closestTag(r.startContainer, t, root) ?? closestTag(r.commonAncestorContainer, t, root)
     );
     if (!tag) break;

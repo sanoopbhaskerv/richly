@@ -180,8 +180,20 @@ export function renderChoiceControl(
   });
 
   const documentClose = (): void => close();
+  const documentKeydown = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape' || !menu.classList.contains('rly-open')) return;
+    // Pointer-opened menus deliberately preserve the editor selection, which
+    // means focus may still be in the editor (or on body). A document-level
+    // Escape path is therefore required in addition to menu-local handling.
+    event.preventDefault();
+    close(true);
+  };
   doc.addEventListener('click', documentClose);
-  editor.events.on('destroy', () => doc.removeEventListener('click', documentClose));
+  doc.addEventListener('keydown', documentKeydown);
+  editor.events.on('destroy', () => {
+    doc.removeEventListener('click', documentClose);
+    doc.removeEventListener('keydown', documentKeydown);
+  });
   wrap.appendChild(menu);
   return {
     element: wrap,

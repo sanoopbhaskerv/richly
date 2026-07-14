@@ -72,6 +72,10 @@ export function renderToolbarPanelControl(
     const update = (): void => {
       if (!dropdown.classList.contains('rly-open')) return;
       resetToolbarDropdownPosition(dropdown);
+      // A scrolling overflow ("More tools") panel clips absolutely positioned
+      // descendants. When the trigger lives inside one, escape the clip by
+      // pinning the panel to the viewport with fixed coordinates instead.
+      const clipsInsideOverflow = wrap.closest('.rly-toolbar-overflow-panel') !== null;
       const panelRect = dropdown.getBoundingClientRect();
       const wrapRect = wrap.getBoundingClientRect();
       const margin = 8;
@@ -80,6 +84,22 @@ export function renderToolbarPanelControl(
         margin,
         Math.min(view.innerWidth - panelRect.width - margin, naturalLeft)
       );
+      const fitsBelow = wrapRect.bottom + 4 + panelRect.height <= view.innerHeight - margin;
+      const fitsAbove = wrapRect.top - 4 - panelRect.height >= margin;
+
+      if (clipsInsideOverflow) {
+        dropdown.style.position = 'fixed';
+        dropdown.style.left = `${clampedLeft}px`;
+        dropdown.style.right = 'auto';
+        dropdown.style.marginTop = '0';
+        dropdown.style.marginBottom = '0';
+        const below = wrapRect.bottom + 4;
+        const above = wrapRect.top - 4 - panelRect.height;
+        dropdown.style.top = `${fitsBelow || !fitsAbove ? (fitsBelow ? below : margin) : above}px`;
+        dropdown.style.bottom = 'auto';
+        return;
+      }
+
       dropdown.style.left = `${clampedLeft - wrapRect.left}px`;
       dropdown.style.right = 'auto';
 
@@ -88,8 +108,6 @@ export function renderToolbarPanelControl(
       // painted rectangle so the viewport gutter remains authoritative.
       correctHorizontalBounds(view, margin);
 
-      const fitsBelow = wrapRect.bottom + 4 + panelRect.height <= view.innerHeight - margin;
-      const fitsAbove = wrapRect.top - 4 - panelRect.height >= margin;
       if (!fitsBelow && fitsAbove) {
         dropdown.style.top = 'auto';
         dropdown.style.bottom = '100%';

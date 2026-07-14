@@ -8,6 +8,7 @@ import { Menubar } from '../ui/Menubar';
 import { Statusbar } from '../ui/Statusbar';
 import { sanitize } from '../model/Sanitizer';
 import { corePlugins, type Plugin } from '../plugins';
+import { BLOCK_TAGS, closestBlock } from '../dom/DomUtils';
 
 export interface EditorConfig {
   /** Element to mount into (or use selector). */
@@ -235,6 +236,7 @@ export class Editor {
     const doc = this.body.ownerDocument;
 
     const commitInput = (coalesce = true): void => {
+      this.normalizeEmptyDocument();
       this.cleanCaretFiller();
       this.undoManager.snapshot(coalesce);
       this.events.emit('input', undefined);
@@ -283,6 +285,10 @@ export class Editor {
       }
       if (e.key === 'ArrowDown') {
         if (this._handleArrowDownInBlockquote(e)) return;
+      }
+
+      if ((e.key === 'Home' || e.key === 'End') && !e.shiftKey && !e.altKey) {
+        if (this.moveCaretToKeyboardBoundary(e)) return;
       }
 
       const mod = e.metaKey || e.ctrlKey;
@@ -369,6 +375,65 @@ export class Editor {
       this.body.removeEventListener('focus', onFocus);
       this.body.removeEventListener('blur', onBlur);
     });
+  }
+
+  /**
+   * Apply deterministic Home/End navigation inside the editing surface.
+   *
+   * Browsers normally provide this behavior for `contenteditable`, but nested
+   * editor chrome and selection observers can make it inconsistent. Plain
+   * Home/End targets the current leaf block; Mod+Home/End targets the complete
+   * document. Shift-modified selection extension remains native.
+   */
+  private moveCaretToKeyboardBoundary(event: KeyboardEvent): boolean {
+    const current = this.selection.getRange();
+    if (!current) return false;
+
+    const documentBoundary = event.metaKey || event.ctrlKey;
+    const leafBlocks = documentBoundary
+      ? Array.from(this.body.querySelectorAll<HTMLElement>(BLOCK_TAGS.join(','))).filter(
+          (block) => !block.querySelector(BLOCK_TAGS.join(','))
+        )
+      : [];
+    const documentBlock = event.key === 'Home' ? leafBlocks[0] : leafBlocks[leafBlocks.length - 1];
+    const target = documentBoundary
+      ? (documentBlock ?? this.body)
+      : (closestBlock(current.startContainer, this.body) ?? this.body);
+    const next = this.body.ownerDocument.createRange();
+    next.selectNodeContents(target);
+    next.collapse(event.key === 'Home');
+    event.preventDefault();
+    this.selection.setRange(next);
+    return true;
+  }
+
+  /**
+   * Replace a semantically empty editing tree with one valid paragraph.
+   *
+   * Native cross-block deletion can retain structural shells such as an empty
+   * heading followed by an orphan `<ul>`. Normalizing after input gives every
+   * browser the same editable caret host and keeps exported HTML structural.
+   */
+  private normalizeEmptyDocument(): void {
+    const text = (this.body.textContent ?? '').replace(/[\s\u00a0\u200b\uFEFF]/g, '');
+    if (text || this.body.querySelector('img,hr,table')) return;
+
+    const children = Array.from(this.body.children);
+    // Keep only intentional blank paragraphs (e.g. created by pressing Enter in
+    // an otherwise blank document). Any other surviving empty block needs
+    // normalization: a lone heading left behind by Select-All + Delete, or a
+    // structural shell such as an empty list, is reset to a paragraph host.
+    const onlyEmptyParagraphs =
+      children.length > 0 && children.every((element) => element.tagName === 'P');
+    if (onlyEmptyParagraphs) return;
+
+    const paragraph = this.body.ownerDocument.createElement('p');
+    paragraph.appendChild(this.body.ownerDocument.createElement('br'));
+    this.body.replaceChildren(paragraph);
+    const range = this.body.ownerDocument.createRange();
+    range.setStart(paragraph, 0);
+    range.collapse(true);
+    this.selection.setRange(range);
   }
 
   /**

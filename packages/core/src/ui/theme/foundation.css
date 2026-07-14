@@ -40,6 +40,11 @@
 
 .rly-menubar {
   display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   gap: 2px;
   padding: 4px 8px;
   border-bottom: 1px solid var(--rly-border);
@@ -47,6 +52,7 @@
 }
 .rly-menu-wrap {
   position: relative;
+  flex: 0 0 auto;
 }
 .rly-menu-btn {
   background: none;

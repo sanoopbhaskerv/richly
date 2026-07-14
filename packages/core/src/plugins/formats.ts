@@ -9,6 +9,7 @@ import {
   closestTag,
   closestTagInRange,
   isEmptyElement,
+  removeEmptyInlineElements,
   CARET_FILLER
 } from '../dom/DomUtils';
 
@@ -114,6 +115,7 @@ function toggleInline(editor: Editor, tag: string): void {
     const active = !!closestTagInRange(range, tag, body);
     const out = active ? removeInline(range, tag, body) : applyInline(range, tag);
     editor.selection.setRange(out);
+    removeEmptyInlineElements(body);
     body.normalize();
     editor.events.emit('change', editor.getContent());
     return;
@@ -129,6 +131,9 @@ function toggleInline(editor: Editor, tag: string): void {
     active ? removeInline(r, tag, body) : applyInline(r, tag)
   );
   editor.selection.setRange(combineRanges(outRanges));
+  // Range splitting can leave empty wrappers at the outer selection edges.
+  // They are no longer useful once a non-collapsed command has completed.
+  removeEmptyInlineElements(body);
   body.normalize();
   editor.events.emit('change', editor.getContent());
 }
@@ -180,8 +185,11 @@ export const formatsPlugin: Plugin = {
       execute: (ed) => {
         const range = ed.selection.getRange();
         if (!range || range.collapsed) return;
-        removeAllInline(range, ed.getBody());
-        ed.getBody().normalize();
+        const body = ed.getBody();
+        const output = removeAllInline(range, body);
+        ed.selection.setRange(output);
+        removeEmptyInlineElements(body);
+        body.normalize();
         ed.events.emit('change', ed.getContent());
       }
     });
