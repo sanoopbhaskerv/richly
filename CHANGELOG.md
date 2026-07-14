@@ -59,6 +59,9 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Kept every fully applied inline-format toggle active after sequential Bold,
+  Italic, Underline, or Strikethrough commands on the same multi-block
+  selection. State queries now evaluate every block-local selection slice.
 - Preserved valid list ownership and nesting while changing list kind or marker
   style; commands never wrap `<li>` elements in spans or add empty items.
 - Prevented menu panel sizing from leaking into toolbar controls and causing

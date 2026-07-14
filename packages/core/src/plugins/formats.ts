@@ -133,10 +133,25 @@ function toggleInline(editor: Editor, tag: string): void {
   editor.events.emit('change', editor.getContent());
 }
 
+/**
+ * Reports whether the requested inline format covers the current selection.
+ *
+ * Multi-block selections are represented as block-local ranges because valid
+ * HTML cannot use one inline element to wrap several block elements. The format
+ * is active only when every selected slice is formatted, matching the toggle
+ * behavior and preventing mixed selections from appearing active.
+ */
 function inlineState(editor: Editor, tag: string): boolean {
   const range = editor.selection.getRange();
   if (!range) return false;
-  return !!closestTagInRange(range, tag, editor.getBody());
+  const body = editor.getBody();
+  // Cross-block formatting creates one valid inline element per block. No
+  // single <strong>/<em> can therefore own the combined selection. Query each
+  // block-local slice using the same all-slices rule that toggleInline uses to
+  // decide whether a format should be removed. This also keeps mixed
+  // selections inactive until every selected slice carries the format.
+  const ranges = range.collapsed ? [range] : inlineRangesForBlocks(range, body);
+  return ranges.length > 0 && ranges.every((slice) => !!closestTagInRange(slice, tag, body));
 }
 
 export const formatsPlugin: Plugin = {

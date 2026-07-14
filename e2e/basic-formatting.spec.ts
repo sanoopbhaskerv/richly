@@ -43,6 +43,22 @@ test.describe('basic formatting (vanilla instance)', () => {
     await editor.expectButtonActive('bold', true);
   });
 
+  test('keeps sequential formats active for the same multi-block selection', async ({ page }) => {
+    await editor.clear();
+    await editor.type('first');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('second');
+    await editor.selectAll();
+
+    await editor.clickButton('bold');
+    await editor.clickButton('italic');
+
+    await editor.expectButtonActive('bold', true);
+    await editor.expectButtonActive('italic', true);
+    await editor.expectContentMatches(/<em><strong>first<\/strong><\/em>/);
+    await editor.expectContentMatches(/<em><strong>second<\/strong><\/em>/);
+  });
+
   test('heading + statusbar element path and word count', async () => {
     await editor.selectWord('hello');
     await editor.choose('blockstyle', 'h1');

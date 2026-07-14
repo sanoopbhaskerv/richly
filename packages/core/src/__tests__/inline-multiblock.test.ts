@@ -54,6 +54,29 @@ describe('inline formatting across block boundaries', () => {
     expect(ed.getContent()).toBe('<p><em>a</em></p><p><em>b</em></p><p><em>c</em></p>');
   });
 
+  it('keeps every applied inline format active in the toolbar for the same selection', () => {
+    ed = createTestEditor('<p>first</p><p>second</p>');
+    selectAcross(ed, 'first', 'second');
+    const bold = ed.getRoot().querySelector<HTMLButtonElement>('[data-testid="tb-bold"]')!;
+    const italic = ed.getRoot().querySelector<HTMLButtonElement>('[data-testid="tb-italic"]')!;
+
+    bold.click();
+    italic.click();
+
+    expect(ed.getContent()).toBe(
+      '<p><em><strong>first</strong></em></p><p><em><strong>second</strong></em></p>'
+    );
+    expect(bold.getAttribute('aria-pressed')).toBe('true');
+    expect(italic.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('keeps a format inactive when only some selected block slices contain it', () => {
+    ed = createTestEditor('<p><strong>first</strong></p><p>second</p>');
+    selectAcross(ed, 'first', 'second');
+
+    expect(ed.queryCommandState('Bold')).toBe(false);
+  });
+
   it('toggles bold off across blocks when every block is already bold', () => {
     ed = createTestEditor('<p><strong>a</strong></p><p><strong>b</strong></p>');
     selectAcross(ed, 'a', 'b');
