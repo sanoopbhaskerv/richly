@@ -7,6 +7,12 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Made table contextual menu entrance animation opacity-only (no translate/scale)
+  so first-click actions remain reliable while the menu is opening under load.
+- Removed temporary debug console output emitted during table context actions.
+
 ## [1.0.0-rc.6] - 2026-07-14
 
 ### Fixed

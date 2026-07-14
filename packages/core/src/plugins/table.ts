@@ -988,17 +988,6 @@ function buildTableContext(
       // be lost before the command runs (notably in Firefox, where an unfocused
       // contenteditable drops its range). Re-anchor to the opening cell first.
       options.restoreSelection?.();
-
-      console.error(
-        'DBG-action',
-        command,
-        'table=',
-        !!currentTable(editor),
-        'cell=',
-        !!currentCell(editor),
-        'anchor',
-        options.restoreSelection ? 'y' : 'n'
-      );
       editor.execCommand(command);
       if (!doc.querySelector('.rly-dialog-overlay')) editor.focus();
     });

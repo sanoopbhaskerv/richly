@@ -303,14 +303,16 @@
   border: 0;
   padding: 0;
 }
+/* Fade only — no transform. A translate/scale entrance moves the action
+   buttons for the animation's duration, so a click landing on the freshly
+   opened menu can register its mousedown and mouseup on different points and
+   never fire a `click` (observed as dropped table actions under load). */
 @keyframes rly-context-in {
   from {
     opacity: 0;
-    transform: translateY(-3px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }
 
