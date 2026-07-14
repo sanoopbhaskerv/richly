@@ -110,6 +110,31 @@ describe('image upload pipeline', () => {
     expect(ed.getContent()).toBe('<p>x</p>');
   });
 
+  it('prefers text/html clipboard payload over image files on paste', async () => {
+    const upload = vi.fn(async () => ({ src: 'https://cdn.example/from-file.png' }));
+    ed = createEditorWithImages(upload, { accept: 'image/*' });
+
+    const file = new File(['x'], 'word-preview.png', { type: 'image/png' });
+    const files = {
+      0: file,
+      length: 1,
+      item: (index: number) => (index === 0 ? file : null)
+    } as unknown as FileList;
+    const event = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
+    Object.defineProperty(event, 'clipboardData', {
+      value: {
+        files,
+        getData: (type: string) => (type === 'text/html' ? '<p>Word content</p>' : '')
+      }
+    });
+
+    ed.getBody().dispatchEvent(event);
+    await tick();
+
+    expect(upload).not.toHaveBeenCalled();
+    expect(ed.getBody().querySelector('img')).toBeNull();
+  });
+
   it('excludes in-flight placeholders from getContent()', async () => {
     const createUrl = vi.fn(() => 'blob:pending');
     const revokeUrl = vi.fn();

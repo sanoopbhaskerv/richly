@@ -6,6 +6,16 @@ test.describe('sliding toolbar mode', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 545, height: 760 });
+    // The marketing demo enables `scroll-behavior: smooth`. Playwright scrolls a
+    // target into view before clicking, so on Firefox that smooth animation can
+    // still be running when it clicks a freshly opened panel — the swatch moves
+    // between mousedown and mouseup and the click is dropped. Force instant
+    // scrolling so pointer interactions land deterministically.
+    await page.addInitScript(() => {
+      const style = document.createElement('style');
+      style.textContent = '*,html,body{scroll-behavior:auto !important}';
+      (document.head ?? document.documentElement).appendChild(style);
+    });
     editor = new EditorPage(page, 'reditor-clean');
     await editor.goto();
   });

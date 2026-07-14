@@ -9,6 +9,13 @@ interface ClipboardPayload {
   text: string;
 }
 
+function hasTextPayload(data: DataTransfer | null | undefined): boolean {
+  if (!data) return false;
+  const html = data.getData('text/html').trim();
+  const text = data.getData('text/plain').trim();
+  return Boolean(html || text);
+}
+
 let internalClipboard: ClipboardPayload | null = null;
 
 const INLINE_TAGS = new Set([
@@ -250,6 +257,10 @@ export const clipboardPlugin: Plugin = {
     };
 
     const onPasteFiles = (event: ClipboardEvent): void => {
+      // Word/Docs clipboards can include both rich text and an image preview.
+      // Prefer textual payloads when present so content paste wins.
+      if (hasTextPayload(event.clipboardData)) return;
+
       const files = uploadableFiles(event.clipboardData?.files ?? null);
       if (!files.length) return;
 

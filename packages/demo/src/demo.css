@@ -443,7 +443,7 @@ a {
 
 .hero-grid {
   display: grid;
-  align-items: center;
+  align-items: self-start;
   grid-template-columns: minmax(320px, 0.82fr) minmax(500px, 1.25fr);
   gap: clamp(28px, 3.5vw, 58px);
 }

@@ -7,6 +7,13 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Prioritized textual clipboard payloads (`text/html` / `text/plain`) over
+  image-file clipboard payloads during paste, so content copied from Word and
+  similar editors pastes as document content instead of being routed through
+  the image upload pipeline.
+
 ## [1.0.0-rc.7] - 2026-07-14
 
 ### Fixed
