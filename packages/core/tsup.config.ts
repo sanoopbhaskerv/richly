@@ -5,6 +5,7 @@ export default defineConfig({
   clean: true,
   dts: true,
   format: ['esm', 'cjs'],
+  minify: true,
   sourcemap: true,
   target: 'es2020',
   treeshake: true

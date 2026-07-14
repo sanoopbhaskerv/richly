@@ -59,7 +59,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup && node scripts/copy-theme.mjs",
+    "build": "tsup && node scripts/copy-theme.mjs && node scripts/check-bundle-size.mjs",
+    "size:check": "node scripts/check-bundle-size.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "yarn workspace @richly/demo dev",
     "build": "yarn workspace @richly/core build && yarn workspace @richly/react build",
+    "size:check": "yarn workspace @richly/core size:check",
     "test": "yarn workspace @richly/core test",
     "test:coverage": "yarn workspace @richly/core test:coverage",
     "e2e": "playwright test",

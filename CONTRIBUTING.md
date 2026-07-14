@@ -26,6 +26,11 @@ yarn build
 yarn e2e --project=chromium
 ```
 
+The core build minifies its distributable JavaScript and enforces gzip budgets
+for ESM, CommonJS, and the published theme. `yarn size:check` rechecks the
+current build output without rebuilding; budget changes require an intentional
+review alongside the feature that needs the additional transfer size.
+
 Add unit coverage for command and model changes. Add Playwright coverage when a
 change affects browser selection, keyboard behavior, dialogs, or editor UI.
 Add a concise entry under `CHANGELOG.md`'s `Unreleased` section for every

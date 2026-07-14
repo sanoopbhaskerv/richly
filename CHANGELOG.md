@@ -35,6 +35,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Minified the published core ESM and CommonJS builds and added enforced gzip
+  budgets for both JavaScript formats and the complete editor theme.
 - Updated the demo's live product preview to use the grouped `standard` preset
   and document the expanded structure, spacing, alignment, and list features.
 - Extracted choice-menu rendering from the main toolbar renderer to keep

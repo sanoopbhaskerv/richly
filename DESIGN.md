@@ -41,6 +41,17 @@ the CSS cascade. Development bundlers resolve those imports directly, while
 `packages/core/scripts/copy-theme.mjs` inlines them into one dependency-free
 `dist/theme.css`. The public import remains `@richly/core/theme.css`.
 
+### Production assets and size budgets
+
+The core package build minifies both JavaScript formats and retains source maps
+for debugging. After JavaScript and theme assembly, the build measures each
+public asset with deterministic level-9 gzip compression. ESM and CommonJS are
+limited to 47 KiB gzip each; the complete theme is limited to 9 KiB gzip. These
+checks run through local builds, CI, package preflight, and release validation.
+Use `yarn size:check` to remeasure existing build output. Raising a threshold is
+an explicit product decision and should be documented with the feature that
+requires it.
+
 ### Toolbar composition
 
 `packages/core/src/ui/Toolbar.ts` is the stable editor-facing coordinator. It
