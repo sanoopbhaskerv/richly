@@ -33,5 +33,6 @@ export type {
   FontSizeControlOptions
 } from './ui/FontSizeControl';
 export type { Bookmark } from './dom/SelectionManager';
+export { applyInlineStyle, getInlineStyleValue } from './dom/InlineStyle';
 export { sanitize } from './model/Sanitizer';
 export { DEFAULT_COLORS, DEFAULT_FONT_SIZES } from './plugins/textstyle';

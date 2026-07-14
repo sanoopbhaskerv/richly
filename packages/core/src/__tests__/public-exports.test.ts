@@ -62,6 +62,8 @@ describe('public exports snapshot (1.0 freeze tripwire)', () => {
       'ToolbarMode',
       'ToolbarPreset',
       'WordCountOptions',
+      'applyInlineStyle',
+      'getInlineStyleValue',
       'sanitize'
     ].sort();
 
@@ -81,7 +83,9 @@ describe('public exports snapshot (1.0 freeze tripwire)', () => {
       'openDialog',
       'DialogField',
       'DialogSpec',
-      'DialogResult'
+      'DialogResult',
+      'applyInlineStyle',
+      'getInlineStyleValue'
     ];
 
     required.forEach((name) => {

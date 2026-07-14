@@ -9,6 +9,7 @@ import {
 import { Editor as ReactEditor } from '@richly/react';
 import { createRoot } from 'react-dom/client';
 import { StrictMode, useEffect, useRef, useState } from 'react';
+import { customPlugin } from '../../../examples/custom-plugin';
 import { highlightPlugin } from '../../../examples/highlight-plugin';
 import { createWordGoalPlugin } from '../../../examples/word-goal-plugin';
 
@@ -30,7 +31,21 @@ const uploadImage = async (file: File): Promise<{ src: string; alt?: string }> =
   return { src: dataUrl, alt: file.name.replace(/\.[^.]+$/, '') };
 };
 
-const FULL_TOOLBAR = TOOLBAR_PRESETS.complete.replace('bold italic', 'bold italic highlight');
+/** Add demo plugins beside related actions without changing preset grouping. */
+const withDemoPlugins = (toolbar: string): string => {
+  // Highlight remains a separate demo-plugin action beside Richly's built-in
+  // text/background color controls; it is not hidden in an overflow menu or
+  // substituted for BackColor.
+  let extended = toolbar.replace('forecolor backcolor', 'forecolor backcolor highlight');
+  const richInsertGroup = 'link unlink image table';
+  if (extended.includes(richInsertGroup)) {
+    return extended.replace(richInsertGroup, `${richInsertGroup} customTimestamp`);
+  }
+  extended = extended.replace('link |', 'link customTimestamp |');
+  return extended;
+};
+
+const FULL_TOOLBAR = withDemoPlugins(TOOLBAR_PRESETS.complete);
 
 // Keep the first two demo colors stable: the integration fixtures exercise these
 // values as part of the public `textStyles.themeColors` example.
@@ -45,7 +60,8 @@ const PLAYGROUND_CONTENT = `
     <li>Open Block style to choose Paragraph, Quote, Preformatted, or H1–H6.</li>
     <li>Adjust line height, justify a paragraph, or switch list marker styles.</li>
     <li>Use clipboard actions directly or their platform-native shortcuts.</li>
-    <li>Insert a table or image, then inspect the sanitized HTML output.</li>
+    <li>Insert a timestamp from the Insert menu, then inspect the plugin output.</li>
+    <li>Insert and resize an image or table, then inspect the sanitized HTML.</li>
   </ul>`;
 
 const BooleanControl = ({
@@ -95,7 +111,7 @@ function PlaygroundApp(): JSX.Element {
       target: host,
       testIdPrefix: 'editor',
       initialContent: contentRef.current,
-      toolbarPreset,
+      toolbar: withDemoPlugins(TOOLBAR_PRESETS[toolbarPreset]),
       toolbarMode,
       menubar,
       statusbar,
@@ -105,6 +121,7 @@ function PlaygroundApp(): JSX.Element {
       images: images ? { upload: uploadImage } : undefined,
       textStyles: themeColorsEnabled ? { themeColors } : undefined,
       plugins: [
+        customPlugin,
         highlightPlugin,
         createWordGoalPlugin({ goal: 50, testId: 'status-vanilla-word-goal' })
       ]
@@ -162,7 +179,7 @@ function PlaygroundApp(): JSX.Element {
     'Editor.init({',
     '  target,',
     `  toolbarMode: '${toolbarMode}',`,
-    `  toolbarPreset: '${toolbarPreset}',`,
+    `  toolbar: withDemoPlugins(TOOLBAR_PRESETS.${toolbarPreset}),`,
     `  menubar: ${menubar},`,
     `  statusbar: ${statusbar},`,
     `  resize: ${resize},`,
@@ -172,7 +189,7 @@ function PlaygroundApp(): JSX.Element {
     ...(themeColorsEnabled
       ? [`  textStyles: { themeColors: ${JSON.stringify(themeColors)} },`]
       : []),
-    '  plugins: [highlightPlugin]',
+    '  plugins: [customPlugin, highlightPlugin]',
     '});'
   ].join('\n');
 
@@ -491,7 +508,7 @@ VanillaEditor.init({
 
 function CustomReactApp(): JSX.Element {
   const [html, setHtml] = useState(
-    '<h1>React build</h1><p>This <strong>&lt;Editor /&gt;</strong> uses custom plugins and floating toolbar overflow.</p>'
+    '<h1>React build</h1><p>Try the custom timestamp and list-safe highlight plugins in this <strong>&lt;Editor /&gt;</strong>.</p>'
   );
   return (
     <ReactEditor
@@ -502,6 +519,7 @@ function CustomReactApp(): JSX.Element {
       toolbar={FULL_TOOLBAR}
       images={{ upload: uploadImage }}
       plugins={[
+        customPlugin,
         highlightPlugin,
         createWordGoalPlugin({ goal: 30, testId: 'status-react-word-goal' })
       ]}

@@ -47,11 +47,43 @@ const colorButton = (
   return swatch;
 };
 
+/**
+ * Installs roving-tabindex navigation without letting focused swatches move
+ * the surrounding document viewport.
+ */
 const installGridKeys = (grid: HTMLElement, swatches: HTMLButtonElement[], columns = 8): void => {
   const focusAt = (index: number): void => {
     const target = clamp(index, 0, swatches.length - 1);
     swatches.forEach((swatch, current) => (swatch.tabIndex = current === target ? 0 : -1));
+    const view = grid.ownerDocument.defaultView;
+    const viewport = view ? { x: view.scrollX, y: view.scrollY } : null;
+    // Moving within the roving-tabindex grid must not move the page when a
+    // palette is close to a viewport edge. Firefox can still scroll a few
+    // pixels despite preventScroll, so restore that synchronous focus scroll
+    // with smooth scrolling temporarily disabled.
     swatches[target]?.focus({ preventScroll: true });
+    if (view && viewport) {
+      const root = view.document.documentElement;
+      const previousBehavior = root.style.scrollBehavior;
+      root.style.scrollBehavior = 'auto';
+      const restoreViewport = (): void => {
+        view.scrollTo(viewport.x, viewport.y);
+      };
+      const restoreAfterLayout = (frames: number): void => {
+        if (frames === 0) {
+          root.style.scrollBehavior = previousBehavior;
+          return;
+        }
+        view.requestAnimationFrame(() => {
+          restoreViewport();
+          restoreAfterLayout(frames - 1);
+        });
+      };
+      restoreViewport();
+      // Firefox may defer the browser-owned focus scroll until layout. Cover
+      // that bounded handoff without installing any persistent scroll hook.
+      restoreAfterLayout(3);
+    }
   };
   swatches.forEach((swatch, index) => (swatch.tabIndex = index === 0 ? 0 : -1));
   grid.addEventListener('keydown', (event) => {

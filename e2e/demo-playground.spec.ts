@@ -12,6 +12,12 @@ test.describe('demo configuration playground', () => {
     await expect(page.getByTestId('demo-config-output')).toContainText("toolbarMode: 'wrap'");
 
     await expect(page.getByTestId('editor-root')).toBeVisible();
+    await expect(editor.button('customTimestamp')).toBeVisible();
+    await expect(editor.button('highlight')).toBeVisible();
+    await expect(editor.button('highlight')).toHaveAttribute(
+      'aria-label',
+      'Highlight selection (plugin)'
+    );
     await expect(page.getByTestId('editor-clean-root')).toBeVisible();
     await expect(page.getByTestId('editor-sliding-clean-root')).toBeVisible();
     await expect(page.getByTestId('reditor-root')).toBeVisible();
@@ -22,6 +28,22 @@ test.describe('demo configuration playground', () => {
     await expect(reactSlidingPrimary.getByTestId('tb-undo')).toBeVisible();
     await expect(reactSlidingPrimary.getByTestId('tb-bold')).toBeVisible();
     await expect(reactSlidingPrimary.getByTestId('tb-italic')).toBeVisible();
+  });
+
+  test('runs the custom timestamp plugin in the live product preview', async ({ page }) => {
+    const editor = new EditorPage(page, 'editor');
+    await editor.goto();
+    // Clicking the center of a tall contenteditable does not produce a stable
+    // caret in Firefox under load. Place the range explicitly so this test
+    // exercises the plugin command rather than browser hit-testing.
+    await editor.placeCursorAtEnd();
+
+    await editor.clickButton('customTimestamp');
+
+    const badge = editor.content.locator('.custom-timestamp-badge');
+    await expect(badge).toBeVisible();
+    await expect(badge).toContainText('⏱️');
+    await expect(page.getByTestId('demo-html-output')).toContainText('custom-timestamp-badge');
   });
 
   test('applies live options while preserving edited content', async ({ page }) => {

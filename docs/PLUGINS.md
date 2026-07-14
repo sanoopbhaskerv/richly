@@ -1,6 +1,6 @@
 # Plugin Authoring Guide
 
-Version target: 0.6.0
+Version target: 1.0.0 release candidates
 Package: @richly/core
 
 This guide is the design + implementation contract for plugin authors.
@@ -255,6 +255,48 @@ Common calls:
 
 Always null-check range before DOM operations.
 
+### List-safe inline styles
+
+Do not call `Range.extractContents()` and wrap the result directly when a
+plugin applies color, highlighting, font size, or another inline CSS property.
+Browser selections can start or end on structural boundaries such as `UL:0`
+or `LI:0`; wrapping that fragment can produce invalid
+`<span><li>…</li></span>` markup and phantom list items.
+
+Use the same public pipeline as Richly's ForeColor, BackColor, and FontSize
+commands:
+
+```ts
+import { applyInlineStyle, getInlineStyleValue, type Plugin } from '@richly/core';
+
+export const highlightPlugin: Plugin = {
+  name: 'highlight',
+  init(editor) {
+    editor.commands.register('Highlight', {
+      execute(ed) {
+        const active = getInlineStyleValue(ed, 'background-color');
+        applyInlineStyle(ed, 'background-color', active ? '' : '#fef08a');
+      },
+      queryState: (ed) => !!getInlineStyleValue(ed, 'background-color')
+    });
+  }
+};
+```
+
+`applyInlineStyle(editor, property, value)`:
+
+- clips non-collapsed selections to each selected leaf block;
+- never wraps `<li>` or another block element in a `<span>`;
+- preserves unrelated styles and avoids redundant nested spans;
+- supports collapsed carets for formatting subsequently typed text;
+- restores the resulting selection, normalizes the body, and emits `change`;
+- removes only `property` when `value` is an empty string.
+
+`getInlineStyleValue(editor, property)` reads the first textual position in the
+selection and is suitable for `queryState` and `queryValue`. Use sanitizer-
+allowlisted properties when the style must survive `getContent()`; unsupported
+live-DOM styles are intentionally omitted from serialized HTML.
+
 ## 7. CSS variables and theming
 
 Import theme:
@@ -294,6 +336,7 @@ Public (from `@richly/core`) for plugin authors:
 - `ButtonSpec`
 - `EditorEvents`
 - `DialogField`, `DialogSpec`, `DialogResult`
+- `applyInlineStyle`, `getInlineStyleValue`
 - `Editor` and its documented methods
 
 Internal (do not import):
@@ -311,9 +354,20 @@ What it demonstrates:
 - command registration
 - toggle active state
 - toggle button + menu item wiring
-- proper `change` emission
+- list-safe background styling through the public inline-style API
 
-## 11. Worked example: Word Goal plugin (realistic)
+## 11. Worked example: Custom timestamp plugin
+
+Path: `examples/custom-plugin/index.ts`
+
+What it demonstrates:
+
+- inserting an atomic, non-editable inline component
+- moving the caret to a safe position after the inserted node
+- toolbar and Insert-menu registration
+- host-owned class styling that survives sanitization
+
+## 12. Worked example: Word Goal plugin (realistic)
 
 Path: `examples/word-goal-plugin/index.ts`
 
@@ -324,10 +378,10 @@ What it demonstrates:
 - plugin-owned custom event emission
 - data-testid and ARIA usage
 
-## 12. Acceptance checklist
+## 13. Acceptance checklist
 
 A plugin guide is considered successful when:
 
 - a new contributor can implement the highlight plugin using only this guide
-- both example plugins have passing unit tests
+- all example plugins have passing unit tests
 - the public export snapshot test passes, freezing the plugin-authoring API surface for 1.0

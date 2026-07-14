@@ -855,6 +855,22 @@ html[data-theme='dark'] .fixture-chip--new {
   min-height: 155px;
 }
 
+/* CustomPlugin.ts demo badge: class-based styling survives sanitized output
+   while remaining fully themeable by the host application. */
+.rly-content .custom-timestamp-badge {
+  display: inline-block;
+  margin: 0 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #a855f7, #6366f1);
+  font-size: 0.85em;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.28);
+}
+
 .capability-card {
   display: flex;
   flex-direction: column;

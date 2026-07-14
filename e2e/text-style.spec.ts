@@ -364,19 +364,29 @@ test.describe('text style ui', () => {
     await expect(panel).not.toHaveClass(/rly-open/);
     await expect(editor.content).toBeFocused();
 
-    await page.evaluate(() => window.scrollTo(0, 100));
     await editor.clickButton('forecolor');
     const reset = panel.getByTestId('swatch-none');
     await expect(reset).toBeFocused();
     await reset.press('Tab');
     const focusedSwatch = panel.getByTestId('swatch-0f766e');
     await expect(focusedSwatch).toBeFocused();
+    await page.evaluate(() => {
+      const root = document.documentElement;
+      const previousBehavior = root.style.scrollBehavior;
+      // The marketing demo enables smooth page scrolling. Establish the
+      // baseline after click/focus setup, so its animation is not mistaken
+      // for keyboard-induced scrolling in Firefox.
+      root.style.scrollBehavior = 'auto';
+      window.scrollTo(0, 100);
+      root.style.scrollBehavior = previousBehavior;
+    });
     const before = await page.evaluate(() => window.scrollY);
     await page.keyboard.press('ArrowDown');
-    const after = await page.evaluate(() => window.scrollY);
-    // Firefox can settle focused absolute panels by a few CSS pixels under
-    // parallel load; keyboard navigation must not cause a meaningful page scroll.
-    expect(Math.abs(after - before)).toBeLessThanOrEqual(8);
+    // Firefox can defer focus scrolling until its next layout frame. Verify
+    // the viewport after the component's bounded restoration has settled.
+    await expect
+      .poll(async () => Math.abs((await page.evaluate(() => window.scrollY)) - before))
+      .toBeLessThanOrEqual(8);
   });
 });
 

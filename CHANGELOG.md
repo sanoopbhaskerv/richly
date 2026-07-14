@@ -25,6 +25,13 @@ and releases follow [Semantic Versioning](https://semver.org/).
   heights; and split bullet/numbered-list controls with portable marker styles.
 - Added `toolbarPreset`, `textStyles.lineHeights`, and `listStyles`
   configuration to core and React, plus the corresponding public option types.
+- Added visual marker previews to bullet and numbered-list menus.
+- Added public `applyInlineStyle` and `getInlineStyleValue` helpers so custom
+  plugins can reuse Richly's list-safe selection, caret, cleanup, and state
+  behavior.
+- Added the atomic timestamp plugin to the Live product preview and custom
+  React demo, while retaining the highlight plugin as a distinct, visible
+  highlighter action beside the built-in background-color control.
 
 ### Changed
 
@@ -39,6 +46,13 @@ and releases follow [Semantic Versioning](https://semver.org/).
   style; commands never wrap `<li>` elements in spans or add empty items.
 - Prevented menu panel sizing from leaking into toolbar controls and causing
   horizontal overflow at compact breakpoints.
+- Fixed image width resizing when pasted inline CSS overrode width/height
+  attributes. Resize now starts from rendered dimensions, serializes canonical
+  attributes, and supports exact dimensions in the image dialog.
+- Kept open toolbar panels inside the viewport while responsive groups are
+  redistributing, including Firefox's delayed focus and layout updates.
+- Prevented keyboard navigation within color palettes from scrolling the page
+  when Firefox defers its focused-swatch layout adjustment.
 
 ## [1.0.0-rc.4] - 2026-07-13
 

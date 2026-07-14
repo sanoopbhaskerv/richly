@@ -228,7 +228,10 @@ Editor.init({
 While an upload is in flight a placeholder image is shown; on success its `src`
 is swapped in, and on failure the placeholder is removed and an
 `imageuploaderror` event is emitted. Selected images show a resize frame with
-corner handles.
+width, height, and aspect-ratio handles. The image dialog also accepts exact
+pixel dimensions. Resizing starts from the rendered size and converts pasted
+inline `width`/`height` styles to canonical HTML attributes, so stale CSS cannot
+override the new dimensions.
 
 ## Text styles and font size
 
@@ -442,6 +445,19 @@ const shoutPlugin: Plugin = {
 Editor.init({ target, plugins: [shoutPlugin] });
 ```
 
+Plugins that apply inline CSS should call the exported `applyInlineStyle`
+helper instead of extracting and wrapping the native Range. It uses the same
+list-safe block clipping as Richly's color and font-size commands:
+
+```ts
+import { applyInlineStyle, getInlineStyleValue } from '@richly/core';
+
+editor.commands.register('Highlight', {
+  execute: (ed) => applyInlineStyle(ed, 'background-color', '#fef08a'),
+  queryState: (ed) => !!getInlineStyleValue(ed, 'background-color')
+});
+```
+
 See the [Plugin Authoring Guide](https://github.com/sanoopbhaskerv/richly/blob/main/docs/PLUGINS.md)
 for commands and the undo/`change` contract, UI registration (buttons, toggles,
 panels, selects, menu items), dialogs, typed events, and selection utilities.
@@ -468,7 +484,15 @@ import type {
   Bookmark
 } from '@richly/core';
 
-import { Editor, openDialog, sanitize, DEFAULT_COLORS, DEFAULT_FONT_SIZES } from '@richly/core';
+import {
+  Editor,
+  applyInlineStyle,
+  getInlineStyleValue,
+  openDialog,
+  sanitize,
+  DEFAULT_COLORS,
+  DEFAULT_FONT_SIZES
+} from '@richly/core';
 ```
 
 `sanitize(html, document)` is exported for reusing the editor's sanitizer

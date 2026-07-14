@@ -184,6 +184,10 @@ describe('image selection frame resize', () => {
       w: 24,
       h: 50
     });
+    expect(constrainSize({ w: 100, h: 10 }, { dx: 20, dy: 0 }, 'x', false, 24)).toEqual({
+      w: 120,
+      h: 10
+    });
     expect(constrainSize({ w: 120, h: 60 }, { dx: 30, dy: 10 }, 'xy', true, 24)).toEqual({
       w: 150,
       h: 75
@@ -221,6 +225,37 @@ describe('image selection frame resize', () => {
 
     frame.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(frame.classList.contains('rly-show')).toBe(false);
+  });
+
+  it('uses rendered dimensions and removes inline CSS that overrides width attributes', () => {
+    ed = createEditorWithImages(
+      undefined,
+      {},
+      '<p><img src="https://example.com/x.png" width="200" height="100" style="width: 80px; height: 40px;" alt="x"></p>'
+    );
+    const img = ed.getBody().querySelector('img')!;
+    vi.spyOn(img, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 80,
+      bottom: 40,
+      left: 0,
+      width: 80,
+      height: 40,
+      toJSON: () => ({})
+    });
+    img.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+
+    const handle = ed.getRoot().querySelector<HTMLElement>('[data-testid="image-resize-x"]')!;
+    handle.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 10, clientY: 10 }));
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 30, clientY: 10 }));
+    document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+
+    expect(img.getAttribute('width')).toBe('100');
+    expect(img.getAttribute('height')).toBe('40');
+    expect(img.style.width).toBe('');
+    expect(img.style.height).toBe('');
   });
 
   it('does not show the frame for uploading placeholders', () => {

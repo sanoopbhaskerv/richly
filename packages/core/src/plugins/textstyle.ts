@@ -3,15 +3,12 @@ import { getEditorConfig, type Editor } from '../editor/Editor';
 import { createColorPickerPanel } from '../ui/colorpicker/ColorPicker';
 import { normalizeHex } from '../ui/colorpicker/ColorUtils';
 import { createFontSizeControl, type FontSizeCommandArgs } from '../ui/FontSizeControl';
+import { applyInlineStyle, getInlineStyleValue } from '../dom/InlineStyle';
 import {
-  applyStyledSpan,
-  removeStyledSpan,
-  queryStyledValue,
   closestTag,
   closestTagInRange,
   removeInline,
   applyInline,
-  isStyleSpan,
   CARET_FILLER
 } from '../dom/DomUtils';
 
@@ -120,159 +117,6 @@ function createColorPanel(
 }
 
 /**
- * Handle collapsed styling selections by wrapping the caret (U+FEFF filler) inside a styling span,
- * or by modifying an existing collapsed styled span.
- */
-function toggleStyleCollapsed(editor: Editor, prop: string, value: string): void {
-  const range = editor.selection.getRange();
-  if (!range) return;
-  const body = editor.getBody();
-  const docRef = body.ownerDocument;
-
-  const container = range.startContainer;
-  const parent = container.parentNode as HTMLElement;
-
-  // Optimize: If we are already inside a collapsed styling caret container span,
-  // we can modify or remove the property directly on it.
-  if (
-    container.nodeType === Node.TEXT_NODE &&
-    container.textContent === CARET_FILLER &&
-    parent &&
-    parent !== body &&
-    isStyleSpan(parent)
-  ) {
-    if (value) {
-      parent.style.setProperty(prop, value);
-    } else {
-      parent.style.removeProperty(prop);
-      // If the style span has no other styles left, unwrap it to clean DOM.
-      if (!parent.style.cssText.trim()) {
-        const textNode = docRef.createTextNode(CARET_FILLER);
-        parent.parentNode?.replaceChild(textNode, parent);
-        const r = docRef.createRange();
-        r.setStart(textNode, 1);
-        r.collapse(true);
-        editor.selection.setRange(r);
-      }
-    }
-    editor.events.emit('change', editor.getContent());
-    return;
-  }
-
-  // Split an existing pure style span so replacing one property never creates
-  // nested spans and all other properties remain active for newly typed text.
-  const nearestSpan = closestTag(range.startContainer, 'span', body);
-  const ancestor = nearestSpan && isStyleSpan(nearestSpan) ? nearestSpan : null;
-  if (!value && !ancestor?.style.getPropertyValue(prop)) return;
-
-  const caret = docRef.createTextNode(CARET_FILLER);
-  if (ancestor) {
-    const current = ancestor.style.getPropertyValue(prop).trim();
-    const probe = docRef.createElement('span');
-    probe.style.setProperty(prop, value);
-    if (value && current === probe.style.getPropertyValue(prop).trim()) return;
-
-    const rightRange = docRef.createRange();
-    rightRange.setStart(range.startContainer, range.startOffset);
-    rightRange.setEnd(ancestor, ancestor.childNodes.length);
-    const rightFrag = rightRange.extractContents();
-    const parentNode = ancestor.parentNode!;
-
-    const middle = ancestor.cloneNode(false) as HTMLElement;
-    if (value) middle.style.setProperty(prop, value);
-    else middle.style.removeProperty(prop);
-    const middleNode: Node = middle.style.cssText.trim() ? middle : caret;
-    if (middleNode === middle) middle.appendChild(caret);
-    parentNode.insertBefore(middleNode, ancestor.nextSibling);
-
-    if (
-      (rightFrag.textContent ?? '').replace(new RegExp(CARET_FILLER, 'g'), '') !== '' ||
-      rightFrag.querySelector('img,br')
-    ) {
-      const rightEl = ancestor.cloneNode(false) as HTMLElement;
-      rightEl.appendChild(rightFrag);
-      parentNode.insertBefore(rightEl, middleNode.nextSibling);
-    }
-    if (
-      (ancestor.textContent ?? '').replace(new RegExp(CARET_FILLER, 'g'), '') === '' &&
-      !ancestor.querySelector('img,br')
-    ) {
-      ancestor.remove();
-    }
-  } else {
-    const span = docRef.createElement('span');
-    span.style.setProperty(prop, value);
-    span.appendChild(caret);
-    range.insertNode(span);
-  }
-
-  const r = docRef.createRange();
-  r.setStart(caret, 1);
-  r.collapse(true);
-  editor.selection.setRange(r);
-  editor.events.emit('change', editor.getContent());
-}
-
-function queryStyleCommandValue(editor: Editor, prop: string): string {
-  const range = editor.selection.getRange();
-  if (!range) return '';
-  let probe: Node = range.startContainer;
-  if (!range.collapsed) {
-    const doc = editor.getBody().ownerDocument;
-    const showText = doc.defaultView?.NodeFilter.SHOW_TEXT ?? 4;
-    const rangeType = doc.defaultView?.Range ?? Range;
-    const walker = doc.createTreeWalker(editor.getBody(), showText);
-    let textNode = walker.nextNode();
-    while (textNode) {
-      if (textNode.textContent) {
-        const nodeRange = doc.createRange();
-        nodeRange.selectNodeContents(textNode);
-        const overlaps =
-          range.compareBoundaryPoints(rangeType.START_TO_END, nodeRange) > 0 &&
-          range.compareBoundaryPoints(rangeType.END_TO_START, nodeRange) < 0;
-        if (overlaps) {
-          probe = textNode;
-          break;
-        }
-      }
-      textNode = walker.nextNode();
-    }
-  }
-  return queryStyledValue(probe, prop, editor.getBody());
-}
-
-/**
- * Applies or removes an inline style property to/from the selection.
- */
-function toggleStyle(editor: Editor, prop: string, value: string): void {
-  const range = editor.selection.getRange();
-  if (!range) return;
-
-  if (range.collapsed) {
-    toggleStyleCollapsed(editor, prop, value);
-    return;
-  }
-
-  const body = editor.getBody();
-  const out = value
-    ? applyStyledSpan(range, prop, value, body)
-    : removeStyledSpan(range, prop, body);
-
-  editor.selection.setRange(out);
-  body.querySelectorAll('span').forEach((span) => {
-    if (
-      isStyleSpan(span) &&
-      !(span.textContent ?? '').replace(new RegExp(CARET_FILLER, 'g'), '') &&
-      !span.querySelector('img,br')
-    ) {
-      span.remove();
-    }
-  });
-  body.normalize();
-  editor.events.emit('change', editor.getContent());
-}
-
-/**
  * Handle superscript/subscript mutual exclusion and formatting toggles.
  */
 function toggleTag(editor: Editor, tag: string, excludeTag: string): void {
@@ -372,36 +216,36 @@ export const textStylePlugin: Plugin = {
     editor.commands.register('ForeColor', {
       execute: (ed, args) => {
         const color = typeof args === 'string' ? args : '';
-        toggleStyle(ed, 'color', color);
+        applyInlineStyle(ed, 'color', color);
       },
       queryState: (ed) => {
-        return !!queryStyleCommandValue(ed, 'color');
+        return !!getInlineStyleValue(ed, 'color');
       },
-      queryValue: (ed) => queryStyleCommandValue(ed, 'color')
+      queryValue: (ed) => getInlineStyleValue(ed, 'color')
     });
 
     // BackColor Command
     editor.commands.register('BackColor', {
       execute: (ed, args) => {
         const color = typeof args === 'string' ? args : '';
-        toggleStyle(ed, 'background-color', color);
+        applyInlineStyle(ed, 'background-color', color);
       },
       queryState: (ed) => {
-        return !!queryStyleCommandValue(ed, 'background-color');
+        return !!getInlineStyleValue(ed, 'background-color');
       },
-      queryValue: (ed) => queryStyleCommandValue(ed, 'background-color')
+      queryValue: (ed) => getInlineStyleValue(ed, 'background-color')
     });
 
     // FontSize Command
     editor.commands.register('FontSize', {
       execute: (ed, args) => {
         const size = (args as FontSizeCommandArgs | undefined)?.value ?? null;
-        toggleStyle(ed, 'font-size', size ?? '');
+        applyInlineStyle(ed, 'font-size', size ?? '');
       },
       queryState: (ed) => {
-        return !!queryStyleCommandValue(ed, 'font-size');
+        return !!getInlineStyleValue(ed, 'font-size');
       },
-      queryValue: (ed) => queryStyleCommandValue(ed, 'font-size')
+      queryValue: (ed) => getInlineStyleValue(ed, 'font-size')
     });
 
     // Superscript Command

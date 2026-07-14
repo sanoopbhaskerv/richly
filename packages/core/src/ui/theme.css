@@ -641,6 +641,14 @@
   flex: none;
   place-items: center;
 }
+.rly-tb-choice-icon {
+  width: 24px;
+  color: currentColor;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 14px;
+  font-weight: 650;
+  text-align: center;
+}
 .rly-tb-menu-label {
   min-width: 70px;
   overflow: hidden;

@@ -6,9 +6,35 @@ import { getEditorConfig } from '../editor/Editor';
 interface ImageArgs {
   src: string;
   alt?: string;
+  width?: string | number;
+  height?: string | number;
 }
 
 type ResizeAxis = 'x' | 'y' | 'xy';
+
+/** Normalize edited/resized dimensions to portable integer attributes. */
+function setImageDimension(
+  image: HTMLImageElement,
+  dimension: 'width' | 'height',
+  value: string | number
+): void {
+  const numeric = typeof value === 'number' ? value : Number.parseFloat(value);
+  // Inline width/height overrides HTML attributes in CSS. Remove it even when
+  // clearing a dimension so a stale pasted style cannot defeat future resizes.
+  image.style.removeProperty(dimension);
+  if (!image.getAttribute('style')) image.removeAttribute('style');
+  if (Number.isFinite(numeric) && numeric > 0) {
+    image.setAttribute(dimension, String(Math.round(numeric)));
+  } else {
+    image.removeAttribute(dimension);
+  }
+}
+
+/** Apply both frame dimensions through one canonical serialization path. */
+function setImageSize(image: HTMLImageElement, size: { w: number; h: number }): void {
+  setImageDimension(image, 'width', size.w);
+  setImageDimension(image, 'height', size.h);
+}
 
 function currentImage(editor: Editor): HTMLImageElement | null {
   const range = editor.selection.getRange();
@@ -36,6 +62,8 @@ function insertImageNode(editor: Editor, args: ImageArgs, at?: Range): HTMLImage
   if (existing) {
     existing.setAttribute('src', args.src);
     if (args.alt !== undefined) existing.setAttribute('alt', args.alt);
+    if (args.width !== undefined) setImageDimension(existing, 'width', args.width);
+    if (args.height !== undefined) setImageDimension(existing, 'height', args.height);
     return existing;
   }
 
@@ -43,6 +71,8 @@ function insertImageNode(editor: Editor, args: ImageArgs, at?: Range): HTMLImage
   const img = doc.createElement('img');
   img.setAttribute('src', args.src);
   img.setAttribute('alt', args.alt ?? '');
+  if (args.width !== undefined) setImageDimension(img, 'width', args.width);
+  if (args.height !== undefined) setImageDimension(img, 'height', args.height);
   range.insertNode(img);
   const after = doc.createRange();
   after.setStartAfter(img);
@@ -171,8 +201,23 @@ async function openImageDialog(editor: Editor): Promise<void> {
         placeholder: 'https://…',
         value: existing?.getAttribute('src') ?? ''
       },
-      { name: 'alt', label: 'Alternative description', value: existing?.getAttribute('alt') ?? '' }
+      { name: 'alt', label: 'Alternative description', value: existing?.getAttribute('alt') ?? '' },
+      {
+        name: 'width',
+        label: 'Width (px)',
+        type: 'number',
+        placeholder: 'Automatic',
+        value: existing?.getAttribute('width') ?? ''
+      },
+      {
+        name: 'height',
+        label: 'Height (px)',
+        type: 'number',
+        placeholder: 'Automatic',
+        value: existing?.getAttribute('height') ?? ''
+      }
     ],
+    layout: 'grid',
     submitText: existing ? 'Update' : 'Insert'
   });
 
@@ -184,7 +229,14 @@ async function openImageDialog(editor: Editor): Promise<void> {
 
   const src = typeof result?.src === 'string' ? result.src.trim() : '';
   const alt = typeof result?.alt === 'string' ? result.alt : undefined;
-  if (src) editor.execCommand('InsertImage', { src, alt });
+  if (src) {
+    editor.execCommand('InsertImage', {
+      src,
+      alt,
+      width: result?.width ?? '',
+      height: result?.height ?? ''
+    });
+  }
 }
 
 export function constrainSize(
@@ -208,8 +260,10 @@ export function constrainSize(
     else w = h * ratio;
   }
 
-  w = Math.max(min, w);
-  h = Math.max(min, h);
+  // Clamp only dimensions controlled by this handle. A width-only drag must
+  // not silently change a short image's height (and vice versa).
+  if (axis !== 'y') w = Math.max(min, w);
+  if (axis !== 'x') h = Math.max(min, h);
 
   if (axis === 'xy' && lockRatio) {
     if (w / h > ratio) h = w / ratio;
@@ -305,10 +359,20 @@ function installImageSelection(editor: Editor): void {
 
   const currentSize = (img: HTMLImageElement): { w: number; h: number } => {
     const rect = img.getBoundingClientRect();
-    const width =
-      parseFloat(img.getAttribute('width') ?? '') || rect.width || img.naturalWidth || 1;
-    const height =
-      parseFloat(img.getAttribute('height') ?? '') || rect.height || img.naturalHeight || 1;
+    const computed = doc.defaultView?.getComputedStyle(img);
+    const attributeWidth = parseFloat(img.getAttribute('width') ?? '');
+    const attributeHeight = parseFloat(img.getAttribute('height') ?? '');
+    const inlinePixels = (value: string, computedValue: string | undefined, rendered: number) =>
+      value.trim().endsWith('px') ? parseFloat(value) : parseFloat(computedValue ?? '') || rendered;
+    // Inline CSS wins over attributes, so only that case must start from the
+    // rendered box. Attribute-only images retain their explicit dimensions;
+    // this also avoids intrinsic 1×1 placeholders collapsing a configured size.
+    const width = img.style.width
+      ? inlinePixels(img.style.width, computed?.width, rect.width)
+      : attributeWidth || rect.width || img.naturalWidth || 1;
+    const height = img.style.height
+      ? inlinePixels(img.style.height, computed?.height, rect.height)
+      : attributeHeight || rect.height || img.naturalHeight || 1;
     return { w: Math.max(1, width), h: Math.max(1, height) };
   };
 
@@ -355,8 +419,7 @@ function installImageSelection(editor: Editor): void {
           axis === 'xy' && !move.shiftKey,
           24
         );
-        img.setAttribute('width', String(next.w));
-        img.setAttribute('height', String(next.h));
+        setImageSize(img, next);
         position();
       };
 
@@ -410,8 +473,7 @@ function installImageSelection(editor: Editor): void {
     event.stopPropagation();
     editor.undoManager.snapshot(true);
     const next = constrainSize(currentSize(selected), { dx, dy }, axis, false, 24);
-    selected.setAttribute('width', String(next.w));
-    selected.setAttribute('height', String(next.h));
+    setImageSize(selected, next);
     editor.events.emit('change', editor.getContent());
     position();
   });

@@ -131,6 +131,7 @@ export function renderChoiceControl(
     if (item.icon) {
       const icon = doc.createElement('span');
       icon.className = 'rly-tb-choice-icon';
+      icon.setAttribute('aria-hidden', 'true');
       icon.innerHTML = icons[item.icon] ?? item.icon;
       entry.appendChild(icon);
     }

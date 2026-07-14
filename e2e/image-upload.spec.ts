@@ -98,6 +98,72 @@ test.describe('image upload and resize', () => {
     await page.getByTestId('dialog-cancel').click();
   });
 
+  test('width handle overrides pasted inline dimensions using the rendered size', async ({
+    page
+  }) => {
+    const editor = new EditorPage(page, 'editor');
+    await editor.goto();
+    await editor.clear();
+    await editor.content.evaluate((el) => {
+      // Generate the fixture in the current browser so this sizing test is not
+      // coupled to differences in how engines decode a hand-authored PNG.
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      el.innerHTML = `<p><img src="${canvas.toDataURL('image/png')}" width="100" height="50" style="width: 40px; height: 20px;" alt="x"></p>`;
+    });
+
+    const image = editor.content.locator('img').first();
+    await image.click();
+    const handle = editor.root.getByTestId('image-resize-x');
+    const box = await handle.boundingBox();
+    if (!box) throw new Error('Width resize handle not visible');
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 20, box.y + box.height / 2);
+    await page.mouse.up();
+
+    const result = await image.evaluate((img) => ({
+      width: Number(img.getAttribute('width')),
+      height: Number(img.getAttribute('height')),
+      inlineWidth: (img as HTMLElement).style.width,
+      inlineHeight: (img as HTMLElement).style.height,
+      renderedWidth: img.getBoundingClientRect().width
+    }));
+    expect(result.width).toBeGreaterThan(40);
+    expect(result.width).toBeLessThan(100);
+    expect(result.height).toBe(20);
+    expect(result.inlineWidth).toBe('');
+    expect(result.inlineHeight).toBe('');
+    expect(Math.round(result.renderedWidth)).toBe(result.width);
+  });
+
+  test('image dialog accepts exact pixel dimensions', async ({ page }) => {
+    const editor = new EditorPage(page, 'editor');
+    await editor.goto();
+    await editor.clear();
+    await editor.content.evaluate((el) => {
+      // A canvas-generated URL is a complete, browser-decodable image. The
+      // former truncated PNG fixture raced image decoding under parallel CI.
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      el.innerHTML = `<p><img src="${canvas.toDataURL('image/png')}" width="40" height="20" alt="x"></p>`;
+    });
+
+    const image = editor.content.locator('img').first();
+    await image.click();
+    await editor.clickButton('image');
+    await expect(page.getByTestId('dialog-field-width')).toHaveValue('40');
+    await expect(page.getByTestId('dialog-field-height')).toHaveValue('20');
+    await page.getByTestId('dialog-field-width').fill('72');
+    await page.getByTestId('dialog-field-height').fill('36');
+    await page.getByTestId('dialog-submit').click();
+
+    await expect(image).toHaveAttribute('width', '72');
+    await expect(image).toHaveAttribute('height', '36');
+  });
+
   test('keyboard resize works only when frame is focused', async ({ page }) => {
     const editor = new EditorPage(page, 'editor');
     await editor.goto();

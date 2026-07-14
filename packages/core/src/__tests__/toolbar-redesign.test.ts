@@ -83,6 +83,18 @@ describe('grouped toolbar UI', () => {
     expect(root.querySelector('[data-testid="tb-bulliststyles-menu"]')).not.toBeNull();
     expect(root.querySelector('[data-testid="tb-numliststyles-menu"]')).not.toBeNull();
     expect(root.querySelector('[data-testid="tb-alignment"]')).not.toBeNull();
+    expect(
+      root.querySelector('[data-testid="menuitem-bulliststyles-disc"]')?.textContent
+    ).toContain('●');
+    expect(
+      root.querySelector('[data-testid="menuitem-bulliststyles-circle"]')?.textContent
+    ).toContain('○');
+    expect(
+      root.querySelector('[data-testid="menuitem-bulliststyles-square"]')?.textContent
+    ).toContain('■');
+    expect(
+      root.querySelector('[data-testid="menuitem-numliststyles-lower-roman"]')?.textContent
+    ).toContain('i.');
     for (const command of ['selectall', 'copy', 'cut', 'paste']) {
       expect(root.querySelector(`[data-testid="tb-${command}"]`)).not.toBeNull();
     }

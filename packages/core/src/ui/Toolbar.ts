@@ -31,6 +31,7 @@ export class Toolbar {
   private slidingDrawer: HTMLElement | null = null;
   private slidingContent: HTMLElement | null = null;
   private slidingOpen = false;
+  private slidingOpenRequested = false;
   private slidingOverflowTimer: number | null = null;
 
   constructor(
@@ -155,6 +156,32 @@ export class Toolbar {
               dd.style.marginTop = '';
               dd.style.marginBottom = '';
             };
+            let boundsFrame: number | null = null;
+            const correctHorizontalBounds = (view: Window, margin = 8): void => {
+              const renderedRect = dd.getBoundingClientRect();
+              const maximumLeft = Math.max(margin, view.innerWidth - renderedRect.width - margin);
+              const renderedLeft = Math.max(margin, Math.min(maximumLeft, renderedRect.left));
+              const correction = renderedLeft - renderedRect.left;
+              if (Math.abs(correction) <= 0.01) return;
+              const assignedLeft = Number.parseFloat(dd.style.left);
+              dd.style.left = `${(Number.isFinite(assignedLeft) ? assignedLeft : 0) + correction}px`;
+            };
+            const maintainPanelBounds = (): void => {
+              boundsFrame = null;
+              const view = doc.defaultView;
+              if (!view || !dd.classList.contains('rly-open')) return;
+              // Firefox may horizontally scroll or finish redistributing the
+              // focused trigger after the resize event and its first frame.
+              // Keep the open panel clamped until it closes instead of guessing
+              // how many browser-owned layout phases are still pending.
+              correctHorizontalBounds(view);
+              boundsFrame = view.requestAnimationFrame(maintainPanelBounds);
+            };
+            const monitorPanelBounds = (): void => {
+              const view = doc.defaultView;
+              if (!view || boundsFrame !== null) return;
+              boundsFrame = view.requestAnimationFrame(maintainPanelBounds);
+            };
             const positionPanel = (): void => {
               const view = doc.defaultView;
               if (!view) return;
@@ -171,6 +198,13 @@ export class Toolbar {
                 );
                 dd.style.left = `${clampedLeft - wrapRect.left}px`;
                 dd.style.right = 'auto';
+
+                // Firefox can resolve an absolute containing block a fractional
+                // pixel differently while a sliding-toolbar group is moving
+                // between rows. Correct from the rendered rectangle so the
+                // viewport gutter remains authoritative even when the trigger's
+                // theoretical offset and the painted panel briefly disagree.
+                correctHorizontalBounds(view, margin);
 
                 const fitsBelow =
                   wrapRect.bottom + 4 + panelRect.height <= view.innerHeight - margin;
@@ -189,8 +223,12 @@ export class Toolbar {
               // font loading and responsive styles cannot leave stale bounds.
               update();
               view.requestAnimationFrame(update);
+              monitorPanelBounds();
             };
             const close = (): void => {
+              const view = doc.defaultView;
+              if (view && boundsFrame !== null) view.cancelAnimationFrame(boundsFrame);
+              boundsFrame = null;
               resetPosition();
               dd.classList.remove('rly-open');
               btn.setAttribute('aria-expanded', 'false');
@@ -237,7 +275,18 @@ export class Toolbar {
               }
             });
             doc.addEventListener('click', close);
-            this.editor.events.on('destroy', () => doc.removeEventListener('click', close));
+            // Viewport changes can move a trigger even when the toolbar's own
+            // measured width stays constant. Reposition independently of the
+            // sliding redistribution pass so an open panel never retains a
+            // stale desktop offset at a narrow breakpoint.
+            const onViewportResize = (): void => positionPanel();
+            doc.defaultView?.addEventListener('resize', onViewportResize);
+            this.editor.events.on('destroy', () => {
+              doc.removeEventListener('click', close);
+              doc.defaultView?.removeEventListener('resize', onViewportResize);
+              if (boundsFrame !== null) doc.defaultView?.cancelAnimationFrame(boundsFrame);
+              boundsFrame = null;
+            });
             wrap.append(btn, dd);
             groupEl.appendChild(wrap);
           } else {
@@ -427,13 +476,15 @@ export class Toolbar {
 
     toggle.addEventListener('click', (event) => {
       event.stopPropagation();
-      this.setSlidingOpen(!this.slidingOpen);
+      this.slidingOpenRequested = !this.slidingOpen;
+      this.setSlidingOpen(this.slidingOpenRequested);
     });
 
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape' || !this.slidingOpen || event.defaultPrevented) return;
       event.preventDefault();
       event.stopPropagation();
+      this.slidingOpenRequested = false;
       this.setSlidingOpen(false, true);
     };
     this.container.addEventListener('keydown', onKeyDown);
@@ -516,7 +567,10 @@ export class Toolbar {
     const content = this.slidingContent;
     if (!primary || !toggleWrap || !content) return;
 
-    const keepOpen = this.slidingOpen;
+    // Preserve the user's disclosure choice even if a transient responsive
+    // measurement briefly makes the drawer unnecessary. A later settled
+    // measurement can then restore it without losing an open child panel.
+    const keepOpen = this.slidingOpenRequested;
     for (const section of this.sections) {
       for (const item of section) primary.insertBefore(item, toggleWrap);
     }
@@ -525,7 +579,9 @@ export class Toolbar {
 
     let occupiedWidth = this.occupiedWidth(primary);
     if (availableWidth <= 0 || occupiedWidth <= availableWidth) {
-      this.setSlidingOpen(false);
+      // Controls have moved back to the primary row, so hiding the empty
+      // drawer is a layout operation rather than an explicit dismissal.
+      this.setSlidingOpen(false, false, true);
       this.repositionToolbarDropdowns();
       return;
     }
@@ -541,14 +597,14 @@ export class Toolbar {
 
     if (content.childElementCount === 0) {
       toggleWrap.hidden = true;
-      this.setSlidingOpen(false);
+      this.setSlidingOpen(false, false, true);
       return;
     }
     this.setSlidingOpen(keepOpen);
     this.repositionToolbarDropdowns();
   }
 
-  private setSlidingOpen(open: boolean, focusToggle = false): void {
+  private setSlidingOpen(open: boolean, focusToggle = false, preserveDropdowns = false): void {
     const drawer = this.slidingDrawer;
     const toggle = this.slidingToggle;
     if (!drawer || !toggle) return;
@@ -581,7 +637,7 @@ export class Toolbar {
     }
 
     if (!open && changed) {
-      this.closeToolbarDropdowns();
+      if (!preserveDropdowns) this.closeToolbarDropdowns();
       const active = this.container.ownerDocument.activeElement;
       if (focusToggle || (active && drawer.contains(active))) toggle.focus();
     }

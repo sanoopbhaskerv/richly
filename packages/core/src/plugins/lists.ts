@@ -26,6 +26,18 @@ const DEFAULT_NUMBER_STYLES: ListStyleOption[] = [
 const SUPPORTED_LIST_STYLES = new Set(
   [...DEFAULT_BULLET_STYLES, ...DEFAULT_NUMBER_STYLES].map(({ value }) => value)
 );
+/** Compact marker previews used by both default and configured list choices. */
+const LIST_STYLE_INDICATORS: Readonly<Record<string, string>> = {
+  disc: '●',
+  circle: '○',
+  square: '■',
+  decimal: '1.',
+  'lower-alpha': 'a.',
+  'upper-alpha': 'A.',
+  'lower-roman': 'i.',
+  'upper-roman': 'I.',
+  'decimal-leading-zero': '01.'
+};
 
 function doc(el: Element): Document {
   return el.ownerDocument;
@@ -265,12 +277,14 @@ export const listsPlugin: Plugin = {
       ...options.map((option) => ({
         value: option.value,
         label: option.label,
+        icon: LIST_STYLE_INDICATORS[option.value],
         command: 'ApplyList',
         args: { kind: tag, style: option.value }
       })),
       {
         value: 'none',
         label: tag === 'ul' ? 'Remove bullets' : 'Remove numbering',
+        icon: '×',
         command: 'RemoveList',
         repeatable: false,
         separatorBefore: true
