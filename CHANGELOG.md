@@ -7,6 +7,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.0-rc.8] - 2026-07-14
+
 ### Fixed
 
 - Prioritized textual clipboard payloads (`text/html` / `text/plain`) over
@@ -348,7 +350,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Firefox inline-format and link commands now recognize selections whose range
   boundaries surround the inline element from its parent node.
 
-[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.7...HEAD
+[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.8...HEAD
+[1.0.0-rc.8]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.7...v1.0.0-rc.8
 [1.0.0-rc.7]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.5...v1.0.0-rc.7
 [1.0.0-rc.6]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.5...v1.0.0-rc.6
 [1.0.0-rc.5]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.4...v1.0.0-rc.5
