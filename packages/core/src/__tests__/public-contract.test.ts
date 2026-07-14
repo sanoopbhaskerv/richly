@@ -1,11 +1,22 @@
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import ts from 'typescript';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Editor } from '../editor/Editor';
 import { SANITIZER_SCHEMA } from '../model/Sanitizer';
 
 let editor: Editor | undefined;
+
+/** Reads the ordered source partials represented by the theme manifest. */
+function readThemeSource(): string {
+  const entryPath = resolve(process.cwd(), 'src/ui/theme.css');
+  const manifest = readFileSync(entryPath, 'utf8');
+  const partialPaths = [...manifest.matchAll(/@import\s+['"](.+?)['"]\s*;/g)].map((match) =>
+    resolve(dirname(entryPath), match[1])
+  );
+  if (partialPaths.length === 0) throw new Error('Theme manifest does not import any partials');
+  return partialPaths.map((path) => readFileSync(path, 'utf8')).join('');
+}
 
 afterEach(() => {
   editor?.destroy();
@@ -290,7 +301,7 @@ describe('1.0 public contract tripwires', () => {
   });
 
   it('keeps the documented theme tokens and CSS hooks', () => {
-    const css = readFileSync(resolve(process.cwd(), 'src/ui/theme.css'), 'utf8');
+    const css = readThemeSource();
     for (const token of [
       '--rly-surface',
       '--rly-surface-2',

@@ -1,0 +1,344 @@
+/* Table panels, context menus, and selection-adjacent floating toolbars. */
+.rly-table-panel {
+  display: grid;
+  grid-template-columns: 174px 292px;
+  gap: 0;
+}
+.rly-table-grid-picker {
+  padding: 4px 8px 4px 4px;
+}
+.rly-table-panel-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--rly-text);
+}
+.rly-grid {
+  display: grid;
+  gap: 3px;
+}
+.rly-table-grid-picker .rly-grid {
+  margin-top: 9px;
+}
+.rly-grid i {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--rly-border);
+  border-radius: 3px;
+  background: var(--rly-surface-2);
+  cursor: pointer;
+}
+.rly-grid i.rly-on {
+  background: var(--rly-active);
+  border-color: var(--rly-accent);
+}
+.rly-grid-label {
+  text-align: center;
+  font-size: 12px;
+  color: var(--rly-text-dim);
+  padding-top: 6px;
+}
+.rly-table-context {
+  border-left: 1px solid var(--rly-border);
+  padding: 4px 4px 4px 12px;
+  transition: opacity 120ms ease;
+}
+.rly-table-context.rly-disabled {
+  opacity: 0.62;
+}
+.rly-table-context-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+.rly-table-context-badge {
+  border-radius: 999px;
+  padding: 2px 7px;
+  background: var(--rly-surface-2);
+  color: var(--rly-text-dim);
+  font-size: 10px;
+  white-space: nowrap;
+}
+.rly-table-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+}
+.rly-table-property-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid var(--rly-border);
+}
+.rly-table-danger-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-top: 7px;
+}
+.rly-table-action {
+  border: 1px solid transparent;
+  background: var(--rly-surface-2);
+  color: var(--rly-text);
+  border-radius: 8px;
+  min-height: 34px;
+  padding: 5px 7px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+}
+.rly-table-action:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--rly-accent) 42%, var(--rly-border));
+  background: var(--rly-active);
+}
+.rly-table-action:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.rly-table-action-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: var(--rly-surface);
+  color: var(--rly-accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+.rly-table-action-property {
+  justify-content: center;
+  flex-direction: column;
+  gap: 3px;
+  padding-block: 7px;
+  text-align: center;
+}
+.rly-table-action-danger {
+  min-height: 26px;
+  padding: 3px 5px;
+  justify-content: center;
+  color: #c73a3a;
+  background: transparent;
+  font-size: 10.5px;
+}
+.rly-table-action-danger .rly-table-action-icon {
+  display: none;
+}
+.rly-table-action-danger:hover:not(:disabled) {
+  background: color-mix(in srgb, #e5484d 10%, transparent);
+  border-color: color-mix(in srgb, #e5484d 30%, transparent);
+}
+
+@media (max-width: 640px) {
+  /* Stack grid picker above the context section instead of side-by-side. */
+  .rly-table-panel {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+  .rly-table-context {
+    border-left: 0;
+    border-top: 1px solid var(--rly-border);
+    padding: 12px 4px 4px;
+  }
+  /* Dropdown clamping on narrow screens is handled by JS in Toolbar.ts.
+     No static position/transform override needed here. */
+}
+
+/* ---- inline table options toolbar (floats under the selected table) ---- */
+.rly-table-inline-toolbar {
+  position: absolute;
+  z-index: 40; /* below menu/toolbar dropdowns (50) and the context menu (70) */
+  display: none;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--rly-surface);
+  border: 1px solid var(--rly-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(20, 30, 50, 0.16);
+  /* The container is click-transparent so gaps/padding don't trap clicks meant
+     for content beneath; only the buttons themselves take the pointer. */
+  pointer-events: none;
+}
+.rly-table-inline-toolbar.rly-open {
+  display: flex;
+}
+.rly-table-inline-toolbar .rly-table-inline-btn {
+  pointer-events: auto;
+}
+/* Notch pointing at the table: top edge by default, bottom edge when flipped above. */
+.rly-table-inline-toolbar::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--rly-surface);
+  border-left: 1px solid var(--rly-border);
+  border-top: 1px solid var(--rly-border);
+}
+.rly-table-inline-toolbar.rly-flip::before {
+  top: auto;
+  bottom: -5px;
+  border: none;
+  border-right: 1px solid var(--rly-border);
+  border-bottom: 1px solid var(--rly-border);
+}
+.rly-table-inline-btn {
+  width: 34px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--rly-text);
+}
+.rly-table-inline-btn:hover {
+  background: var(--rly-hover);
+  color: var(--rly-accent);
+}
+.rly-table-inline-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--rly-border);
+  margin: 0 8px;
+}
+
+/* ---- inline text formatting toolbar (floats near selected text) ---- */
+.rly-text-inline-toolbar {
+  position: absolute;
+  z-index: 40;
+  display: none;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--rly-surface);
+  border: 1px solid var(--rly-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(20, 30, 50, 0.16);
+  pointer-events: none;
+}
+.rly-text-inline-toolbar.rly-open {
+  display: flex;
+}
+.rly-text-inline-toolbar .rly-text-inline-btn {
+  pointer-events: auto;
+}
+.rly-text-inline-toolbar::before {
+  content: '';
+  position: absolute;
+  top: auto;
+  bottom: -5px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--rly-surface);
+  border-right: 1px solid var(--rly-border);
+  border-bottom: 1px solid var(--rly-border);
+}
+.rly-text-inline-toolbar.rly-flip::before {
+  top: -5px;
+  bottom: auto;
+  border: none;
+  border-left: 1px solid var(--rly-border);
+  border-top: 1px solid var(--rly-border);
+}
+.rly-text-inline-btn {
+  width: 34px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--rly-text);
+}
+.rly-text-inline-btn:hover {
+  background: var(--rly-hover);
+  color: var(--rly-accent);
+}
+.rly-text-inline-btn.rly-active {
+  background: var(--rly-active);
+  color: var(--rly-accent);
+}
+.rly-text-inline-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--rly-border);
+  margin: 0 8px;
+}
+
+.rly-table-context-menu {
+  position: absolute;
+  z-index: 70;
+  display: none;
+  width: min(292px, calc(100vw - 16px));
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid var(--rly-border);
+  border-radius: 12px;
+  background: var(--rly-surface);
+  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.2);
+}
+.rly-table-context-menu.rly-open {
+  display: block;
+  animation: rly-context-in 110ms ease-out;
+}
+.rly-table-context.rly-table-context-popup {
+  border: 0;
+  padding: 0;
+}
+@keyframes rly-context-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.rly.rly-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  border-radius: 0;
+  max-height: 100vh;
+}
+.rly.rly-fullscreen .rly-content {
+  overflow: auto;
+}
+
+.rly-dialog-wide {
+  min-width: min(680px, 90vw);
+}
+.rly-dialog-row textarea {
+  border: 1px solid var(--rly-border, #e3e6ea);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--rly-surface-2, #f7f8fa);
+  color: inherit;
+  outline: none;
+  resize: vertical;
+}
+.rly-dialog-row textarea:focus {
+  border-color: var(--rly-accent, #3574f0);
+}

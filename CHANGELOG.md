@@ -53,6 +53,9 @@ and releases follow [Semantic Versioning](https://semver.org/).
   redistributing, including Firefox's delayed focus and layout updates.
 - Prevented keyboard navigation within color palettes from scrolling the page
   when Firefox defers its focused-swatch layout adjustment.
+- Split the source editor theme into ordered foundation, toolbar, color-picker,
+  contextual UI, and content partials while retaining the single published
+  `@richly/core/theme.css` entry point.
 
 ## [1.0.0-rc.4] - 2026-07-13
 

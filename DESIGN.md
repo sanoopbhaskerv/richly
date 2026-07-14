@@ -32,6 +32,15 @@ packages/react  React component that owns one core editor instance
 packages/demo   Vite playground for both integrations
 ```
 
+### Theme source and packaging
+
+`packages/core/src/ui/theme.css` is the ordered source manifest for the editor
+theme. Its component partials live in `packages/core/src/ui/theme/`; add new
+rules to the owning partial and preserve the manifest order because it defines
+the CSS cascade. Development bundlers resolve those imports directly, while
+`packages/core/scripts/copy-theme.mjs` inlines them into one dependency-free
+`dist/theme.css`. The public import remains `@richly/core/theme.css`.
+
 ## Public API
 
 ```ts
