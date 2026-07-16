@@ -1,9 +1,11 @@
 import { ImageSessionDestroyedError } from './errors';
 import { ManifestHistory, sameManifest } from './history';
-import { createFakePreview } from './preview';
+import { createRenderPreview } from './preview';
 import { defaultDecoder } from './source';
 import { invalid } from './validation';
 import { OperationRegistry, builtInOperations } from './operations';
+import { Canvas2DRenderEngine } from './canvasEngine';
+import { compileRenderPlan } from './renderPlan';
 import type {
   CommandResult,
   DecodedImageSource,
@@ -20,6 +22,7 @@ import type {
   PreviewHandle,
   PreviewOptions,
   PreviewTarget,
+  RenderEngine,
   Size,
   ValidationResult
 } from './types';
@@ -53,6 +56,7 @@ function resultFromValidation(validation: ValidationResult): CommandResult {
 /** Non-destructive image session implementation. */
 class ImageSessionImpl implements ImageSession {
   private readonly registry: OperationRegistry;
+  private readonly renderEngine: RenderEngine;
   private readonly baseline: readonly ImageOperation[];
   private readonly history: ManifestHistory;
   private readonly listeners = new Set<() => void>();
@@ -69,6 +73,7 @@ class ImageSessionImpl implements ImageSession {
       ...builtInOperations,
       ...(config.options?.operations ?? [])
     ] as readonly OperationDefinition[]);
+    this.renderEngine = config.options?.renderEngine ?? new Canvas2DRenderEngine();
     this.baseline = cloneOperations(config.baseline);
     this.operations = cloneOperations(config.baseline);
     this.history = new ManifestHistory(this.baseline, now, createId);
@@ -231,28 +236,34 @@ class ImageSessionImpl implements ImageSession {
 
   createPreview(target: PreviewTarget, options?: PreviewOptions): PreviewHandle {
     this.assertReady();
-    return createFakePreview(target, options, () => {
-      const state = this.getState();
-      return {
-        revision: state.revision,
-        size: { width: state.outputWidth, height: state.outputHeight },
-        operations: state.transient ? [...state.operations, state.transient] : state.operations
-      };
-    });
+    return createRenderPreview(
+      target,
+      options,
+      this.config.decoded,
+      this.renderEngine,
+      (before) => {
+        const operations = before
+          ? []
+          : this.transient
+            ? [...this.operations, this.transient]
+            : this.operations;
+        return {
+          revision: this.revision,
+          plan: this.compilePlan(operations)
+        };
+      }
+    );
   }
 
   async export(options?: ExportOptions): Promise<ExportResult> {
     this.assertReady();
     if (options?.signal?.aborted)
       throw options.signal.reason ?? new DOMException('Aborted', 'AbortError');
-    const state = this.getState();
-    const mimeType = options?.type ?? 'image/png';
-    return {
-      width: state.outputWidth,
-      height: state.outputHeight,
-      mimeType,
-      blob: new Blob([], { type: mimeType })
-    };
+    return this.renderEngine.export(
+      this.config.decoded,
+      this.compilePlan(this.operations),
+      options
+    );
   }
 
   destroy(): void {
@@ -298,6 +309,12 @@ class ImageSessionImpl implements ImageSession {
         return definition.reduceSize(size, operation.params);
       },
       { width: this.config.decoded.info.width, height: this.config.decoded.info.height }
+    );
+  }
+
+  private compilePlan(operations: readonly ImageOperation[]) {
+    return compileRenderPlan(this.config.decoded, operations, (type) =>
+      this.registry.require(type)
     );
   }
 

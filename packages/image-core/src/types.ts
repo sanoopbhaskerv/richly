@@ -153,6 +153,7 @@ export interface PreviewOptions {
 export interface PreviewFrame extends Size {
   readonly revision: number;
   readonly operations: readonly ImageOperation[];
+  readonly blob?: Blob;
 }
 
 /** Disposable preview subscription/render handle. */
@@ -160,6 +161,7 @@ export interface PreviewHandle {
   readonly target: PreviewTarget;
   getFrame(): PreviewFrame;
   render(): Promise<PreviewFrame>;
+  renderBefore(): Promise<PreviewFrame>;
   dispose(): void;
 }
 
@@ -178,6 +180,18 @@ export interface ExportResult extends Size {
   readonly mimeType: string;
 }
 
+/** Compiled render plan shared by preview and full-resolution export. */
+export interface RenderPlan extends Size {
+  readonly source: SourceInfo;
+  readonly operations: readonly ImageOperation[];
+  readonly stages: readonly RenderStage[];
+}
+
+/** Result returned by render engines. */
+export interface RenderResult extends Size {
+  readonly blob?: Blob;
+}
+
 /** Resolved source data held by the session. */
 export interface DecodedImageSource {
   readonly info: SourceInfo;
@@ -189,9 +203,25 @@ export interface DecodedImageSource {
 /** Host-provided source decoder used in tests, workers, or non-browser hosts. */
 export type ImageSourceDecoder = (source: ImageSourceInput) => Promise<DecodedImageSource>;
 
+/** Rendering backend used by previews and exports. */
+export interface RenderEngine {
+  renderPreview(
+    source: DecodedImageSource,
+    plan: RenderPlan,
+    target: PreviewTarget,
+    options?: PreviewOptions
+  ): Promise<RenderResult>;
+  export(
+    source: DecodedImageSource,
+    plan: RenderPlan,
+    options?: ExportOptions
+  ): Promise<ExportResult>;
+}
+
 /** Session construction options and extension points. */
 export interface ImageSessionOptions {
   readonly decoder?: ImageSourceDecoder;
+  readonly renderEngine?: RenderEngine;
   readonly operations?: readonly OperationDefinition[];
   readonly idGenerator?: () => string;
   readonly now?: () => number;

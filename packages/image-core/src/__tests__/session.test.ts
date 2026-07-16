@@ -100,13 +100,21 @@ describe('ImageSession', () => {
 
   it('exposes a disposable fake preview and releases decoded resources on destroy', async () => {
     const destroy = vi.fn();
+    const renderEngine = {
+      async renderPreview() {
+        return { width: 20, height: 10 };
+      },
+      async export() {
+        return { width: 20, height: 10, mimeType: 'image/png', blob: new Blob() };
+      }
+    };
     const localDecoder: ImageSourceDecoder = async () => ({
       info: { width: 20, height: 10 },
       destroy
     });
     const session = await createImageSession(
       { kind: 'url', url: '/fixture.png' },
-      { decoder: localDecoder }
+      { decoder: localDecoder, renderEngine }
     );
     const preview = session.createPreview({ kind: 'custom' });
 
