@@ -1,13 +1,15 @@
 import { createRoot, type Root } from 'react-dom/client';
-import { act } from 'react';
+import { act, useEffect } from 'react';
 import {
   createImageSession,
   type DecodedImageSource,
   type ImageSourceDecoder
 } from '@richly/image-core';
 import {
+  CropOverlay,
   ImageEditorProvider,
   ImageToolbarButton,
+  useCropTool,
   useImageCommands,
   useImageEditorState,
   useImageHistory,
@@ -36,6 +38,18 @@ function Probe() {
       <button onClick={() => viewport.zoomIn()}>zoom</button>
     </div>
   );
+}
+
+function CropProbe() {
+  const crop = useCropTool();
+  useEffect(() => {
+    crop.setDraft({ x: 4, y: 4, width: 20, height: 10 });
+  }, []);
+  return <CropOverlay />;
+}
+
+function flushAsync(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 describe('@richly/image-react primitives', () => {
@@ -78,6 +92,55 @@ describe('@richly/image-react primitives', () => {
   it('renders accessible primitive controls', () => {
     act(() => root.render(<ImageToolbarButton label="Apply crop">Apply</ImageToolbarButton>));
     expect(container.querySelector('button')?.getAttribute('aria-label')).toBe('Apply crop');
+  });
+
+  it('waits for provider-created sessions and cleans up owned source resources', async () => {
+    let closed = 0;
+    const bitmap = {
+      width: 32,
+      height: 16,
+      close() {
+        closed += 1;
+      }
+    } as ImageBitmap;
+
+    await act(async () => {
+      root.render(
+        <ImageEditorProvider source={{ kind: 'bitmap', bitmap, transferOwnership: true }}>
+          <Probe />
+        </ImageEditorProvider>
+      );
+      expect(container.querySelector('[data-testid="size"]')).toBeNull();
+      await flushAsync();
+    });
+
+    expect(container.querySelector('[data-testid="size"]')?.textContent).toBe('32x16');
+    act(() => root.render(<div />));
+    expect(closed).toBe(1);
+  });
+
+  it('uses valid crop overlay semantics and prevents page scrolling on keyboard moves', async () => {
+    const session = await createImageSession({ kind: 'url', url: '/fixture.png' }, { decoder });
+    act(() => {
+      root.render(
+        <ImageEditorProvider session={session}>
+          <CropProbe />
+        </ImageEditorProvider>
+      );
+    });
+
+    const overlay = container.querySelector('[data-testid="image-crop-overlay"]');
+    expect(overlay?.getAttribute('role')).toBe('group');
+    const event = new KeyboardEvent('keydown', {
+      key: 'ArrowRight',
+      bubbles: true,
+      cancelable: true
+    });
+    act(() => {
+      overlay?.dispatchEvent(event);
+    });
+
+    expect(event.defaultPrevented).toBe(true);
   });
 });
 

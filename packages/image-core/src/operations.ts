@@ -85,9 +85,9 @@ export const rotateOperation: OperationDefinition<{ angle: number }> = {
   version: 1,
   validateParams(params): ValidationResult {
     const angle = (params as { angle?: unknown } | null)?.angle;
-    return typeof angle === 'number' && Number.isFinite(angle)
+    return typeof angle === 'number' && Number.isFinite(angle) && angle % 90 === 0
       ? valid
-      : invalid('invalid_rotate', 'Rotate requires a finite angle');
+      : invalid('invalid_rotate', 'Rotate requires a right-angle increment');
   },
   reduceSize(input, params) {
     const normalized = ((params.angle % 360) + 360) % 360;

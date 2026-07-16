@@ -96,6 +96,17 @@ describe('render plans and export', () => {
     );
   });
 
+  it('rejects arbitrary rotate angles that do not match plan geometry', async () => {
+    const session = await createImageSession({ kind: 'url', url: '/fixture.png' }, { decoder });
+
+    expect(session.execute('rotate', { angle: 45 })).toMatchObject({
+      ok: false,
+      code: 'invalid_rotate'
+    });
+    expect(session.getState()).toMatchObject({ outputWidth: 200, outputHeight: 100 });
+    expect(session.toDocument().operations).toHaveLength(0);
+  });
+
   it('honors AbortSignal before preview and export work starts', async () => {
     const renderEngine = new RecordingRenderEngine();
     const session = await createImageSession(

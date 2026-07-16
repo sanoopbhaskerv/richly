@@ -19,10 +19,19 @@ export function CropOverlay() {
     } else if (event.key === 'Enter') {
       event.preventDefault();
       crop.apply();
-    } else if (event.key === 'ArrowLeft') move(-step, 0);
-    else if (event.key === 'ArrowRight') move(step, 0);
-    else if (event.key === 'ArrowUp') move(0, -step);
-    else if (event.key === 'ArrowDown') move(0, step);
+    } else if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      move(-step, 0);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      move(step, 0);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      move(0, -step);
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      move(0, step);
+    }
   };
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>): void => {
@@ -32,7 +41,7 @@ export function CropOverlay() {
   return (
     <div
       aria-label="Crop selection"
-      role="slider"
+      role="group"
       tabIndex={0}
       data-testid="image-crop-overlay"
       onKeyDown={onKeyDown}
