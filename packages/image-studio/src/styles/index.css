@@ -1,0 +1,203 @@
+.ris-root {
+  --ris-bg: #111318;
+  --ris-panel: #1a1d24;
+  --ris-panel-2: #242832;
+  --ris-text: #f7f8fb;
+  --ris-muted: #a8afbd;
+  --ris-accent: #7c4dff;
+  --ris-border: #313642;
+  color: var(--ris-text);
+  background: var(--ris-bg);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-block-size: 560px;
+  container-type: inline-size;
+  font:
+    14px/1.4 system-ui,
+    sans-serif;
+}
+.ris-theme-light {
+  --ris-bg: #f6f7f9;
+  --ris-panel: #fff;
+  --ris-panel-2: #eef0f4;
+  --ris-text: #151821;
+  --ris-muted: #596171;
+  --ris-border: #d7dbe3;
+}
+.ris-topbar,
+.ris-tools,
+.ris-panel,
+.ris-bottom-sheet,
+.ris-dialog {
+  background: color-mix(in srgb, var(--ris-panel), transparent 4%);
+}
+.ris-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-block-end: 1px solid var(--ris-border);
+}
+.ris-topbar strong {
+  margin-inline-end: auto;
+}
+.ris-layout {
+  min-block-size: 0;
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr) minmax(260px, 320px);
+}
+.ris-tools {
+  display: flex;
+  gap: 6px;
+  padding: 10px;
+  border-inline-end: 1px solid var(--ris-border);
+}
+.ris-tools-rail {
+  flex-direction: column;
+}
+.ris-tools-bottom {
+  display: none;
+  border-block-start: 1px solid var(--ris-border);
+  overflow-x: auto;
+}
+.ris-tools button,
+.ris-topbar button,
+.ris-panel button,
+.ris-dialog button,
+.ris-dialog select,
+.ris-field input,
+.ris-field select {
+  min-block-size: 36px;
+  border: 1px solid var(--ris-border);
+  color: var(--ris-text);
+  background: var(--ris-panel-2);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.ris-active,
+.ris-primary {
+  background: var(--ris-accent) !important;
+  color: white !important;
+}
+.ris-workspace {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(45deg, #171a20 25%, transparent 25%),
+    linear-gradient(-45deg, #171a20 25%, transparent 25%), var(--ris-bg);
+  background-size: 24px 24px;
+}
+.ris-canvas-wrap {
+  position: relative;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+}
+.ris-canvas {
+  display: block;
+  max-inline-size: min(100%, 900px);
+  max-block-size: 68vh;
+  background: #050609;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 35%);
+}
+.ris-panel {
+  padding: 18px;
+  border-inline-start: 1px solid var(--ris-border);
+  overflow: auto;
+}
+.ris-panel h2,
+.ris-dialog h2 {
+  margin-block: 0 16px;
+  font-size: 16px;
+}
+.ris-field {
+  display: grid;
+  gap: 6px;
+  margin-block-end: 14px;
+  color: var(--ris-muted);
+}
+.ris-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-block: 10px 16px;
+}
+.ris-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-block-start: 18px;
+}
+.ris-bottom-sheet {
+  display: none;
+}
+.ris-dialog {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  inline-size: min(420px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--ris-border);
+  border-radius: 12px;
+  box-shadow: 0 28px 80px rgb(0 0 0 / 45%);
+  z-index: 10;
+}
+@container (max-width: 959px) {
+  .ris-layout {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+  .ris-panel {
+    position: absolute;
+    inset-block: 56px 70px;
+    inset-inline-end: 0;
+    inline-size: 300px;
+  }
+  .ris-tools button span:last-child {
+    display: none;
+  }
+}
+@container (max-width: 639px) {
+  .ris-root {
+    min-block-size: 100svh;
+  }
+  .ris-layout {
+    grid-template-columns: 1fr;
+  }
+  .ris-tools-rail,
+  .ris-panel {
+    display: none;
+  }
+  .ris-tools-bottom {
+    display: flex;
+    padding-block-end: max(10px, env(safe-area-inset-bottom));
+  }
+  .ris-tools-bottom button {
+    min-inline-size: 72px;
+    min-block-size: 44px;
+  }
+  .ris-bottom-sheet {
+    display: block;
+    border-block-start: 1px solid var(--ris-border);
+    max-block-size: 42svh;
+    overflow: auto;
+  }
+  .ris-panel-compact {
+    display: block;
+    border: 0;
+  }
+  .ris-topbar {
+    gap: 6px;
+    padding-inline: 10px;
+  }
+  .ris-topbar strong {
+    font-size: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ris-root * {
+    scroll-behavior: auto !important;
+    transition-duration: 0ms !important;
+  }
+}

@@ -17,7 +17,9 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "files": [
     "dist",
     "README.md"
@@ -33,6 +35,7 @@
       "import": "./dist/controller.js",
       "require": "./dist/controller.cjs"
     },
+    "./styles.css": "./dist/index.css",
     "./package.json": "./package.json"
   },
   "engines": {
