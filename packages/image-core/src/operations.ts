@@ -28,6 +28,16 @@ function dimensionsFrom(params: unknown): Size | null {
   return width === null || height === null ? null : { width, height };
 }
 
+function rotatedSize(input: Size, angle: number): Size {
+  const radians = (angle * Math.PI) / 180;
+  const sin = Math.abs(Math.sin(radians));
+  const cos = Math.abs(Math.cos(radians));
+  return {
+    width: Math.max(1, Math.round(input.width * cos + input.height * sin)),
+    height: Math.max(1, Math.round(input.width * sin + input.height * cos))
+  };
+}
+
 function adjustmentFrom(params: unknown): { channel: string; value: number } | null {
   if (!params || typeof params !== 'object') return null;
   const value = params as Record<string, unknown>;
@@ -85,15 +95,12 @@ export const rotateOperation: OperationDefinition<{ angle: number }> = {
   version: 1,
   validateParams(params): ValidationResult {
     const angle = (params as { angle?: unknown } | null)?.angle;
-    return typeof angle === 'number' && Number.isFinite(angle) && angle % 90 === 0
+    return typeof angle === 'number' && Number.isFinite(angle)
       ? valid
-      : invalid('invalid_rotate', 'Rotate requires a right-angle increment');
+      : invalid('invalid_rotate', 'Rotate requires a finite angle');
   },
   reduceSize(input, params) {
-    const normalized = ((params.angle % 360) + 360) % 360;
-    return normalized === 90 || normalized === 270
-      ? { width: input.height, height: input.width }
-      : input;
+    return rotatedSize(input, params.angle);
   },
   createStage(params) {
     return { type: 'rotate', version: 1, params };

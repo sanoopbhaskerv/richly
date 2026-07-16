@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
-import type { ImageEditDocument, ImageSession, ImageSourceInput } from '@richly/image-core';
+import type { ImageEditDocument, ImageSession, ImageSourceInput, Size } from '@richly/image-core';
 
 /** Canonical npm name of the React image primitives package. */
 export const IMAGE_REACT_PACKAGE_NAME = '@richly/image-react';
 
 /** Tool identifiers owned by the React interaction layer. */
-export type ImageTool = 'adjust' | 'crop' | 'resize' | 'rotate' | 'flip';
+export type ImageTool = 'adjust' | 'crop' | 'transform';
 
 /** Viewport state is UI-only and never enters the image manifest. */
 export interface ViewportState {
@@ -23,6 +23,8 @@ export interface CropDraftState {
     readonly width: number;
     readonly height: number;
   } | null;
+  /** Coordinate space used while transient crop previews shrink session output. */
+  readonly bounds: Size | null;
   readonly aspectRatio: number | null;
 }
 

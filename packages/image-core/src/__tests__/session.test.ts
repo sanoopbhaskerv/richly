@@ -84,6 +84,39 @@ describe('ImageSession', () => {
     expect(session.getState().operations).toHaveLength(0);
   });
 
+  it('accumulates repeatable rotate commands and toggles flips per axis', async () => {
+    const session = await createImageSession({ kind: 'url', url: '/fixture.png' }, { decoder });
+
+    session.execute('rotate', { angle: 90 });
+    expect(session.toDocument().operations.at(-1)?.params).toEqual({ angle: 90 });
+    session.execute('rotate', { angle: 90 });
+    expect(session.toDocument().operations.at(-1)?.params).toEqual({ angle: 180 });
+    session.execute('rotate', { angle: 90 });
+    expect(session.toDocument().operations.at(-1)?.params).toEqual({ angle: 270 });
+    session.execute('rotate', { angle: 90 });
+    expect(session.toDocument().operations.some((operation) => operation.type === 'rotate')).toBe(
+      false
+    );
+
+    session.execute('flip', { axis: 'horizontal' });
+    session.execute('flip', { axis: 'vertical' });
+    expect(
+      session.toDocument().operations.filter((operation) => operation.type === 'flip')
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ params: { axis: 'horizontal' } }),
+        expect.objectContaining({ params: { axis: 'vertical' } })
+      ])
+    );
+
+    session.execute('flip', { axis: 'horizontal' });
+    expect(
+      session.toDocument().operations.filter((operation) => operation.type === 'flip')
+    ).toEqual([expect.objectContaining({ params: { axis: 'vertical' } })]);
+  });
+});
+
+describe('ImageSession lifecycle', () => {
   it('notifies subscribers and rejects invalid commands', async () => {
     const session = await createImageSession({ kind: 'url', url: '/fixture.png' }, { decoder });
     const listener = vi.fn();

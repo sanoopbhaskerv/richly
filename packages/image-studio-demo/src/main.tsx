@@ -115,27 +115,23 @@ function DemoApp() {
 
   return (
     <main className="demo-shell">
-      <header className="demo-header">
-        <div>
-          <h1>Richly Image Studio</h1>
-          <p>Standalone PWA host</p>
-        </div>
-        {saved ? (
-          <a className="demo-download" href={saved.url} download={saved.filename}>
-            Download {saved.width}x{saved.height} {saved.mimeType}
-          </a>
-        ) : null}
-      </header>
       {error ? <p role="alert">{error}</p> : null}
       {session ? (
-        <ImageStudio
-          session={session}
-          theme="dark"
-          initialAlt="Generated mountain scene"
-          suggestedFilename="richly-image-studio-demo.png"
-          onSave={save}
-          onError={(cause) => setError(cause instanceof Error ? cause.message : String(cause))}
-        />
+        <>
+          {saved ? (
+            <a className="demo-download" href={saved.url} download={saved.filename}>
+              Download {saved.width}x{saved.height} {saved.mimeType}
+            </a>
+          ) : null}
+          <ImageStudio
+            session={session}
+            theme="dark"
+            initialAlt="Generated mountain scene"
+            suggestedFilename="richly-image-studio-demo.png"
+            onSave={save}
+            onError={(cause) => setError(cause instanceof Error ? cause.message : String(cause))}
+          />
+        </>
       ) : (
         <p className="demo-loading">Preparing editor…</p>
       )}

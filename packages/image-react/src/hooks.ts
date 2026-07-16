@@ -1,5 +1,5 @@
 import { useMemo, useRef, useSyncExternalStore } from 'react';
-import type { ExportOptions, ImageSessionState } from '@richly/image-core';
+import type { ExportOptions, ImageSessionState, Size } from '@richly/image-core';
 import { useImageEditor } from './context';
 import type { ImageCommandHelpers, ImageEditorUiState, ViewportState } from './types';
 
@@ -77,8 +77,8 @@ export function useCropTool() {
   const crop = useImageEditorUiState((state) => state.crop);
   return {
     ...crop,
-    setDraft(rect: NonNullable<typeof crop.rect>) {
-      uiStore.setCropDraft({ rect });
+    setDraft(rect: NonNullable<typeof crop.rect>, bounds?: Size) {
+      uiStore.setCropDraft({ rect, bounds: bounds ?? crop.bounds });
       session?.preview('crop', { rect });
     },
     setAspectRatio(aspectRatio: number | null) {
@@ -86,12 +86,12 @@ export function useCropTool() {
     },
     apply() {
       const result = session?.commitPreview();
-      uiStore.setCropDraft({ rect: null });
+      uiStore.setCropDraft({ rect: null, bounds: null });
       return result;
     },
     cancel() {
       session?.cancelPreview();
-      uiStore.setCropDraft({ rect: null });
+      uiStore.setCropDraft({ rect: null, bounds: null });
     }
   };
 }

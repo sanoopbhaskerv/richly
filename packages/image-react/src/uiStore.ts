@@ -15,7 +15,7 @@ export interface ImageEditorUiStore {
 const initialState: ImageEditorUiState = {
   activeTool: 'adjust',
   viewport: { zoom: 1, panX: 0, panY: 0, fit: true },
-  crop: { rect: null, aspectRatio: null },
+  crop: { rect: null, bounds: null, aspectRatio: null },
   compareMode: false,
   exportStatus: { busy: false, error: null },
   interactionError: null

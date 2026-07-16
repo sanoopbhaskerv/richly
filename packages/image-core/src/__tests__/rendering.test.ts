@@ -96,15 +96,14 @@ describe('render plans and export', () => {
     );
   });
 
-  it('rejects arbitrary rotate angles that do not match plan geometry', async () => {
+  it('reports arbitrary rotate geometry using the same bounding box as rendering', async () => {
     const session = await createImageSession({ kind: 'url', url: '/fixture.png' }, { decoder });
 
-    expect(session.execute('rotate', { angle: 45 })).toMatchObject({
-      ok: false,
-      code: 'invalid_rotate'
-    });
-    expect(session.getState()).toMatchObject({ outputWidth: 200, outputHeight: 100 });
-    expect(session.toDocument().operations).toHaveLength(0);
+    expect(session.execute('rotate', { angle: 45 })).toMatchObject({ ok: true });
+    expect(session.getState()).toMatchObject({ outputWidth: 212, outputHeight: 212 });
+    expect(session.toDocument().operations).toEqual([
+      expect.objectContaining({ type: 'rotate', params: { angle: 45 } })
+    ]);
   });
 
   it('honors AbortSignal before preview and export work starts', async () => {

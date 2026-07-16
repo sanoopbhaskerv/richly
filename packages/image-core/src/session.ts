@@ -338,6 +338,31 @@ function upsertOperation(
   operations: readonly ImageOperation[],
   operation: ImageOperation
 ): readonly ImageOperation[] {
+  if (operation.type === 'rotate') {
+    const previous = operations.find((candidate) => candidate.type === 'rotate');
+    const previousAngle = (previous?.params as { angle?: number } | undefined)?.angle ?? 0;
+    const nextAngle = normalizeAngle(
+      previousAngle + ((operation.params as { angle?: number }).angle ?? 0)
+    );
+    const withoutRotate = operations.filter((candidate) => candidate.type !== 'rotate');
+    return nextAngle === 0
+      ? withoutRotate
+      : [...withoutRotate, { ...operation, params: { angle: nextAngle } }];
+  }
+
+  if (operation.type === 'flip') {
+    const axis = (operation.params as { axis?: unknown }).axis;
+    const sameAxis = operations.some(
+      (candidate) =>
+        candidate.type === 'flip' && (candidate.params as { axis?: unknown }).axis === axis
+    );
+    const withoutAxis = operations.filter(
+      (candidate) =>
+        candidate.type !== 'flip' || (candidate.params as { axis?: unknown }).axis !== axis
+    );
+    return sameAxis ? withoutAxis : [...withoutAxis, operation];
+  }
+
   if (operation.type === 'adjust') {
     const channel = (operation.params as { channel?: unknown }).channel;
     const value = (operation.params as { value?: unknown }).value;
@@ -353,6 +378,11 @@ function upsertOperation(
 
   const withoutType = operations.filter((candidate) => candidate.type !== operation.type);
   return [...withoutType, operation];
+}
+
+function normalizeAngle(angle: number): number {
+  const normalized = ((angle % 360) + 360) % 360;
+  return Object.is(normalized, -0) ? 0 : normalized;
 }
 
 function validateDocument(document: ImageEditDocument, registry: OperationRegistry): void {

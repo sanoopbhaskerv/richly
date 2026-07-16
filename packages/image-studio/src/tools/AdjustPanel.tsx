@@ -1,39 +1,91 @@
-import { useImageEditor } from '@richly/image-react';
+import { useEffect, useState } from 'react';
+import { useImageEditor, useImageEditorState } from '@richly/image-react';
+import { SliderField } from '../controls/fields';
 
 const adjustments = [
-  ['brightness', 'Brightness'],
-  ['contrast', 'Contrast'],
-  ['saturation', 'Saturation'],
-  ['grayscale', 'Grayscale']
+  ['brightness', 'Brightness', -100, 100],
+  ['contrast', 'Contrast', -100, 100],
+  ['saturation', 'Saturation', -100, 100],
+  ['grayscale', 'Grayscale', 0, 100]
 ] as const;
 
-/** Adjustment sliders with transient preview and explicit gesture commit. */
+type AdjustmentChannel = (typeof adjustments)[number][0];
+type AdjustmentValues = Record<AdjustmentChannel, number>;
+
+const neutralValues: AdjustmentValues = {
+  brightness: 0,
+  contrast: 0,
+  saturation: 0,
+  grayscale: 0
+};
+
+function toCoreValue(channel: AdjustmentChannel, value: number): number {
+  return channel === 'grayscale' ? value / 100 : value / 100;
+}
+
+function fromCoreValue(value: number): number {
+  return Math.round(value * 100);
+}
+
+/** Adjustment sliders with live preview, synchronized values, and one-entry commits. */
 export function AdjustPanel() {
   const { session } = useImageEditor();
+  const operations = useImageEditorState((state) => state.operations);
+  const [values, setValues] = useState<AdjustmentValues>(neutralValues);
+
+  useEffect(() => {
+    const next = { ...neutralValues };
+    for (const operation of operations) {
+      if (operation.type !== 'adjust') continue;
+      const params = operation.params as { channel?: AdjustmentChannel; value?: number };
+      if (params.channel && typeof params.value === 'number') {
+        next[params.channel] = fromCoreValue(params.value);
+      }
+    }
+    setValues(next);
+  }, [operations]);
+
+  const preview = (channel: AdjustmentChannel, value: number): void => {
+    setValues((current) => ({ ...current, [channel]: value }));
+    session?.preview('adjust', { channel, value: toCoreValue(channel, value) });
+  };
+
+  const commit = (): void => {
+    session?.commitPreview();
+  };
+
+  const resetAll = (): void => {
+    session?.transact('Reset adjustments', () => {
+      for (const channel of Object.keys(neutralValues) as AdjustmentChannel[]) {
+        session.execute('adjust', { channel, value: 0 });
+      }
+    });
+    setValues(neutralValues);
+  };
+
   return (
-    <section>
+    <section className="ris-inspector-section">
       <h2>Adjust</h2>
-      {adjustments.map(([channel, label]) => (
-        <label className="ris-field" key={channel}>
-          <span>{label}</span>
-          <input
-            type="range"
-            min={channel === 'grayscale' ? 0 : -1}
-            max={1}
-            step={0.01}
-            defaultValue={0}
-            // Slider movement renders against a transient preview so a cancel
-            // or uncommitted gesture never mutates the persisted edit history.
-            onChange={(event) =>
-              session?.preview('adjust', { channel, value: Number(event.currentTarget.value) })
-            }
-            onPointerUp={() => session?.commitPreview()}
-            onKeyUp={(event) => {
-              if (event.key === 'Enter') session?.commitPreview();
-            }}
+      <div className="ris-tool-group">
+        <h3>Light</h3>
+        {adjustments.map(([channel, label, min, max]) => (
+          <SliderField
+            key={channel}
+            label={label}
+            min={min}
+            max={max}
+            value={values[channel]}
+            onPreview={(value) => preview(channel, value)}
+            onChange={(value) => preview(channel, value)}
+            onCommit={commit}
           />
-        </label>
-      ))}
+        ))}
+      </div>
+      <div className="ris-actions">
+        <button type="button" onClick={resetAll}>
+          Reset all
+        </button>
+      </div>
     </section>
   );
 }

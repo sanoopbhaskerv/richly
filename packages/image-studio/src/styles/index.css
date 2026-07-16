@@ -1,209 +1,833 @@
 .ris-root {
-  --ris-bg: #111318;
-  --ris-panel: #1a1d24;
-  --ris-panel-2: #242832;
-  --ris-text: #f7f8fb;
-  --ris-muted: #a8afbd;
-  --ris-accent: #7c4dff;
-  --ris-border: #313642;
+  --ris-bg: #101114;
+  --ris-surface: #191b20;
+  --ris-panel: #202228;
+  --ris-panel-2: #292c34;
+  --ris-panel-3: #343842;
+  --ris-text: #f7f7f4;
+  --ris-muted: #a9adb6;
+  --ris-soft: #d9d6ce;
+  --ris-accent: #32c766;
+  --ris-accent-strong: #24a84f;
+  --ris-warning: #ffca5f;
+  --ris-border: #383c46;
+  --ris-canvas: #14161a;
+  --ris-shadow: 0 24px 80px rgb(0 0 0 / 42%);
   color: var(--ris-text);
   background: var(--ris-bg);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  min-block-size: 560px;
+  min-block-size: 100svh;
   container-type: inline-size;
   font:
-    14px/1.4 system-ui,
+    14px/1.42 Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
     sans-serif;
 }
+
 .ris-theme-light {
-  --ris-bg: #f6f7f9;
-  --ris-panel: #fff;
-  --ris-panel-2: #eef0f4;
-  --ris-text: #151821;
-  --ris-muted: #596171;
-  --ris-border: #d7dbe3;
+  --ris-bg: #f1f2f1;
+  --ris-surface: #ffffff;
+  --ris-panel: #f8f8f5;
+  --ris-panel-2: #ecece7;
+  --ris-panel-3: #dfdfd7;
+  --ris-text: #17191f;
+  --ris-muted: #5d6470;
+  --ris-soft: #3a3f49;
+  --ris-border: #d2d4cf;
+  --ris-canvas: #dfe1de;
+  --ris-shadow: 0 24px 70px rgb(20 24 30 / 18%);
 }
-.ris-topbar,
-.ris-tools,
-.ris-panel,
-.ris-bottom-sheet,
-.ris-dialog {
-  background: color-mix(in srgb, var(--ris-panel), transparent 4%);
+
+.ris-root *,
+.ris-root *::before,
+.ris-root *::after {
+  box-sizing: border-box;
 }
+
+.ris-root button,
+.ris-root input,
+.ris-root select,
+.ris-root textarea {
+  font: inherit;
+}
+
+.ris-root button {
+  border: 0;
+}
+
+.ris-root button:focus-visible,
+.ris-root input:focus-visible,
+.ris-root select:focus-visible,
+.ris-root textarea:focus-visible,
+.ris-crop-layer:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ris-accent), white 16%);
+  outline-offset: 2px;
+}
+
+.ris-root button:disabled {
+  cursor: not-allowed;
+  opacity: 0.44;
+}
+
 .ris-topbar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  justify-content: space-between;
+  gap: 16px;
+  min-block-size: 64px;
+  padding: 10px 16px;
   border-block-end: 1px solid var(--ris-border);
+  background: var(--ris-surface);
 }
+
 .ris-topbar strong {
-  margin-inline-end: auto;
+  flex: 0 0 auto;
+  color: var(--ris-soft);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0;
 }
+
+.ris-topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ris-icon-button,
+.ris-before-button,
+.ris-primary,
+.ris-topbar-actions > button,
+.ris-actions > button,
+.ris-inline-controls > button,
+.ris-segmented > button,
+.ris-ratio-grid > button,
+.ris-lock {
+  color: var(--ris-text);
+  background: var(--ris-panel-2);
+  border: 1px solid var(--ris-border);
+  border-radius: 8px;
+  min-block-size: 38px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.ris-icon-button {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 38px;
+  min-inline-size: 38px;
+  padding: 0;
+}
+
+.ris-icon {
+  display: block;
+  inline-size: 18px;
+  block-size: 18px;
+  stroke-width: 2;
+}
+
+.ris-primary,
+.ris-active {
+  color: #07100b !important;
+  background: var(--ris-accent) !important;
+  border-color: color-mix(in srgb, var(--ris-accent), black 18%) !important;
+  font-weight: 650;
+}
+
+.ris-primary:hover,
+.ris-active:hover {
+  background: color-mix(in srgb, var(--ris-accent), white 8%) !important;
+}
+
+.ris-before-button[aria-pressed='true'] {
+  color: #111;
+  background: var(--ris-warning);
+  border-color: color-mix(in srgb, var(--ris-warning), black 24%);
+}
+
+.ris-zoom-label {
+  color: var(--ris-muted);
+  font-size: 12px;
+  min-inline-size: 42px;
+  text-align: center;
+}
+
 .ris-layout {
   min-block-size: 0;
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr) minmax(260px, 320px);
+  grid-template-columns: 152px minmax(0, 1fr) minmax(360px, 430px);
+  background: var(--ris-bg);
 }
+
 .ris-tools {
-  display: flex;
-  gap: 6px;
-  padding: 10px;
+  background: var(--ris-surface);
   border-inline-end: 1px solid var(--ris-border);
 }
+
 .ris-tools-rail {
+  display: flex;
   flex-direction: column;
+  gap: 6px;
+  padding: 14px 12px;
+  overflow-y: auto;
 }
+
 .ris-tools-bottom {
   display: none;
   border-block-start: 1px solid var(--ris-border);
   overflow-x: auto;
 }
-.ris-tools button,
-.ris-topbar button,
-.ris-panel button,
-.ris-dialog button,
-.ris-dialog select,
-.ris-field input,
-.ris-field select {
-  min-block-size: 36px;
-  border: 1px solid var(--ris-border);
+
+.ris-tools button {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-block-size: 46px;
   color: var(--ris-text);
-  background: var(--ris-panel-2);
+  background: transparent;
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 10px 12px;
+  text-align: start;
+  cursor: pointer;
 }
-.ris-active,
-.ris-primary {
-  background: var(--ris-accent) !important;
-  color: white !important;
+
+.ris-tools button:hover:not(:disabled) {
+  background: var(--ris-panel-2);
 }
+
+.ris-tools button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ris-workspace {
   min-width: 0;
   min-height: 0;
   display: grid;
-  place-items: center;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 18px;
   padding: 24px;
   background:
-    linear-gradient(45deg, #171a20 25%, transparent 25%),
-    linear-gradient(-45deg, #171a20 25%, transparent 25%), var(--ris-bg);
+    linear-gradient(45deg, rgb(255 255 255 / 4%) 25%, transparent 25%),
+    linear-gradient(-45deg, rgb(255 255 255 / 4%) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgb(255 255 255 / 4%) 75%),
+    linear-gradient(-45deg, transparent 75%, rgb(255 255 255 / 4%) 75%), var(--ris-canvas);
+  background-position:
+    0 0,
+    0 12px,
+    12px -12px,
+    -12px 0;
   background-size: 24px 24px;
+  overflow: hidden;
 }
+
 .ris-canvas-wrap {
   position: relative;
+  align-self: center;
+  justify-self: center;
   max-inline-size: 100%;
   max-block-size: 100%;
+  min-inline-size: min(100%, 280px);
+  min-block-size: 180px;
+  display: grid;
+  place-items: center;
 }
+
 .ris-canvas {
   display: block;
-  max-inline-size: min(100%, 900px);
-  max-block-size: 68vh;
-  background: #050609;
-  box-shadow: 0 20px 60px rgb(0 0 0 / 35%);
+  max-inline-size: min(100%, 980px);
+  max-block-size: calc(100svh - 260px);
+  background: #07080a;
+  box-shadow: var(--ris-shadow);
+  object-fit: contain;
 }
+
+.ris-filmstrip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  inline-size: min(720px, 100%);
+  margin-inline: auto;
+  padding: 10px;
+  border: 1px solid var(--ris-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ris-surface), transparent 14%);
+}
+
+.ris-filmstrip button {
+  position: relative;
+  flex: 0 0 74px;
+  block-size: 58px;
+  border: 1px solid var(--ris-border);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgb(255 255 255 / 14%), transparent), var(--ris-panel-2);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.ris-filmstrip button[aria-current='true'] {
+  border-color: var(--ris-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ris-accent), transparent 40%);
+}
+
+.ris-filmstrip button::after {
+  content: '';
+  position: absolute;
+  inset: 12px 16px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #74a9ff, #ffd068 55%, #ef6b6b);
+}
+
+.ris-filmstrip .ris-add-image {
+  display: grid;
+  place-items: center;
+  color: var(--ris-muted);
+  background: var(--ris-panel);
+}
+
+.ris-filmstrip .ris-add-image::after {
+  content: none;
+}
+
+.ris-panel,
+.ris-bottom-sheet {
+  min-width: 0;
+  color: var(--ris-text);
+  background: var(--ris-surface);
+}
+
 .ris-panel {
-  padding: 18px;
   border-inline-start: 1px solid var(--ris-border);
   overflow: auto;
 }
-.ris-panel h2,
-.ris-dialog h2 {
-  margin-block: 0 16px;
-  font-size: 16px;
+
+.ris-panel > section,
+.ris-panel-compact > section {
+  padding: 22px;
 }
+
+.ris-inspector-section {
+  display: grid;
+  gap: 18px;
+}
+
+.ris-inspector-section h2,
+.ris-dialog h2 {
+  margin: 0;
+  color: var(--ris-soft);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.ris-tool-group {
+  display: grid;
+  gap: 12px;
+  padding-block: 4px 16px;
+  border-block-end: 1px solid var(--ris-border);
+}
+
+.ris-tool-group h3 {
+  margin: 0;
+  color: var(--ris-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.ris-select,
+.ris-number-field input,
+.ris-slider-field input[type='number'],
+.ris-dialog input,
+.ris-dialog select,
+.ris-dialog textarea {
+  color: var(--ris-text);
+  background: var(--ris-panel-2);
+  border: 1px solid var(--ris-border);
+  border-radius: 8px;
+  min-block-size: 38px;
+  padding: 8px 10px;
+}
+
+.ris-select {
+  inline-size: 100%;
+}
+
+.ris-number-field,
+.ris-slider-field,
 .ris-field {
   display: grid;
-  gap: 6px;
-  margin-block-end: 14px;
+  gap: 8px;
   color: var(--ris-muted);
 }
-.ris-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-block: 10px 16px;
+
+.ris-number-field > span:first-child,
+.ris-slider-field > span:first-child,
+.ris-field > span:first-child {
+  color: var(--ris-muted);
+  font-size: 12px;
+  font-weight: 650;
 }
+
+.ris-field input,
+.ris-field select,
+.ris-field textarea {
+  color: var(--ris-text);
+  background: var(--ris-panel-2);
+  border: 1px solid var(--ris-border);
+  border-radius: 8px;
+  min-block-size: 38px;
+  padding: 8px 10px;
+}
+
+.ris-number-input-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.ris-number-field input,
+.ris-slider-field input[type='number'] {
+  inline-size: 100%;
+  color: var(--ris-text);
+}
+
+.ris-slider-field {
+  grid-template-columns: minmax(84px, 1fr) minmax(100px, 2fr) 86px;
+  align-items: center;
+}
+
+.ris-slider-field input[type='range'] {
+  inline-size: 100%;
+  accent-color: var(--ris-accent);
+}
+
+.ris-inline-controls,
+.ris-segmented,
+.ris-icon-row,
 .ris-actions {
   display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ris-inline-controls > button,
+.ris-segmented > button {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+
+.ris-segmented {
+  padding: 4px;
+  border: 1px solid var(--ris-border);
+  border-radius: 10px;
+  background: var(--ris-panel);
+}
+
+.ris-segmented > button {
+  background: transparent;
+  border-color: transparent;
+}
+
+.ris-ratio-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ris-ratio-grid > button {
+  min-inline-size: 0;
+  padding-inline: 6px;
+}
+
+.ris-actions {
   justify-content: flex-end;
-  gap: 10px;
-  margin-block-start: 18px;
 }
-.ris-bottom-sheet {
-  display: none;
+
+.ris-sticky-actions {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 2;
+  padding-block-start: 12px;
+  background: linear-gradient(transparent, var(--ris-surface) 32%);
 }
+
+.ris-meta {
+  margin: 0;
+  color: var(--ris-muted);
+  font-size: 12px;
+}
+
+.ris-lock {
+  inline-size: 100%;
+  text-align: center;
+}
+
+.ris-crop-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  touch-action: none;
+}
+
+.ris-crop-mask {
+  position: absolute;
+  background: rgb(0 0 0 / 58%);
+  pointer-events: none;
+}
+
+.ris-crop-mask-top {
+  inset-block-start: 0;
+  inset-inline: 0;
+}
+
+.ris-crop-mask-left {
+  inset-inline-start: 0;
+}
+
+.ris-crop-mask-right {
+  inset-inline-end: 0;
+}
+
+.ris-crop-mask-bottom {
+  inset-block-end: 0;
+  inset-inline: 0;
+}
+
+.ris-crop-frame {
+  position: absolute;
+  border: 2px solid white;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 42%),
+    0 0 22px rgb(0 0 0 / 36%);
+  cursor: move;
+  min-inline-size: 28px;
+  min-block-size: 28px;
+}
+
+.ris-crop-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to right,
+      transparent 33.2%,
+      rgb(255 255 255 / 60%) 33.2% 33.8%,
+      transparent 33.8% 66.2%,
+      rgb(255 255 255 / 60%) 66.2% 66.8%,
+      transparent 66.8%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 33.2%,
+      rgb(255 255 255 / 60%) 33.2% 33.8%,
+      transparent 33.8% 66.2%,
+      rgb(255 255 255 / 60%) 66.2% 66.8%,
+      transparent 66.8%
+    );
+}
+
+.ris-crop-floating-toolbar {
+  position: absolute;
+  inset-block-end: calc(100% + 10px);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-inline-size: max-content;
+  color: var(--ris-text);
+  background: rgb(16 17 20 / 94%);
+  border: 1px solid var(--ris-border);
+  border-radius: 9px;
+  padding: 6px 8px;
+  box-shadow: 0 12px 30px rgb(0 0 0 / 36%);
+}
+
+.ris-crop-floating-toolbar button {
+  color: #07100b;
+  background: var(--ris-accent);
+  border-radius: 7px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+.ris-crop-handle {
+  position: absolute;
+  inline-size: 20px;
+  block-size: 20px;
+  margin: -10px;
+  border: 2px solid white !important;
+  border-radius: 50%;
+  background: var(--ris-accent) !important;
+  box-shadow: 0 0 0 2px rgb(0 0 0 / 34%);
+  cursor: grab;
+}
+
+.ris-crop-handle-nw,
+.ris-crop-handle-ne,
+.ris-crop-handle-sw,
+.ris-crop-handle-se {
+  inline-size: 22px;
+  block-size: 22px;
+  margin: -11px;
+}
+
+.ris-crop-handle-nw {
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  cursor: nwse-resize;
+}
+
+.ris-crop-handle-n {
+  inset-block-start: 0;
+  inset-inline-start: 50%;
+  cursor: ns-resize;
+}
+
+.ris-crop-handle-ne {
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  cursor: nesw-resize;
+}
+
+.ris-crop-handle-e {
+  inset-block-start: 50%;
+  inset-inline-end: 0;
+  cursor: ew-resize;
+}
+
+.ris-crop-handle-se {
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  cursor: nwse-resize;
+}
+
+.ris-crop-handle-s {
+  inset-block-end: 0;
+  inset-inline-start: 50%;
+  cursor: ns-resize;
+}
+
+.ris-crop-handle-sw {
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  cursor: nesw-resize;
+}
+
+.ris-crop-handle-w {
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+  cursor: ew-resize;
+}
+
 .ris-dialog {
   position: fixed;
   inset: 50% auto auto 50%;
+  z-index: 20;
+  display: grid;
+  inline-size: min(520px, 100%);
+  max-block-size: min(720px, calc(100svh - 36px));
+  overflow: auto;
   transform: translate(-50%, -50%);
-  inline-size: min(420px, calc(100vw - 32px));
-  padding: 20px;
+  color: var(--ris-text);
+  background: var(--ris-surface);
   border: 1px solid var(--ris-border);
   border-radius: 12px;
-  box-shadow: 0 28px 80px rgb(0 0 0 / 45%);
-  z-index: 10;
+  box-shadow: var(--ris-shadow);
+  padding: 22px;
 }
-@container (max-width: 959px) {
+
+.ris-dialog-field {
+  display: grid;
+  gap: 8px;
+  margin-block: 14px;
+}
+
+.ris-dialog-field > span:first-child {
+  color: var(--ris-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.ris-dialog textarea {
+  min-block-size: 88px;
+  resize: vertical;
+}
+
+.ris-bottom-sheet {
+  display: none;
+}
+
+@container (max-width: 1180px) {
   .ris-layout {
-    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-columns: 76px minmax(0, 1fr) minmax(300px, 360px);
   }
-  .ris-panel {
-    position: absolute;
-    inset-block: 56px 70px;
-    inset-inline-end: 0;
-    inline-size: 300px;
+
+  .ris-tools-rail {
+    padding-inline: 10px;
   }
-  .ris-tools button span:last-child {
+
+  .ris-tools button {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding-inline: 8px;
+  }
+
+  .ris-tools button span {
+    font-size: 11px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .ris-panel > section {
+    padding: 18px;
+  }
+}
+
+@container (max-width: 760px) {
+  .ris-root {
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    min-block-size: 100svh;
+  }
+
+  .ris-topbar {
+    min-block-size: 54px;
+    padding: 8px 10px;
+  }
+
+  .ris-topbar strong {
     display: none;
   }
-}
-@container (max-width: 639px) {
-  .ris-root {
-    min-block-size: 100svh;
-    grid-template-rows: auto minmax(0, 1fr) auto auto;
+
+  .ris-topbar-actions {
+    inline-size: 100%;
+    gap: 6px;
   }
+
+  .ris-icon-button {
+    inline-size: 36px;
+    min-inline-size: 36px;
+  }
+
+  .ris-before-button,
+  .ris-primary {
+    padding-inline: 10px;
+  }
+
+  .ris-zoom-label {
+    display: none;
+  }
+
   .ris-layout {
     grid-template-columns: 1fr;
   }
+
   .ris-tools-rail,
   .ris-panel {
     display: none;
   }
-  .ris-tools-bottom {
-    display: flex;
-    grid-row: 4;
-    padding-block-end: max(10px, env(safe-area-inset-bottom));
+
+  .ris-workspace {
+    padding: 14px;
+    gap: 10px;
   }
-  .ris-tools-bottom button {
-    min-inline-size: 72px;
-    min-block-size: 44px;
+
+  .ris-canvas {
+    max-block-size: calc(100svh - 320px);
   }
+
+  .ris-filmstrip {
+    inline-size: 100%;
+    overflow-x: auto;
+    padding: 8px;
+  }
+
+  .ris-filmstrip button {
+    flex-basis: 62px;
+    block-size: 50px;
+  }
+
   .ris-bottom-sheet {
     display: block;
-    grid-row: 3;
+    max-block-size: 38svh;
     border-block-start: 1px solid var(--ris-border);
-    max-block-size: 42svh;
     overflow: auto;
   }
+
   .ris-panel-compact {
     display: block;
     position: static;
-    inset: auto;
-    inline-size: auto;
     border: 0;
   }
-  .ris-topbar {
-    gap: 6px;
-    padding-inline: 10px;
+
+  .ris-panel-compact > section {
+    padding: 16px;
   }
-  .ris-topbar strong {
-    font-size: 12px;
+
+  .ris-tools-bottom {
+    display: flex;
+    gap: 4px;
+    padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+    background: var(--ris-surface);
+  }
+
+  .ris-tools-bottom button {
+    flex: 0 0 72px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 3px;
+    min-block-size: 54px;
+    padding: 6px;
+  }
+
+  .ris-tools-bottom button span {
+    font-size: 10px;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .ris-slider-field {
+    grid-template-columns: 1fr 88px;
+  }
+
+  .ris-slider-field > span:first-child,
+  .ris-slider-field input[type='range'] {
+    grid-column: 1 / -1;
+  }
+
+  .ris-ratio-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ris-crop-floating-toolbar {
+    inset-block-end: auto;
+    inset-block-start: calc(100% + 10px);
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .ris-root * {
+  .ris-root *,
+  .ris-root *::before,
+  .ris-root *::after {
     scroll-behavior: auto !important;
     transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
   }
 }

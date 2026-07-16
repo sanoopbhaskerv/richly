@@ -23,8 +23,16 @@ export {
 } from './hooks';
 export { ImageCanvas } from './ImageCanvas';
 export { CropOverlay } from './CropOverlay';
+export {
+  clampRect,
+  createCenteredCrop,
+  moveCrop,
+  pointerDeltaToImageDelta,
+  resizeCrop
+} from './cropGeometry';
 export { ImageSlider, ImageToolbarButton } from './controls';
 export { createImageEditorUiStore } from './uiStore';
+export type { CropHandle, CropRect } from './cropGeometry';
 export type {
   CropDraftState,
   ExportStatusState,
