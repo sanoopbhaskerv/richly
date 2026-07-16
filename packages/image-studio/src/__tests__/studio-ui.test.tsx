@@ -6,7 +6,11 @@ import {
   type ImageSourceDecoder
 } from '@richly/image-core';
 import { ImageStudio } from '../index';
-import { createImageStudioController, ImageStudioControllerBusyError } from '../controller';
+import {
+  createImageStudioController,
+  ImageStudioControllerBusyError,
+  ImageStudioControllerNoHostError
+} from '../controller';
 
 const decoder: ImageSourceDecoder = async (): Promise<DecodedImageSource> => ({
   info: { width: 320, height: 180 },
@@ -48,6 +52,33 @@ describe('ImageStudio UI and controller', () => {
       ImageStudioControllerBusyError
     );
     controller.close(null);
+    await expect(pending).resolves.toBeNull();
+    expect(controller.isOpen()).toBe(false);
+  });
+
+  it('rejects an open request when no Studio host subscribes', async () => {
+    vi.useFakeTimers();
+    try {
+      const controller = createImageStudioController({ noHostTimeoutMs: 25 });
+      const pending = controller.open({ source: { kind: 'url', url: '/fixture.png' } });
+      const rejection = expect(pending).rejects.toThrow(ImageStudioControllerNoHostError);
+
+      await vi.advanceTimersByTimeAsync(25);
+
+      await rejection;
+      expect(controller.isOpen()).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('settles a pending request as cancel when the host unsubscribes', async () => {
+    const controller = createImageStudioController({ noHostTimeoutMs: 1000 });
+    const unsubscribe = controller.subscribe(() => {});
+    const pending = controller.open({ source: { kind: 'url', url: '/fixture.png' } });
+
+    unsubscribe();
+
     await expect(pending).resolves.toBeNull();
     expect(controller.isOpen()).toBe(false);
   });
