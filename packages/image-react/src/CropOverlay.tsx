@@ -70,6 +70,9 @@ export function CropOverlay() {
   const startDrag = (event: PointerEvent<HTMLElement>, handle: CropHandle): void => {
     if (!overlayRef.current) return;
     event.preventDefault();
+    // Handle drags bubble through the frame; keep resize gestures from being
+    // overwritten by the frame-level move gesture.
+    event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
     dragRef.current = {
       handle,
