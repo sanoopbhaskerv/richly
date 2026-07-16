@@ -8,7 +8,7 @@ import { StrictMode, useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createImageSession, type ImageSession } from '@richly/image-core';
 import { ImageStudio, type ImageStudioResult } from '@richly/image-studio';
-import { registerStudioServiceWorker } from './pwa';
+import { disableStudioOfflineSupport } from './pwa';
 import './main.css';
 
 interface SavedExport {
@@ -139,7 +139,7 @@ function DemoApp() {
   );
 }
 
-registerStudioServiceWorker();
+disableStudioOfflineSupport();
 
 const container = document.getElementById('root');
 if (!container) throw new Error('Missing #root element in index.html');

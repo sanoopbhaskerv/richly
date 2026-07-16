@@ -1,40 +1,22 @@
-/* global caches, fetch, self, URL */
+/* global caches, self */
 
-const CACHE_NAME = 'richly-image-studio-demo-v1';
-const SHELL_ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
+const DEMO_CACHE_PREFIX = 'richly-image-studio-demo-';
+
+async function deleteDemoCaches() {
+  const keys = await caches.keys();
+  await Promise.all(
+    keys.filter((key) => key.startsWith(DEMO_CACHE_PREFIX)).map((key) => caches.delete(key))
+  );
+}
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS)));
-  self.skipWaiting();
+  event.waitUntil(deleteDemoCaches().then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
-      )
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request)
-        .then((response) => {
-          const url = new URL(event.request.url);
-          if (response.ok && url.origin === self.location.origin) {
-            const copy = response.clone();
-            void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          }
-          return response;
-        })
-        .catch(() => caches.match('/index.html'));
-    })
+    deleteDemoCaches()
+      .then(() => self.clients.claim())
+      .then(() => self.registration.unregister())
   );
 });

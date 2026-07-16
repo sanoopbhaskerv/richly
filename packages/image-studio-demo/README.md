@@ -17,7 +17,11 @@ packages. This workspace is that application.
 
 The app creates a generated local image, opens it in the complete Studio UI,
 and turns exports into local Blob URL downloads. Its manifest, icon, and service
-worker are intentionally kept in this private app package.
+worker cleanup are intentionally kept in this private app package.
+
+Offline caching is currently disabled so local development and browser automation
+always load fresh assets. The `/sw.js` file only removes older demo caches and
+unregisters itself for browsers that previously installed the offline shell.
 
 ## Scripts
 
