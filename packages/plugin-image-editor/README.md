@@ -1,19 +1,37 @@
 # @richly/plugin-image-editor
 
-Richly editor plugin that will expose the optional `imageedit` action bridging
-the editor to Image Studio (or any host-provided image editor).
+Richly editor plugin exposing the optional `imageedit` action that bridges the
+editor to Image Studio (or any host-provided image editor).
 
-> **Status: scaffolding only.** This package is `private: true` at version
-> `0.0.0` and is not published. It becomes public (`0.1.0`) only after the
-> Changesets release migration described in
+> **Status: private implementation preview.** This package is `private: true`
+> at version `0.0.0` and is not published. It becomes public (`0.1.0`) only
+> after the Changesets release migration described in
 > [`docs/image-studio/architecture.md`](../../docs/image-studio/architecture.md).
 
-## What will live here (PR 7)
+## API
 
-- The `imageedit` plugin action for `@richly/core`
-- Selection bookmarking and async editor launch (`skipUndo: true`)
-- Persistence bridge: persist first, then one undoable DOM update
-- No automatic uploads and no edit manifests embedded in HTML
+```ts
+import { imageEditorPlugin } from '@richly/plugin-image-editor';
+
+const plugin = imageEditorPlugin({
+  openEditor: controller.open,
+  persist: async (result) => {
+    const asset = await mediaRepository.persist(result.blob, result.editDocument);
+    return {
+      src: asset.url,
+      alt: result.alt,
+      width: result.width,
+      height: result.height,
+      editDocumentRef: asset.editRef
+    };
+  }
+});
+```
+
+The command captures the selected image and selection bookmark, launches the
+host editor with `skipUndo: true`, persists the result first, then applies one
+undoable DOM update. Cancelled edits do not mutate Richly HTML. Edit manifests
+remain host-owned and are never embedded directly in HTML.
 
 ## Boundaries
 

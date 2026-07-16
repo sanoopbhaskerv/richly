@@ -1,10 +1,13 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@richly/core': new URL('../core/src/index.ts', import.meta.url).pathname
+    }
+  },
   test: {
-    // The plugin's scaffolding needs no DOM. When editor integration tests
-    // arrive (PR 7) this switches to jsdom alongside a @richly/core devDep.
-    environment: 'node',
+    environment: 'jsdom',
     globals: true,
     coverage: {
       provider: 'v8',

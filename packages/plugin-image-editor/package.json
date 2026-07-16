@@ -2,7 +2,7 @@
   "name": "@richly/plugin-image-editor",
   "private": true,
   "version": "0.0.0",
-  "description": "Richly editor plugin exposing the optional imageedit action that bridges to Image Studio. Scaffolding only; not yet published.",
+  "description": "Richly editor plugin exposing the optional imageedit action that bridges to host-provided image editors.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.0.0",
+    "jsdom": "^24.0.0",
     "typescript": "^5.5.0",
     "vitest": "^2.0.0"
   }
