@@ -1,5 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import { useCropTool, useImageEditorState } from './hooks';
+import { CropFrame, CropMasks, useCanvasLayerStyle } from './CropOverlayParts';
 import {
   createCenteredCrop,
   moveCrop,
@@ -9,17 +10,6 @@ import {
   type CropRect
 } from './cropGeometry';
 
-const handles: Array<{ handle: CropHandle; label: string }> = [
-  { handle: 'nw', label: 'Resize crop from top left' },
-  { handle: 'n', label: 'Resize crop from top edge' },
-  { handle: 'ne', label: 'Resize crop from top right' },
-  { handle: 'e', label: 'Resize crop from right edge' },
-  { handle: 'se', label: 'Resize crop from bottom right' },
-  { handle: 's', label: 'Resize crop from bottom edge' },
-  { handle: 'sw', label: 'Resize crop from bottom left' },
-  { handle: 'w', label: 'Resize crop from left edge' }
-];
-
 interface DragState {
   readonly handle: CropHandle;
   readonly pointerId: number;
@@ -27,88 +17,6 @@ interface DragState {
   readonly startY: number;
   readonly startRect: CropRect;
   readonly boundsRect: DOMRect;
-}
-
-type CropFrameStyle = {
-  readonly insetInlineStart: string;
-  readonly insetBlockStart: string;
-  readonly inlineSize: string;
-  readonly blockSize: string;
-};
-
-interface CropMasksProps {
-  readonly style: CropFrameStyle;
-}
-
-interface CropFrameProps {
-  readonly rect: CropRect;
-  readonly style: CropFrameStyle;
-  readonly onApply: () => void;
-  readonly onDragStart: (event: PointerEvent<HTMLElement>, handle: CropHandle) => void;
-}
-
-function CropMasks(props: CropMasksProps) {
-  const { style } = props;
-  return (
-    <>
-      <div
-        className="ris-crop-mask ris-crop-mask-top"
-        style={{ blockSize: style.insetBlockStart }}
-      />
-      <div
-        className="ris-crop-mask ris-crop-mask-left"
-        style={{
-          insetBlockStart: style.insetBlockStart,
-          blockSize: style.blockSize,
-          inlineSize: style.insetInlineStart
-        }}
-      />
-      <div
-        className="ris-crop-mask ris-crop-mask-right"
-        style={{
-          insetBlockStart: style.insetBlockStart,
-          insetInlineStart: `calc(${style.insetInlineStart} + ${style.inlineSize})`,
-          blockSize: style.blockSize
-        }}
-      />
-      <div
-        className="ris-crop-mask ris-crop-mask-bottom"
-        style={{
-          insetBlockStart: `calc(${style.insetBlockStart} + ${style.blockSize})`
-        }}
-      />
-    </>
-  );
-}
-
-function CropFrame(props: CropFrameProps) {
-  return (
-    <div
-      className="ris-crop-frame"
-      style={props.style}
-      onPointerDown={(event) => props.onDragStart(event, 'move')}
-    >
-      <div className="ris-crop-floating-toolbar" onPointerDown={(event) => event.stopPropagation()}>
-        <span>{Math.round(props.rect.width)}</span>
-        <span aria-hidden="true">x</span>
-        <span>{Math.round(props.rect.height)}</span>
-        <button type="button" onClick={props.onApply} aria-label="Apply crop">
-          Apply
-        </button>
-      </div>
-      <div className="ris-crop-grid" aria-hidden="true" />
-      {handles.map((item) => (
-        <button
-          type="button"
-          key={item.handle}
-          className={`ris-crop-handle ris-crop-handle-${item.handle}`}
-          aria-label={item.label}
-          data-testid={`image-crop-handle-${item.handle}`}
-          onPointerDown={(event) => props.onDragStart(event, item.handle)}
-        />
-      ))}
-    </div>
-  );
 }
 
 /** Direct-manipulation crop frame with mask, thirds grid, handles, and keyboard movement. */
@@ -122,6 +30,7 @@ export function CropOverlay() {
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<DragState | null>(null);
   const rect = crop.rect ?? createCenteredCrop(bounds, crop.aspectRatio);
+  const layerStyle = useCanvasLayerStyle(overlayRef, bounds);
 
   useEffect(() => {
     if (!crop.rect) crop.setDraft(rect, bounds);
@@ -201,6 +110,7 @@ export function CropOverlay() {
   return (
     <div
       className="ris-crop-layer"
+      style={layerStyle}
       ref={overlayRef}
       aria-label="Crop selection"
       role="group"

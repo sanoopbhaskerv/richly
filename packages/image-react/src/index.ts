@@ -26,6 +26,8 @@ export { CropOverlay } from './CropOverlay';
 export {
   clampRect,
   createCenteredCrop,
+  createFullCrop,
+  isFullCrop,
   moveCrop,
   pointerDeltaToImageDelta,
   resizeCrop

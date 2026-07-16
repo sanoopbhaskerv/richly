@@ -1,6 +1,7 @@
 import { useMemo, useRef, useSyncExternalStore } from 'react';
 import type { ExportOptions, ImageSessionState, Size } from '@richly/image-core';
 import { useImageEditor } from './context';
+import { isFullCrop } from './cropGeometry';
 import type { ImageCommandHelpers, ImageEditorUiState, ViewportState } from './types';
 
 function identity<T>(value: T): T {
@@ -79,18 +80,18 @@ export function useCropTool() {
     ...crop,
     setDraft(rect: NonNullable<typeof crop.rect>, bounds?: Size) {
       uiStore.setCropDraft({ rect, bounds: bounds ?? crop.bounds });
-      session?.preview('crop', { rect });
     },
     setAspectRatio(aspectRatio: number | null) {
       uiStore.setCropDraft({ aspectRatio });
     },
     apply() {
-      const result = session?.commitPreview();
+      const rect = crop.rect;
+      const bounds = crop.bounds;
       uiStore.setCropDraft({ rect: null, bounds: null });
-      return result;
+      if (!rect || !bounds || isFullCrop(rect, bounds)) return { ok: true } as const;
+      return session?.execute('crop', { rect }) ?? ({ ok: true } as const);
     },
     cancel() {
-      session?.cancelPreview();
       uiStore.setCropDraft({ rect: null, bounds: null });
     }
   };

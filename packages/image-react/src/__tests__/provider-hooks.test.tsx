@@ -48,6 +48,37 @@ function CropProbe() {
   return <CropOverlay />;
 }
 
+function CropBehaviorProbe() {
+  const crop = useCropTool();
+  const state = useImageEditorState((snapshot) => ({
+    size: `${snapshot.outputWidth}x${snapshot.outputHeight}`,
+    history: snapshot.history.entries.length,
+    transient: snapshot.transient?.type ?? 'none'
+  }));
+  return (
+    <div>
+      <output data-testid="crop-size">{state.size}</output>
+      <output data-testid="crop-history">{state.history}</output>
+      <output data-testid="crop-transient">{state.transient}</output>
+      <button
+        onClick={() =>
+          crop.setDraft({ x: 0, y: 0, width: 100, height: 50 }, { width: 100, height: 50 })
+        }
+      >
+        draft full
+      </button>
+      <button onClick={crop.apply}>apply crop</button>
+      <button
+        onClick={() =>
+          crop.setDraft({ x: 10, y: 5, width: 60, height: 30 }, { width: 100, height: 50 })
+        }
+      >
+        draft smaller
+      </button>
+    </div>
+  );
+}
+
 function flushAsync(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
@@ -141,6 +172,30 @@ describe('@richly/image-react primitives', () => {
     });
 
     expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('keeps crop drafts local and treats applying a full-image crop as a no-op', async () => {
+    const session = await createImageSession({ kind: 'url', url: '/fixture.png' }, { decoder });
+    act(() => {
+      root.render(
+        <ImageEditorProvider session={session}>
+          <CropBehaviorProbe />
+        </ImageEditorProvider>
+      );
+    });
+
+    act(() => button('draft full').click());
+    expect(container.querySelector('[data-testid="crop-size"]')?.textContent).toBe('100x50');
+    expect(container.querySelector('[data-testid="crop-transient"]')?.textContent).toBe('none');
+
+    act(() => button('apply crop').click());
+    expect(container.querySelector('[data-testid="crop-size"]')?.textContent).toBe('100x50');
+    expect(container.querySelector('[data-testid="crop-history"]')?.textContent).toBe('1');
+
+    act(() => button('draft smaller').click());
+    act(() => button('apply crop').click());
+    expect(container.querySelector('[data-testid="crop-size"]')?.textContent).toBe('60x30');
+    expect(container.querySelector('[data-testid="crop-history"]')?.textContent).toBe('2');
   });
 });
 

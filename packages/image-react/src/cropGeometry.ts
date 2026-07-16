@@ -7,13 +7,32 @@ export type CropHandle = 'move' | 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | '
 export type CropRect = Rect;
 
 const MIN_CROP_SIZE = 16;
+const SAME_RATIO_EPSILON = 0.0001;
 
-/** Creates the initial crop frame centered in the current transformed image. */
+/** Creates a full-image crop rectangle for no-op initial crop drafts. */
+export function createFullCrop(bounds: Size): Rect {
+  return { x: 0, y: 0, width: bounds.width, height: bounds.height };
+}
+
+/** Returns true when a crop rectangle covers the full transformed image. */
+export function isFullCrop(rect: Rect, bounds: Size): boolean {
+  return (
+    Math.round(rect.x) === 0 &&
+    Math.round(rect.y) === 0 &&
+    Math.round(rect.width) === Math.round(bounds.width) &&
+    Math.round(rect.height) === Math.round(bounds.height)
+  );
+}
+
+/** Creates the largest centered crop frame for the requested aspect ratio. */
 export function createCenteredCrop(bounds: Size, aspectRatio: number | null): Rect {
-  const baseWidth = Math.max(MIN_CROP_SIZE, bounds.width * 0.82);
-  const baseHeight = Math.max(MIN_CROP_SIZE, bounds.height * 0.72);
-  const width = aspectRatio ? Math.min(baseWidth, baseHeight * aspectRatio) : baseWidth;
-  const height = aspectRatio ? width / aspectRatio : baseHeight;
+  const boundsRatio = bounds.width / bounds.height;
+  if (!aspectRatio || Math.abs(boundsRatio - aspectRatio) < SAME_RATIO_EPSILON) {
+    return createFullCrop(bounds);
+  }
+
+  const width = aspectRatio > boundsRatio ? bounds.width : bounds.height * aspectRatio;
+  const height = width / aspectRatio;
   return clampRect(
     {
       x: (bounds.width - width) / 2,
