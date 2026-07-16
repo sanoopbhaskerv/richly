@@ -117,6 +117,10 @@ export interface ImageCommandMap {
   readonly resize: { readonly width: number; readonly height: number };
   readonly rotate: { readonly angle: number };
   readonly flip: { readonly axis: 'horizontal' | 'vertical' };
+  readonly adjust: {
+    readonly channel: 'brightness' | 'contrast' | 'saturation' | 'grayscale';
+    readonly value: number;
+  };
 }
 
 /** Render stage descriptor returned by operation definitions. */

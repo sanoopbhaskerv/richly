@@ -338,9 +338,19 @@ function upsertOperation(
   operations: readonly ImageOperation[],
   operation: ImageOperation
 ): readonly ImageOperation[] {
-  // Adjustment-style canonicalization arrives in Phase 4. For Phase 2, one
-  // operation per type keeps history deterministic and avoids duplicate resize
-  // or crop stages from direct commands and transient previews.
+  if (operation.type === 'adjust') {
+    const channel = (operation.params as { channel?: unknown }).channel;
+    const value = (operation.params as { value?: unknown }).value;
+    const withoutChannel = operations.filter(
+      (candidate) =>
+        candidate.type !== 'adjust' ||
+        (candidate.params as { channel?: unknown }).channel !== channel
+    );
+    // Zero-value adjustments are identities and must not survive in the
+    // manifest; slider previews can pass through zero while scrubbing.
+    return value === 0 ? withoutChannel : [...withoutChannel, operation];
+  }
+
   const withoutType = operations.filter((candidate) => candidate.type !== operation.type);
   return [...withoutType, operation];
 }

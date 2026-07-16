@@ -137,7 +137,31 @@ function stageCanvas(input: CanvasElement, stage: RenderStage): CanvasElement {
     return output;
   }
 
+  if (stage.type === 'adjust') {
+    const { channel, value } = stage.params as {
+      channel: 'brightness' | 'contrast' | 'saturation' | 'grayscale';
+      value: number;
+    };
+    const output = createCanvas(input.width, input.height);
+    const context = get2d(output);
+    const filterContext = context as CanvasContext & { filter: string };
+    filterContext.filter = adjustmentFilter(channel, value);
+    context.drawImage(input, 0, 0);
+    filterContext.filter = 'none';
+    return output;
+  }
+
   throw new Error(`No Canvas2D stage renderer registered for "${stage.type}"`);
+}
+
+function adjustmentFilter(
+  channel: 'brightness' | 'contrast' | 'saturation' | 'grayscale',
+  value: number
+): string {
+  if (channel === 'brightness') return `brightness(${Math.max(0, 1 + value)})`;
+  if (channel === 'contrast') return `contrast(${Math.max(0, 1 + value)})`;
+  if (channel === 'saturation') return `saturate(${Math.max(0, 1 + value)})`;
+  return `grayscale(${value})`;
 }
 
 function scaleForExport(

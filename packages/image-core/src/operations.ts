@@ -28,6 +28,25 @@ function dimensionsFrom(params: unknown): Size | null {
   return width === null || height === null ? null : { width, height };
 }
 
+function adjustmentFrom(params: unknown): { channel: string; value: number } | null {
+  if (!params || typeof params !== 'object') return null;
+  const value = params as Record<string, unknown>;
+  const channel = value.channel;
+  const amount = value.value;
+  if (
+    channel !== 'brightness' &&
+    channel !== 'contrast' &&
+    channel !== 'saturation' &&
+    channel !== 'grayscale'
+  ) {
+    return null;
+  }
+  if (typeof amount !== 'number' || !Number.isFinite(amount)) return null;
+  if (channel === 'grayscale')
+    return amount >= 0 && amount <= 1 ? { channel, value: amount } : null;
+  return amount >= -1 && amount <= 1 ? { channel, value: amount } : null;
+}
+
 /** Built-in crop operation definition. */
 export const cropOperation: OperationDefinition<{ rect: Rect }> = {
   type: 'crop',
@@ -99,6 +118,29 @@ export const flipOperation: OperationDefinition<{ axis: 'horizontal' | 'vertical
   }
 };
 
+/** Built-in adjustment operation definition. */
+export const adjustOperation: OperationDefinition<{
+  channel: 'brightness' | 'contrast' | 'saturation' | 'grayscale';
+  value: number;
+}> = {
+  type: 'adjust',
+  version: 1,
+  validateParams(params): ValidationResult {
+    return adjustmentFrom(params)
+      ? valid
+      : invalid(
+          'invalid_adjustment',
+          'Adjustment requires a supported channel and normalized value'
+        );
+  },
+  reduceSize(input) {
+    return input;
+  },
+  createStage(params) {
+    return { type: 'adjust', version: 1, params };
+  }
+};
+
 /** Registry shared by command execution, restore validation, and render planning. */
 export class OperationRegistry {
   private readonly definitions = new Map<string, OperationDefinition>();
@@ -138,5 +180,6 @@ export const builtInOperations = [
   cropOperation,
   resizeOperation,
   rotateOperation,
-  flipOperation
+  flipOperation,
+  adjustOperation
 ] as const;
