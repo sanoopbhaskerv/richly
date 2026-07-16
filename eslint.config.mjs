@@ -43,6 +43,27 @@ export default tseslint.config(
     }
   },
   {
+    // Maintainability guardrails scoped to the Image Studio packages (see
+    // docs/image-studio/ui-handoff.md §7). Warn-level on purpose: they flag
+    // files that need decomposition without blocking the wider repository.
+    files: [
+      'packages/image-core/src/**/*.{ts,tsx}',
+      'packages/image-react/src/**/*.{ts,tsx}',
+      'packages/image-studio/src/**/*.{ts,tsx}',
+      'packages/image-studio-demo/src/**/*.{ts,tsx}',
+      'packages/plugin-image-editor/src/**/*.{ts,tsx}'
+    ],
+    rules: {
+      'max-lines': ['warn', { max: 550, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': [
+        'warn',
+        { max: 120, skipBlankLines: true, skipComments: true, IIFEs: true }
+      ],
+      complexity: ['warn', 15],
+      'max-depth': ['warn', 4]
+    }
+  },
+  {
     files: ['**/*.test.ts'],
     languageOptions: {
       globals: {
