@@ -161,6 +161,7 @@
 @container (max-width: 639px) {
   .ris-root {
     min-block-size: 100svh;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
   }
   .ris-layout {
     grid-template-columns: 1fr;
@@ -171,6 +172,7 @@
   }
   .ris-tools-bottom {
     display: flex;
+    grid-row: 4;
     padding-block-end: max(10px, env(safe-area-inset-bottom));
   }
   .ris-tools-bottom button {
@@ -179,12 +181,16 @@
   }
   .ris-bottom-sheet {
     display: block;
+    grid-row: 3;
     border-block-start: 1px solid var(--ris-border);
     max-block-size: 42svh;
     overflow: auto;
   }
   .ris-panel-compact {
     display: block;
+    position: static;
+    inset: auto;
+    inline-size: auto;
     border: 0;
   }
   .ris-topbar {

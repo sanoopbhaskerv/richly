@@ -1,7 +1,6 @@
 # @richly/image-studio-demo
 
-Standalone demo application — and future installable PWA host — for Richly
-Image Studio.
+Standalone demo application and installable PWA host for Richly Image Studio.
 
 > **Permanently private.** This workspace is never published to npm and is
 > excluded from library-oriented root scripts (see `--ignore` flags in the
@@ -14,11 +13,11 @@ Per [`docs/image-studio/architecture.md`](../../docs/image-studio/architecture.m
 local persistence) belongs to a standalone application, never to the library
 packages. This workspace is that application.
 
-## Current state
+## Current State
 
-A placeholder page that smoke-tests workspace resolution of
-`@richly/image-studio` and its upstream packages. The real editor UI arrives
-with PR 6.
+The app creates a generated local image, opens it in the complete Studio UI,
+and turns exports into local Blob URL downloads. Its manifest, icon, and service
+worker are intentionally kept in this private app package.
 
 ## Scripts
 

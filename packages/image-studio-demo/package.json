@@ -2,7 +2,7 @@
   "name": "@richly/image-studio-demo",
   "private": true,
   "version": "0.0.0",
-  "description": "Standalone demo and future PWA host for Richly Image Studio. Permanently private; never published.",
+  "description": "Standalone demo and installable PWA host for Richly Image Studio. Permanently private; never published.",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -10,6 +10,7 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@richly/image-core": "0.0.0",
     "@richly/image-studio": "0.0.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"

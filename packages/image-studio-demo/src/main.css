@@ -1,0 +1,71 @@
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: #0d1017;
+}
+
+.demo-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  color: #f7f8fb;
+  font:
+    14px/1.4 system-ui,
+    sans-serif;
+}
+
+.demo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #2e3441;
+  background: #151923;
+}
+
+.demo-header h1,
+.demo-header p {
+  margin: 0;
+}
+
+.demo-header h1 {
+  font-size: 18px;
+}
+
+.demo-header p {
+  color: #aab2c1;
+}
+
+.demo-download {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #445064;
+  border-radius: 8px;
+  padding: 0 12px;
+  color: #ffffff;
+  background: #2f6fed;
+  text-decoration: none;
+}
+
+.demo-loading {
+  margin: 24px;
+  color: #aab2c1;
+}
+
+.demo-shell .ris-root {
+  min-block-size: 0;
+}
+
+@media (max-width: 720px) {
+  .demo-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
