@@ -62,6 +62,7 @@ export function CropPanel() {
         <h3>Aspect Ratio</h3>
         <select
           className="ris-select"
+          aria-label="Aspect ratio"
           value={
             crop.aspectRatio === null
               ? 'free'

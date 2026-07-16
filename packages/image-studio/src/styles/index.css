@@ -16,6 +16,7 @@
   color: var(--ris-text);
   background: var(--ris-bg);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-block-size: 100svh;
   container-type: inline-size;
@@ -736,7 +737,7 @@
   }
 
   .ris-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .ris-tools-rail,

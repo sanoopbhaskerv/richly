@@ -5,15 +5,18 @@ import { ContextPanel } from './panels';
 import { TopBar, ToolNavigation } from './toolbar';
 import { StudioWorkspace } from '../workspace/StudioWorkspace';
 import { ExportDialog } from '../tools/ExportDialog';
+import { useStudioShortcuts } from '../a11y/useStudioShortcuts';
 
 /** Responsive shell arranging top bar, tools, canvas, and contextual controls. */
 export function StudioShell(props: ImageStudioProps) {
   const [exportOpen, setExportOpen] = useState(false);
   const activeTool = useImageEditorUiState((state) => state.activeTool);
+  useStudioShortcuts();
   return (
     <section
       className={`ris-root ris-theme-${props.theme ?? 'dark'}`}
       data-mode={props.mode ?? 'inline'}
+      data-testid="image-studio-root"
     >
       <TopBar onExport={() => setExportOpen(true)} onCancel={props.onCancel} />
       <div className="ris-layout">
@@ -22,7 +25,7 @@ export function StudioShell(props: ImageStudioProps) {
         <ContextPanel activeTool={activeTool} />
       </div>
       <ToolNavigation placement="bottom" />
-      <div className="ris-bottom-sheet">
+      <div className="ris-bottom-sheet" data-testid="image-bottom-sheet">
         <ContextPanel activeTool={activeTool} compact />
       </div>
       {exportOpen ? (

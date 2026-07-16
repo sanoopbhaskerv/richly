@@ -107,7 +107,7 @@ export function ExportDialog(props: ExportDialogProps) {
         <h3>Dimensions</h3>
         <NumberField label="W" value={width} min={1} onChange={setWidth} />
         <NumberField label="H" value={height} min={1} onChange={setHeight} />
-        <p className="ris-meta">
+        <p className="ris-meta" data-testid="image-export-dimensions">
           Source {outputSize.sourceWidth} x {outputSize.sourceHeight}px · Current {outputSize.width}{' '}
           x {outputSize.height}px
         </p>
@@ -137,6 +137,8 @@ export function ExportDialog(props: ExportDialogProps) {
           type="button"
           className="ris-primary"
           disabled={exportFlow.busy}
+          data-testid="image-export-submit"
+          data-busy={exportFlow.busy}
           onClick={() => void save()}
         >
           {exportFlow.busy ? 'Exporting...' : 'Export image'}

@@ -7,7 +7,11 @@ export function StudioWorkspace() {
   return (
     <main className="ris-workspace">
       <div className="ris-canvas-wrap">
-        <ImageCanvas className="ris-canvas" aria-label="Image preview canvas" />
+        <ImageCanvas
+          className="ris-canvas"
+          aria-label="Image preview canvas"
+          data-testid="image-canvas"
+        />
         {activeTool === 'crop' ? <CropOverlay /> : null}
       </div>
       <Filmstrip />

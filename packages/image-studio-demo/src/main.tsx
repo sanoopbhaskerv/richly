@@ -103,6 +103,15 @@ function DemoApp() {
     };
   }, [saved]);
 
+  useEffect(() => {
+    // The download link is fixed-positioned over the studio's top bar. Left
+    // up indefinitely it permanently overlaps the Export/Close controls and
+    // blocks a subsequent export; auto-dismiss it like a transient toast.
+    if (!saved) return;
+    const timeout = window.setTimeout(() => setSaved(null), 8000);
+    return () => window.clearTimeout(timeout);
+  }, [saved]);
+
   const save = (result: ImageStudioResult): void => {
     setSaved({
       url: URL.createObjectURL(result.blob),
@@ -119,9 +128,18 @@ function DemoApp() {
       {session ? (
         <>
           {saved ? (
-            <a className="demo-download" href={saved.url} download={saved.filename}>
-              Download {saved.width}x{saved.height} {saved.mimeType}
-            </a>
+            <div className="demo-download">
+              <a href={saved.url} download={saved.filename}>
+                Download {saved.width}x{saved.height} {saved.mimeType}
+              </a>
+              <button
+                type="button"
+                aria-label="Dismiss download notice"
+                onClick={() => setSaved(null)}
+              >
+                ×
+              </button>
+            </div>
           ) : null}
           <ImageStudio
             session={session}

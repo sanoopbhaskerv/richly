@@ -51,10 +51,12 @@ export function CropMasks(props: CropMasksProps) {
     <>
       <div
         className="ris-crop-mask ris-crop-mask-top"
+        data-testid="image-crop-mask"
         style={{ blockSize: style.insetBlockStart }}
       />
       <div
         className="ris-crop-mask ris-crop-mask-left"
+        data-testid="image-crop-mask"
         style={{
           insetBlockStart: style.insetBlockStart,
           blockSize: style.blockSize,
@@ -63,6 +65,7 @@ export function CropMasks(props: CropMasksProps) {
       />
       <div
         className="ris-crop-mask ris-crop-mask-right"
+        data-testid="image-crop-mask"
         style={{
           insetBlockStart: style.insetBlockStart,
           insetInlineStart: `calc(${style.insetInlineStart} + ${style.inlineSize})`,
@@ -71,6 +74,7 @@ export function CropMasks(props: CropMasksProps) {
       />
       <div
         className="ris-crop-mask ris-crop-mask-bottom"
+        data-testid="image-crop-mask"
         style={{
           insetBlockStart: `calc(${style.insetBlockStart} + ${style.blockSize})`
         }}
@@ -95,7 +99,7 @@ export function CropFrame(props: CropFrameProps) {
           Apply
         </button>
       </div>
-      <div className="ris-crop-grid" aria-hidden="true" />
+      <div className="ris-crop-grid" aria-hidden="true" data-testid="image-crop-grid" />
       {handles.map((item) => (
         <button
           type="button"

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import {
   useImageEditor,
   useImageEditorUiState,
@@ -51,6 +52,13 @@ export interface ToolNavigationProps {
   readonly placement: 'rail' | 'bottom';
 }
 
+// A physical mouse click and a touch tap both dispatch pointerdown then
+// pointerup in quick succession, indistinguishable at the event-type level
+// from a deliberate press-and-hold. Press duration is what actually tells
+// them apart, so a short press toggles Before persistently (tap/click) while
+// a sustained press previews it only until release (hold).
+const HOLD_THRESHOLD_MS = 150;
+
 /** Top workspace command bar for history, zoom, before/after, export, and close. */
 export function TopBar(props: TopBarProps) {
   const history = useImageHistory();
@@ -58,9 +66,41 @@ export function TopBar(props: TopBarProps) {
   const { uiStore } = useImageEditor();
   const compareMode = useImageEditorUiState((state) => state.compareMode);
   const setBefore = (value: boolean): void => uiStore.setCompareMode(value);
+  const pressState = useRef<{ startedAt: number; stateBeforePress: boolean } | null>(null);
+
+  const beginPress = (): void => {
+    pressState.current = {
+      startedAt: performance.now(),
+      stateBeforePress: uiStore.getSnapshot().compareMode
+    };
+    setBefore(true);
+  };
+
+  const endPress = (): void => {
+    const press = pressState.current;
+    pressState.current = null;
+    if (!press) return;
+    const wasHold = performance.now() - press.startedAt >= HOLD_THRESHOLD_MS;
+    setBefore(wasHold ? press.stateBeforePress : !press.stateBeforePress);
+  };
+
+  const cancelPress = (): void => {
+    const press = pressState.current;
+    pressState.current = null;
+    if (press) setBefore(press.stateBeforePress);
+  };
+
   return (
     <header className="ris-topbar">
       <strong>Richly Image Studio</strong>
+      <span
+        hidden
+        data-testid="image-history-status"
+        data-index={history.index}
+        data-entries={history.entries.length}
+        data-can-undo={history.canUndo}
+        data-can-redo={history.canRedo}
+      />
       <div className="ris-topbar-actions">
         <IconButton label="Undo" disabled={!history.canUndo} onClick={history.undo}>
           <UndoIcon />
@@ -79,10 +119,9 @@ export function TopBar(props: TopBarProps) {
           type="button"
           className="ris-before-button"
           aria-pressed={compareMode}
-          onClick={() => setBefore(!compareMode)}
-          onPointerDown={() => setBefore(true)}
-          onPointerUp={() => setBefore(false)}
-          onPointerLeave={() => setBefore(false)}
+          onPointerDown={beginPress}
+          onPointerUp={endPress}
+          onPointerLeave={cancelPress}
           onKeyDown={(event) => {
             if (event.key === ' ') setBefore(true);
           }}

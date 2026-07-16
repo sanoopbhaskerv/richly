@@ -1,4 +1,4 @@
-import { useMemo, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import type { ExportOptions, ImageSessionState, Size } from '@richly/image-core';
 import { useImageEditor } from './context';
 import { isFullCrop } from './cropGeometry';
@@ -76,6 +76,27 @@ export function useImageHistory() {
 export function useCropTool() {
   const { session, uiStore } = useImageEditor();
   const crop = useImageEditorUiState((state) => state.crop);
+  const sessionSize = useImageEditorState((state) => ({
+    width: state.outputWidth,
+    height: state.outputHeight
+  }));
+
+  // `crop.bounds` freezes the coordinate space for the active draft. If the
+  // committed session size changes for a reason outside the draft itself
+  // (undo, redo, jumpToHistory, or another tool applying while Crop stays
+  // mounted), the frozen bounds silently desync from the real image and every
+  // subsequent drag/apply would be computed against stale geometry. Drop the
+  // stale draft so callers reinitialize a fresh full-bounds crop against the
+  // current session size.
+  useEffect(() => {
+    if (
+      crop.bounds &&
+      (crop.bounds.width !== sessionSize.width || crop.bounds.height !== sessionSize.height)
+    ) {
+      uiStore.setCropDraft({ rect: null, bounds: null });
+    }
+  }, [crop.bounds, sessionSize, uiStore]);
+
   return {
     ...crop,
     setDraft(rect: NonNullable<typeof crop.rect>, bounds?: Size) {

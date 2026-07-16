@@ -14,6 +14,8 @@ type Unit = 'px' | '%';
 interface ResizeTabProps {
   readonly width: number;
   readonly height: number;
+  readonly resultWidth: number;
+  readonly resultHeight: number;
   readonly outputWidth: number;
   readonly outputHeight: number;
   readonly unit: Unit;
@@ -77,9 +79,9 @@ function ResizeTab(props: ResizeTabProps) {
       >
         Maintain aspect ratio
       </button>
-      <p className="ris-meta">
-        Current {props.outputWidth} x {props.outputHeight}px · Result {props.width} x {props.height}
-        px
+      <p className="ris-meta" data-testid="image-resize-result">
+        Current {props.outputWidth} x {props.outputHeight}px · Result {props.resultWidth} x{' '}
+        {props.resultHeight}px
       </p>
       <div className="ris-actions">
         <button type="button" onClick={props.onCancel}>
@@ -183,6 +185,12 @@ export function TransformPanel() {
     if (locked) setWidth(clampDimension(value * ratio));
   };
 
+  // The Width/Height fields must echo the active unit: percent mode shows a
+  // percentage of the current output size, not the raw pixel value, or the
+  // toggle has no visible effect and every edit looks like it "snaps back".
+  const displayWidth = unit === '%' ? Math.round((width / state.width) * 100) : width;
+  const displayHeight = unit === '%' ? Math.round((height / state.height) * 100) : height;
+
   const previewRotation = (value: number, setter: (value: number) => void): void => {
     setter(value);
     session?.preview('rotate', { angle: value });
@@ -224,8 +232,10 @@ export function TransformPanel() {
 
       {tab === 'resize' ? (
         <ResizeTab
-          width={width}
-          height={height}
+          width={displayWidth}
+          height={displayHeight}
+          resultWidth={width}
+          resultHeight={height}
           outputWidth={state.width}
           outputHeight={state.height}
           unit={unit}

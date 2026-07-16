@@ -14,7 +14,10 @@ export interface ContextPanelProps {
 /** Contextual panel for the active MVP tool. */
 export function ContextPanel(props: ContextPanelProps) {
   return (
-    <aside className={props.compact ? 'ris-panel ris-panel-compact' : 'ris-panel'}>
+    <aside
+      className={props.compact ? 'ris-panel ris-panel-compact' : 'ris-panel'}
+      data-testid={props.compact ? 'image-inspector-compact' : 'image-inspector'}
+    >
       {props.activeTool === 'adjust' ? <AdjustPanel /> : null}
       {props.activeTool === 'crop' ? <CropPanel /> : null}
       {props.activeTool === 'transform' ? <TransformPanel /> : null}
