@@ -11,6 +11,7 @@ import {
   AdjustIcon,
   CloseIcon,
   CropIcon,
+  FilterIcon,
   FutureIcon,
   RedoIcon,
   TransformIcon,
@@ -28,7 +29,7 @@ interface ToolItem {
 
 const tools: ToolItem[] = [
   { tool: 'adjust', label: 'Adjust', icon: AdjustIcon },
-  { label: 'Filters', disabled: true, icon: FutureIcon },
+  { tool: 'filters', label: 'Filters', icon: FilterIcon },
   { tool: 'crop', label: 'Crop', icon: CropIcon },
   { tool: 'transform', label: 'Transform', icon: TransformIcon },
   { label: 'Draw', disabled: true, icon: FutureIcon },

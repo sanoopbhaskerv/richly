@@ -10,8 +10,10 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@richly/core": "1.0.0-rc.8",
     "@richly/image-core": "0.0.0",
     "@richly/image-studio": "0.0.0",
+    "@richly/plugin-image-editor": "0.0.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },

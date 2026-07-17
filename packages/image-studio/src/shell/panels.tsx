@@ -1,6 +1,7 @@
 import type { ImageTool } from '@richly/image-react';
 import { AdjustPanel } from '../tools/AdjustPanel';
 import { CropPanel } from '../tools/CropPanel';
+import { FilterPanel } from '../tools/FilterPanel';
 import { TransformPanel } from '../tools/TransformPanel';
 
 /** Props for the active-tool context panel. */
@@ -19,6 +20,7 @@ export function ContextPanel(props: ContextPanelProps) {
       data-testid={props.compact ? 'image-inspector-compact' : 'image-inspector'}
     >
       {props.activeTool === 'adjust' ? <AdjustPanel /> : null}
+      {props.activeTool === 'filters' ? <FilterPanel /> : null}
       {props.activeTool === 'crop' ? <CropPanel /> : null}
       {props.activeTool === 'transform' ? <TransformPanel /> : null}
     </aside>

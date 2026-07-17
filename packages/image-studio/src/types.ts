@@ -1,4 +1,5 @@
 import type { ImageEditDocument, ImageSession, ImageSourceInput } from '@richly/image-core';
+import type { ImageTool } from '@richly/image-react';
 import type { ImageStudioResult } from './controller';
 
 /** Canonical package name for the complete Studio UI package. */
@@ -21,6 +22,8 @@ export interface ImageStudioProps {
   readonly suggestedFilename?: string;
   /** Visual theme for the Studio shell. */
   readonly theme?: ImageStudioTheme;
+  /** Tool activated when Studio opens; hosts deep-link Crop/Transform/Adjust. */
+  readonly initialTool?: ImageTool;
   /** Host layout mode; modal hosts can use this for outer presentation. */
   readonly mode?: 'inline' | 'modal';
   /** Called with rendered bytes and the edit manifest when export succeeds. */

@@ -1,6 +1,13 @@
 import { ImageOperationRegistryError } from './errors';
 import { invalid, positiveNumber, valid } from './validation';
-import type { OperationDefinition, Rect, Size, ValidationResult } from './types';
+import { adjustmentFrom } from './adjustments';
+import type {
+  ImageAdjustmentParams,
+  OperationDefinition,
+  Rect,
+  Size,
+  ValidationResult
+} from './types';
 
 function rectFrom(params: unknown): Rect | null {
   if (!params || typeof params !== 'object') return null;
@@ -36,25 +43,6 @@ function rotatedSize(input: Size, angle: number): Size {
     width: Math.max(1, Math.round(input.width * cos + input.height * sin)),
     height: Math.max(1, Math.round(input.width * sin + input.height * cos))
   };
-}
-
-function adjustmentFrom(params: unknown): { channel: string; value: number } | null {
-  if (!params || typeof params !== 'object') return null;
-  const value = params as Record<string, unknown>;
-  const channel = value.channel;
-  const amount = value.value;
-  if (
-    channel !== 'brightness' &&
-    channel !== 'contrast' &&
-    channel !== 'saturation' &&
-    channel !== 'grayscale'
-  ) {
-    return null;
-  }
-  if (typeof amount !== 'number' || !Number.isFinite(amount)) return null;
-  if (channel === 'grayscale')
-    return amount >= 0 && amount <= 1 ? { channel, value: amount } : null;
-  return amount >= -1 && amount <= 1 ? { channel, value: amount } : null;
 }
 
 /** Built-in crop operation definition. */
@@ -126,10 +114,7 @@ export const flipOperation: OperationDefinition<{ axis: 'horizontal' | 'vertical
 };
 
 /** Built-in adjustment operation definition. */
-export const adjustOperation: OperationDefinition<{
-  channel: 'brightness' | 'contrast' | 'saturation' | 'grayscale';
-  value: number;
-}> = {
+export const adjustOperation: OperationDefinition<ImageAdjustmentParams> = {
   type: 'adjust',
   version: 1,
   validateParams(params): ValidationResult {

@@ -1,11 +1,17 @@
 import type { ReactNode } from 'react';
-import type { ImageEditDocument, ImageSession, ImageSourceInput, Size } from '@richly/image-core';
+import type {
+  ImageAdjustmentChannel,
+  ImageEditDocument,
+  ImageSession,
+  ImageSourceInput,
+  Size
+} from '@richly/image-core';
 
 /** Canonical npm name of the React image primitives package. */
 export const IMAGE_REACT_PACKAGE_NAME = '@richly/image-react';
 
 /** Tool identifiers owned by the React interaction layer. */
-export type ImageTool = 'adjust' | 'crop' | 'transform';
+export type ImageTool = 'adjust' | 'filters' | 'crop' | 'transform';
 
 /** Viewport state is UI-only and never enters the image manifest. */
 export interface ViewportState {
@@ -61,5 +67,5 @@ export interface ImageCommandHelpers {
   resize(width: number, height: number): void;
   rotate(angle: number): void;
   flip(axis: 'horizontal' | 'vertical'): void;
-  adjust(channel: 'brightness' | 'contrast' | 'saturation' | 'grayscale', value: number): void;
+  adjust(channel: ImageAdjustmentChannel, value: number): void;
 }

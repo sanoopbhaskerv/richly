@@ -1,53 +1,81 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { ImageAdjustmentChannel, ImageOperation } from '@richly/image-core';
 import { useImageEditor, useImageEditorState } from '@richly/image-react';
 import { SliderField } from '../controls/fields';
+import { adjustmentControls, editableAdjustmentChannels } from './adjustmentCatalog';
+import type { AdjustmentControl } from './adjustmentCatalog';
 
-const adjustments = [
-  ['brightness', 'Brightness', -100, 100],
-  ['contrast', 'Contrast', -100, 100],
-  ['saturation', 'Saturation', -100, 100],
-  ['grayscale', 'Grayscale', 0, 100]
-] as const;
+type AdjustmentValues = Record<ImageAdjustmentChannel, number>;
 
-type AdjustmentChannel = (typeof adjustments)[number][0];
-type AdjustmentValues = Record<AdjustmentChannel, number>;
+const groups = ['Light', 'Color', 'Detail', 'Effects'] as const;
 
-const neutralValues: AdjustmentValues = {
-  brightness: 0,
-  contrast: 0,
-  saturation: 0,
-  grayscale: 0
-};
-
-function toCoreValue(channel: AdjustmentChannel, value: number): number {
-  return channel === 'grayscale' ? value / 100 : value / 100;
+function emptyValues(): AdjustmentValues {
+  return Object.fromEntries(
+    editableAdjustmentChannels.map((channel) => [channel, 0])
+  ) as AdjustmentValues;
 }
 
-function fromCoreValue(value: number): number {
-  return Math.round(value * 100);
+function valuesFromOperations(operations: readonly ImageOperation[]): AdjustmentValues {
+  const next = emptyValues();
+  for (const operation of operations) {
+    if (operation.type !== 'adjust') continue;
+    const params = operation.params as { channel?: ImageAdjustmentChannel; value?: number };
+    const control = adjustmentControls.find((candidate) => candidate.channel === params.channel);
+    if (control && typeof params.value === 'number')
+      next[control.channel] = control.fromCore(params.value);
+  }
+  return next;
 }
 
-/** Adjustment sliders with live preview, synchronized values, and one-entry commits. */
+function AdjustmentGroup(props: {
+  readonly title: (typeof groups)[number];
+  readonly controls: readonly AdjustmentControl[];
+  readonly values: AdjustmentValues;
+  readonly onPreview: (control: AdjustmentControl, value: number) => void;
+  readonly onCommit: () => void;
+}) {
+  return (
+    <div className="ris-tool-group ris-adjustment-group">
+      <h3>{props.title}</h3>
+      {props.controls.map((control) => (
+        <SliderField
+          key={control.channel}
+          label={control.label}
+          min={control.min}
+          max={control.max}
+          step={control.step}
+          suffix={control.suffix}
+          value={props.values[control.channel]}
+          onPreview={(value) => props.onPreview(control, value)}
+          onChange={(value) => props.onPreview(control, value)}
+          onCommit={props.onCommit}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Adjustment sliders with live preview, grouped controls, and one-entry commits. */
 export function AdjustPanel() {
   const { session } = useImageEditor();
   const operations = useImageEditorState((state) => state.operations);
-  const [values, setValues] = useState<AdjustmentValues>(neutralValues);
+  const [values, setValues] = useState<AdjustmentValues>(() => emptyValues());
+  const grouped = useMemo(
+    () =>
+      groups.map((group) => ({
+        group,
+        controls: adjustmentControls.filter((control) => control.group === group)
+      })),
+    []
+  );
 
   useEffect(() => {
-    const next = { ...neutralValues };
-    for (const operation of operations) {
-      if (operation.type !== 'adjust') continue;
-      const params = operation.params as { channel?: AdjustmentChannel; value?: number };
-      if (params.channel && typeof params.value === 'number') {
-        next[params.channel] = fromCoreValue(params.value);
-      }
-    }
-    setValues(next);
+    setValues(valuesFromOperations(operations));
   }, [operations]);
 
-  const preview = (channel: AdjustmentChannel, value: number): void => {
-    setValues((current) => ({ ...current, [channel]: value }));
-    session?.preview('adjust', { channel, value: toCoreValue(channel, value) });
+  const preview = (control: AdjustmentControl, value: number): void => {
+    setValues((current) => ({ ...current, [control.channel]: value }));
+    session?.preview('adjust', { channel: control.channel, value: control.toCore(value) });
   };
 
   const commit = (): void => {
@@ -56,27 +84,25 @@ export function AdjustPanel() {
 
   const resetAll = (): void => {
     session?.transact('Reset adjustments', () => {
-      for (const channel of Object.keys(neutralValues) as AdjustmentChannel[]) {
+      for (const channel of editableAdjustmentChannels) {
         session.execute('adjust', { channel, value: 0 });
       }
     });
-    setValues(neutralValues);
+    setValues(emptyValues());
   };
 
   return (
     <section className="ris-inspector-section">
       <h2>Adjust</h2>
-      <div className="ris-tool-group">
-        <h3>Light</h3>
-        {adjustments.map(([channel, label, min, max]) => (
-          <SliderField
-            key={channel}
-            label={label}
-            min={min}
-            max={max}
-            value={values[channel]}
-            onPreview={(value) => preview(channel, value)}
-            onChange={(value) => preview(channel, value)}
+      <p className="ris-meta">Fine-tune tone, color, detail, and creative effects.</p>
+      <div className="ris-adjustment-stack">
+        {grouped.map(({ group, controls }) => (
+          <AdjustmentGroup
+            key={group}
+            title={group}
+            controls={controls}
+            values={values}
+            onPreview={preview}
             onCommit={commit}
           />
         ))}

@@ -141,7 +141,7 @@ export function ExportDialog(props: ExportDialogProps) {
           data-busy={exportFlow.busy}
           onClick={() => void save()}
         >
-          {exportFlow.busy ? 'Exporting...' : 'Export image'}
+          {exportFlow.busy ? 'Exporting...' : 'Save and close'}
         </button>
       </div>
     </div>

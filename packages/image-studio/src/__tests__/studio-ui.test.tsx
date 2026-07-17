@@ -42,7 +42,35 @@ describe('ImageStudio UI and controller', () => {
     act(() => root.render(<ImageStudio session={session} />));
     expect(container.querySelector('.ris-topbar')?.textContent).toContain('Richly Image Studio');
     expect(container.querySelector('.ris-tools-rail')?.textContent).toContain('Adjust');
+    expect(container.querySelector('.ris-tools-rail')?.textContent).toContain('Filters');
     expect(container.querySelector('.ris-panel')?.textContent).toContain('Adjust');
+  });
+
+  it('applies filter presets as undoable adjustment stacks', async () => {
+    const session = await createImageSession(
+      { kind: 'url', url: '/fixture.png' },
+      { decoder, renderEngine: fakeRenderEngine() }
+    );
+    act(() => root.render(<ImageStudio session={session} />));
+
+    const filters = Array.from(
+      container.querySelectorAll<HTMLButtonElement>('.ris-tools-rail button')
+    ).find((button) => button.textContent?.includes('Filters'));
+    expect(filters?.disabled).toBe(false);
+
+    act(() => filters?.click());
+    const vivid = Array.from(
+      container.querySelectorAll<HTMLButtonElement>('.ris-preset-card')
+    ).find((button) => button.textContent?.includes('Vivid'));
+    act(() => vivid?.click());
+
+    expect(session.getState().operations.map((operation) => operation.params)).toEqual([
+      { channel: 'exposure', value: 0.16 },
+      { channel: 'contrast', value: 0.18 },
+      { channel: 'saturation', value: 0.28 },
+      { channel: 'sharpen', value: 0.16 }
+    ]);
+    expect(session.getState().history.entries.at(-1)?.label).toBe('Apply Vivid filter');
   });
 
   it('settles controller opens exactly once and rejects double opens', async () => {

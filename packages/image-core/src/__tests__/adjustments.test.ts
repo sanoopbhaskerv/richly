@@ -43,7 +43,14 @@ describe('adjustments and transient previews', () => {
     const session = await createImageSession({ kind: 'url', url: '/fixture.png' }, { decoder });
 
     expect(session.canExecute('adjust', { channel: 'grayscale', value: 1 })).toEqual({ ok: true });
+    expect(session.canExecute('adjust', { channel: 'hue', value: -180 })).toEqual({ ok: true });
+    expect(session.canExecute('adjust', { channel: 'blur', value: 20 })).toEqual({ ok: true });
+    expect(session.canExecute('adjust', { channel: 'exposure', value: 2 })).toEqual({ ok: true });
+    expect(session.canExecute('adjust', { channel: 'warmth', value: -1 })).toEqual({ ok: true });
     expect(session.execute('adjust', { channel: 'grayscale', value: 1.1 }).ok).toBe(false);
+    expect(session.execute('adjust', { channel: 'hue', value: 181 }).ok).toBe(false);
+    expect(session.execute('adjust', { channel: 'blur', value: -1 }).ok).toBe(false);
+    expect(session.execute('adjust', { channel: 'exposure', value: 2.1 }).ok).toBe(false);
     expect(session.execute('adjust', { channel: 'brightness', value: -1.2 }).ok).toBe(false);
   });
 });

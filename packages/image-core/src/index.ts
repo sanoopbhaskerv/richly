@@ -10,12 +10,19 @@
 
 export { createImageSession, restoreImageSession } from './session';
 export { IMAGE_CORE_PACKAGE_NAME } from './types';
+export {
+  IMAGE_ADJUSTMENT_CHANNELS,
+  IMAGE_ADJUSTMENT_SPECS,
+  isImageAdjustmentChannel
+} from './adjustments';
 export type {
   CommandResult,
   DecodedImageSource,
   ExportOptions,
   ExportResult,
   HistoryEntrySummary,
+  ImageAdjustmentChannel,
+  ImageAdjustmentParams,
   ImageCommandMap,
   ImageEditDocument,
   ImageOperation,

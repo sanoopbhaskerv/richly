@@ -1,7 +1,8 @@
 import { defineConfig } from 'tsup';
 
-// @richly/core stays external because it is a peer dependency: the plugin
-// must attach to the host application's editor instance, never a second copy.
+// @richly/core and @richly/image-core stay external because they are peer
+// dependencies: the plugin must attach to the host application's editor and
+// image engine instances, never bundle second copies.
 export default defineConfig({
   entry: ['src/index.ts'],
   clean: true,
@@ -11,5 +12,5 @@ export default defineConfig({
   sourcemap: true,
   target: 'es2020',
   treeshake: true,
-  external: ['@richly/core']
+  external: ['@richly/core', '@richly/image-core']
 });

@@ -30,6 +30,19 @@ export function AdjustIcon(props: IconProps) {
   );
 }
 
+export function FilterIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M5 5h14" />
+      <path d="M7 12h10" />
+      <path d="M10 19h4" />
+      <circle cx="8" cy="5" r="2" />
+      <circle cx="15" cy="12" r="2" />
+      <circle cx="12" cy="19" r="2" />
+    </Icon>
+  );
+}
+
 export function CropIcon(props: IconProps) {
   return (
     <Icon {...props}>

@@ -111,16 +111,36 @@ export type CommandResult =
     }
   | { readonly ok: false; readonly code: string; readonly message: string };
 
+/** Built-in non-destructive adjustment channels available to Studio controls. */
+export type ImageAdjustmentChannel =
+  | 'exposure'
+  | 'brightness'
+  | 'contrast'
+  | 'highlights'
+  | 'shadows'
+  | 'saturation'
+  | 'warmth'
+  | 'tint'
+  | 'hue'
+  | 'blur'
+  | 'sharpen'
+  | 'grayscale'
+  | 'sepia'
+  | 'invert';
+
+/** Parameters for one canonical adjustment operation. */
+export interface ImageAdjustmentParams {
+  readonly channel: ImageAdjustmentChannel;
+  readonly value: number;
+}
+
 /** Built-in command parameter map. External command keys may be added by plugins. */
 export interface ImageCommandMap {
   readonly crop: { readonly rect: Rect };
   readonly resize: { readonly width: number; readonly height: number };
   readonly rotate: { readonly angle: number };
   readonly flip: { readonly axis: 'horizontal' | 'vertical' };
-  readonly adjust: {
-    readonly channel: 'brightness' | 'contrast' | 'saturation' | 'grayscale';
-    readonly value: number;
-  };
+  readonly adjust: ImageAdjustmentParams;
 }
 
 /** Render stage descriptor returned by operation definitions. */

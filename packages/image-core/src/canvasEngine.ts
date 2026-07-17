@@ -9,9 +9,11 @@ import type {
   RenderResult,
   RenderStage
 } from './types';
+import type { ImageAdjustmentChannel, ImageAdjustmentParams } from './types';
 
 type CanvasElement = HTMLCanvasElement | OffscreenCanvas;
 type CanvasContext = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+type PixelAdjustmentChannel = 'highlights' | 'shadows' | 'warmth' | 'tint' | 'sharpen';
 
 function abortIfNeeded(signal: AbortSignal | undefined): void {
   if (signal?.aborted) throw signal.reason ?? new DOMException('Aborted', 'AbortError');
@@ -86,6 +88,89 @@ function rotatedSize(
   };
 }
 
+function clampByte(value: number): number {
+  return Math.max(0, Math.min(255, Math.round(value)));
+}
+
+function drawWithFilter(input: CanvasElement, filter: string): CanvasElement {
+  const output = createCanvas(input.width, input.height);
+  const context = get2d(output);
+  const filterContext = context as CanvasContext & { filter?: string };
+  // Canvas filters are not uniformly implemented in every non-browser
+  // OffscreenCanvas host. If unavailable, keep rendering deterministic by
+  // drawing the input unchanged instead of dropping the whole export.
+  if ('filter' in filterContext) filterContext.filter = filter;
+  context.drawImage(input, 0, 0);
+  if ('filter' in filterContext) filterContext.filter = 'none';
+  return output;
+}
+
+function applyPixelAdjustment(
+  canvas: CanvasElement,
+  channel: PixelAdjustmentChannel,
+  value: number
+): void {
+  if (value === 0) return;
+  const context = get2d(canvas);
+  const image = context.getImageData(0, 0, canvas.width, canvas.height);
+  if (channel === 'sharpen') {
+    applySharpen(image, value);
+  } else {
+    applyTonePixels(image, channel, value);
+  }
+  context.putImageData(image, 0, 0);
+}
+
+function applyTonePixels(
+  image: ImageData,
+  channel: Exclude<PixelAdjustmentChannel, 'sharpen'>,
+  value: number
+): void {
+  const data = image.data;
+  for (let index = 0; index < data.length; index += 4) {
+    const red = data[index]!;
+    const green = data[index + 1]!;
+    const blue = data[index + 2]!;
+    const luminance = red * 0.2126 + green * 0.7152 + blue * 0.0722;
+    if (channel === 'warmth') {
+      data[index] = clampByte(red + value * 36);
+      data[index + 2] = clampByte(blue - value * 36);
+    } else if (channel === 'tint') {
+      data[index] = clampByte(red + value * 24);
+      data[index + 1] = clampByte(green - value * 32);
+      data[index + 2] = clampByte(blue + value * 24);
+    } else {
+      const shadowWeight = Math.max(0, 1 - luminance / 128);
+      const highlightWeight = Math.max(0, (luminance - 128) / 127);
+      const amount = value * 56 * (channel === 'shadows' ? shadowWeight : highlightWeight);
+      data[index] = clampByte(red + amount);
+      data[index + 1] = clampByte(green + amount);
+      data[index + 2] = clampByte(blue + amount);
+    }
+  }
+}
+
+function applySharpen(image: ImageData, value: number): void {
+  const amount = Math.max(0, Math.min(1, value));
+  const source = new Uint8ClampedArray(image.data);
+  const { width, height, data } = image;
+  for (let y = 1; y < height - 1; y += 1) {
+    for (let x = 1; x < width - 1; x += 1) {
+      const index = (y * width + x) * 4;
+      for (let channel = 0; channel < 3; channel += 1) {
+        const center = source[index + channel]!;
+        const top = source[index - width * 4 + channel]!;
+        const bottom = source[index + width * 4 + channel]!;
+        const left = source[index - 4 + channel]!;
+        const right = source[index + 4 + channel]!;
+        data[index + channel] = clampByte(
+          center * (1 + 4 * amount) - amount * (top + bottom + left + right)
+        );
+      }
+    }
+  }
+}
+
 function stageCanvas(input: CanvasElement, stage: RenderStage): CanvasElement {
   if (stage.type === 'crop') {
     const { rect } = stage.params as {
@@ -138,30 +223,37 @@ function stageCanvas(input: CanvasElement, stage: RenderStage): CanvasElement {
   }
 
   if (stage.type === 'adjust') {
-    const { channel, value } = stage.params as {
-      channel: 'brightness' | 'contrast' | 'saturation' | 'grayscale';
-      value: number;
-    };
-    const output = createCanvas(input.width, input.height);
-    const context = get2d(output);
-    const filterContext = context as CanvasContext & { filter: string };
-    filterContext.filter = adjustmentFilter(channel, value);
-    context.drawImage(input, 0, 0);
-    filterContext.filter = 'none';
+    const { channel, value } = stage.params as ImageAdjustmentParams;
+    const filter = adjustmentFilter(channel, value);
+    const output = filter ? drawWithFilter(input, filter) : drawWithFilter(input, 'none');
+    if (isPixelAdjustment(channel)) applyPixelAdjustment(output, channel, value);
     return output;
   }
 
   throw new Error(`No Canvas2D stage renderer registered for "${stage.type}"`);
 }
 
-function adjustmentFilter(
-  channel: 'brightness' | 'contrast' | 'saturation' | 'grayscale',
-  value: number
-): string {
+function adjustmentFilter(channel: ImageAdjustmentChannel, value: number): string | null {
+  if (channel === 'exposure') return `brightness(${Math.max(0, 2 ** value)})`;
   if (channel === 'brightness') return `brightness(${Math.max(0, 1 + value)})`;
   if (channel === 'contrast') return `contrast(${Math.max(0, 1 + value)})`;
   if (channel === 'saturation') return `saturate(${Math.max(0, 1 + value)})`;
-  return `grayscale(${value})`;
+  if (channel === 'grayscale') return `grayscale(${value})`;
+  if (channel === 'sepia') return `sepia(${value})`;
+  if (channel === 'invert') return `invert(${value})`;
+  if (channel === 'hue') return `hue-rotate(${value}deg)`;
+  if (channel === 'blur') return `blur(${Math.max(0, value)}px)`;
+  return null;
+}
+
+function isPixelAdjustment(channel: ImageAdjustmentChannel): channel is PixelAdjustmentChannel {
+  return (
+    channel === 'highlights' ||
+    channel === 'shadows' ||
+    channel === 'warmth' ||
+    channel === 'tint' ||
+    channel === 'sharpen'
+  );
 }
 
 function scaleForExport(

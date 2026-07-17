@@ -1,0 +1,135 @@
+:root {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+  background: #f1f4f9;
+  color: #1f2733;
+}
+:root[data-theme='dark'] body {
+  background: #14161b;
+  color: #e6e9ee;
+}
+
+.integration-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.integration-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.integration-header h1 {
+  font-size: 22px;
+  margin: 0;
+}
+.integration-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.integration-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(194, 47, 62, 0.12);
+  color: #c22f3e;
+  font-size: 14px;
+}
+
+.integration-editor {
+  margin: 0 auto;
+  transition: max-width 160ms ease;
+}
+.integration-editor.integration-compact {
+  max-width: 420px;
+}
+
+.integration-inspect {
+  margin-top: 20px;
+  font-size: 14px;
+}
+.integration-inspect pre {
+  max-height: 220px;
+  overflow: auto;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.06);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+:root[data-theme='dark'] .integration-inspect pre {
+  background: rgba(230, 233, 238, 0.08);
+}
+
+.integration-studio-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  box-sizing: border-box;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(139, 77, 255, 0.22), transparent 30%),
+    rgba(10, 14, 22, 0.72);
+  backdrop-filter: blur(12px);
+}
+.integration-studio-frame {
+  width: min(1280px, 100%);
+  height: min(820px, calc(100svh - 56px));
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  background: #11151b;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
+}
+.integration-studio-copy {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 14px;
+  color: #eef2f7;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+}
+.integration-studio-copy span {
+  color: #aeb7c4;
+}
+.integration-studio-frame .ris-root {
+  min-block-size: 0;
+  block-size: 100%;
+}
+
+@media (max-width: 640px) {
+  .integration-studio-modal {
+    padding: 0;
+  }
+  .integration-studio-frame {
+    width: 100%;
+    height: 100svh;
+    border-radius: 0;
+  }
+  .integration-studio-copy {
+    display: none;
+  }
+}
