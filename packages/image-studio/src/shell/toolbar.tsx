@@ -13,6 +13,7 @@ import {
   CropIcon,
   FilterIcon,
   FutureIcon,
+  SparkleIcon,
   RedoIcon,
   TransformIcon,
   UndoIcon,
@@ -36,7 +37,7 @@ const tools: ToolItem[] = [
   { label: 'Text', disabled: true, icon: FutureIcon },
   { label: 'Stickers', disabled: true, icon: FutureIcon },
   { label: 'Frames', disabled: true, icon: FutureIcon },
-  { label: 'AI Tools', disabled: true, icon: FutureIcon }
+  { tool: 'ai', label: 'AI Tools', icon: SparkleIcon }
 ];
 
 /** Props for the Studio top command bar. */

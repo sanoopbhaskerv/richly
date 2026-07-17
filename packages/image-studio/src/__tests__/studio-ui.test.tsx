@@ -46,6 +46,59 @@ describe('ImageStudio UI and controller', () => {
     expect(container.querySelector('.ris-panel')?.textContent).toContain('Adjust');
   });
 
+  it('enables AI Tools and surfaces provider status without auto-applying edits', async () => {
+    const session = await createImageSession(
+      { kind: 'url', url: '/fixture.png' },
+      { decoder, renderEngine: fakeRenderEngine() }
+    );
+    act(() =>
+      root.render(
+        <ImageStudio
+          session={session}
+          aiProvider={{
+            getStatus: () => ({
+              available: true,
+              label: 'Ready',
+              detail: 'Smart Enhance will run locally.',
+              accelerator: 'wasm'
+            }),
+            smartEnhance: async () => ({
+              label: 'Apply Smart Enhance',
+              adjustments: [{ channel: 'contrast', value: 0.2 }]
+            })
+          }}
+        />
+      )
+    );
+
+    const aiTools = Array.from(
+      container.querySelectorAll<HTMLButtonElement>('.ris-tools-rail button')
+    ).find((button) => button.textContent?.includes('AI Tools'));
+    expect(aiTools?.disabled).toBe(false);
+
+    act(() => aiTools?.click());
+    await act(async () => {});
+
+    expect(container.querySelector('.ris-panel')?.textContent).toContain('AI Tools');
+    expect(container.querySelector('.ris-ai-status')?.textContent).toContain('Ready');
+    expect(container.querySelector('.ris-ai-status')?.textContent).toContain('wasm');
+    expect(session.getState().operations).toHaveLength(0);
+  });
+
+  it('delegates filmstrip Add image to the host callback', async () => {
+    const session = await createImageSession(
+      { kind: 'url', url: '/fixture.png' },
+      { decoder, renderEngine: fakeRenderEngine() }
+    );
+    const onAddImage = vi.fn();
+    act(() => root.render(<ImageStudio session={session} onAddImage={onAddImage} />));
+
+    const add = container.querySelector<HTMLButtonElement>('.ris-filmstrip-add');
+    act(() => add?.click());
+
+    expect(onAddImage).toHaveBeenCalledTimes(1);
+  });
+
   it('applies filter presets as undoable adjustment stacks', async () => {
     const session = await createImageSession(
       { kind: 'url', url: '/fixture.png' },

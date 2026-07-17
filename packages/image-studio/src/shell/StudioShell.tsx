@@ -28,12 +28,12 @@ export function StudioShell(props: ImageStudioProps) {
       <TopBar onExport={() => setExportOpen(true)} onCancel={props.onCancel} />
       <div className="ris-layout">
         <ToolNavigation placement="rail" />
-        <StudioWorkspace />
-        <ContextPanel activeTool={activeTool} />
+        <StudioWorkspace onAddImage={props.onAddImage} />
+        <ContextPanel activeTool={activeTool} aiProvider={props.aiProvider} />
       </div>
       <ToolNavigation placement="bottom" />
       <div className="ris-bottom-sheet" data-testid="image-bottom-sheet">
-        <ContextPanel activeTool={activeTool} compact />
+        <ContextPanel activeTool={activeTool} aiProvider={props.aiProvider} compact />
       </div>
       {exportOpen ? (
         <ExportDialog

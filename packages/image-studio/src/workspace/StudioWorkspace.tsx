@@ -1,8 +1,14 @@
 import { CropOverlay, ImageCanvas, useImageEditorUiState } from '@richly/image-react';
 import { Filmstrip } from '../shell/Filmstrip';
 
+/** Props for the central canvas-first workspace. */
+export interface StudioWorkspaceProps {
+  /** Optional host callback for the filmstrip Add image button. */
+  readonly onAddImage?: () => void;
+}
+
 /** Central canvas-first workspace. */
-export function StudioWorkspace() {
+export function StudioWorkspace(props: StudioWorkspaceProps) {
   const activeTool = useImageEditorUiState((state) => state.activeTool);
   return (
     <main className="ris-workspace">
@@ -14,7 +20,7 @@ export function StudioWorkspace() {
         />
         {activeTool === 'crop' ? <CropOverlay /> : null}
       </div>
-      <Filmstrip />
+      <Filmstrip onAddImage={props.onAddImage} />
     </main>
   );
 }

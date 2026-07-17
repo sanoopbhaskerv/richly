@@ -61,6 +61,14 @@ body {
   color: #aeb5c0;
 }
 
+.demo-file-input {
+  position: fixed;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .demo-shell .ris-root {
   min-block-size: 100vh;
 }

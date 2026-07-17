@@ -4,7 +4,7 @@
  * PWA lifecycle and local export persistence stay here by design; reusable
  * image packages remain unaware of service workers, manifests, or downloads.
  */
-import { StrictMode, useEffect, useMemo, useState } from 'react';
+import { StrictMode, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createImageSession, type ImageSession } from '@richly/image-core';
 import { ImageStudio, type ImageStudioResult } from '@richly/image-studio';
@@ -71,6 +71,8 @@ function DemoApp() {
   const [session, setSession] = useState<ImageSession | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<SavedExport | null>(null);
+  const [filename, setFilename] = useState('richly-image-studio-demo.png');
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const source = useMemo(() => createDemoImageData(), []);
 
   useEffect(() => {
@@ -85,6 +87,7 @@ function DemoApp() {
           return;
         }
         setSession(next);
+        setFilename('richly-image-studio-demo.png');
       })
       .catch((cause) => setError(cause instanceof Error ? cause.message : String(cause)));
 
@@ -122,8 +125,42 @@ function DemoApp() {
     });
   };
 
+  const replaceImage = async (file: File): Promise<void> => {
+    setError(null);
+    try {
+      const next = await createImageSession({
+        kind: 'blob',
+        blob: file,
+        ref: file.name,
+        fingerprint: `${file.name}:${file.size}:${file.lastModified}`
+      });
+      setSession((previous) => {
+        previous?.destroy();
+        return next;
+      });
+      setFilename(file.name || 'selected-image.png');
+      setSaved(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+    }
+  };
+
+  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = '';
+    if (!file) return;
+    void replaceImage(file);
+  };
+
   return (
     <main className="demo-shell">
+      <input
+        ref={inputRef}
+        className="demo-file-input"
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif,image/avif,image/*"
+        onChange={onFileChange}
+      />
       {error ? <p role="alert">{error}</p> : null}
       {session ? (
         <>
@@ -144,8 +181,9 @@ function DemoApp() {
           <ImageStudio
             session={session}
             theme="dark"
-            initialAlt="Generated mountain scene"
-            suggestedFilename="richly-image-studio-demo.png"
+            initialAlt={filename}
+            suggestedFilename={filename}
+            onAddImage={() => inputRef.current?.click()}
             onSave={save}
             onError={(cause) => setError(cause instanceof Error ? cause.message : String(cause))}
           />

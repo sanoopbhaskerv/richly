@@ -11,7 +11,7 @@ import type {
 export const IMAGE_REACT_PACKAGE_NAME = '@richly/image-react';
 
 /** Tool identifiers owned by the React interaction layer. */
-export type ImageTool = 'adjust' | 'filters' | 'crop' | 'transform';
+export type ImageTool = 'adjust' | 'filters' | 'crop' | 'transform' | 'ai';
 
 /** Viewport state is UI-only and never enters the image manifest. */
 export interface ViewportState {

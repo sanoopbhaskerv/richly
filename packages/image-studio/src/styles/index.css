@@ -597,6 +597,67 @@
   font-size: 12px;
 }
 
+.ris-ai-status {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--ris-border), transparent 8%);
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, rgb(50 199 102 / 10%), transparent 48%),
+    color-mix(in srgb, var(--ris-panel), var(--ris-surface) 18%);
+}
+
+.ris-ai-status > span {
+  color: var(--ris-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ris-ai-status > strong {
+  justify-self: start;
+  color: #07100b;
+  background: var(--ris-accent);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.ris-ai-status[data-available='false'] {
+  background:
+    linear-gradient(145deg, rgb(255 202 95 / 10%), transparent 52%),
+    color-mix(in srgb, var(--ris-panel), var(--ris-surface) 18%);
+}
+
+.ris-ai-status p,
+.ris-ai-error {
+  margin: 0;
+  color: var(--ris-muted);
+  font-size: 12px;
+}
+
+.ris-ai-error {
+  color: #ff8f8f;
+}
+
+.ris-ai-feature-list {
+  display: grid;
+  gap: 8px;
+}
+
+.ris-ai-feature-list > span {
+  display: block;
+  padding: 9px 10px;
+  color: var(--ris-muted);
+  background: color-mix(in srgb, var(--ris-panel-2), transparent 20%);
+  border: 1px solid var(--ris-border);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
 .ris-lock {
   inline-size: 100%;
   text-align: center;
