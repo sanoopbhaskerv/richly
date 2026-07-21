@@ -1,14 +1,14 @@
 {
   "name": "@richly/demo",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port 5177 --strictPort",
     "build": "vite build"
   },
   "dependencies": {
-    "@richly/core": "^1.0.0",
+    "@richly/core": "^1.1.0",
     "@richly/image-studio": "*",
     "@richly/plugin-image-editor": "*",
     "@richly/react": "*",

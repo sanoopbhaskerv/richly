@@ -1,6 +1,6 @@
 {
   "name": "@richly/core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A dependency-free WYSIWYG HTML editor engine for JavaScript and React.",
   "license": "MIT",
   "repository": {

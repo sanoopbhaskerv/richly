@@ -7,6 +7,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-21
+
 ### Added
 
 #### Image Studio — new packages
@@ -447,7 +449,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Firefox inline-format and link commands now recognize selections whose range
   boundaries surround the inline element from its parent node.
 
-[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0...v1.0.0
 [1.0.0-rc.9]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.8...v1.0.0-rc.9
 [1.0.0-rc.8]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.7...v1.0.0-rc.8
