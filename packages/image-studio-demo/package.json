@@ -7,10 +7,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5178 --strictPort",
-    "build": "vite build"
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit --tsBuildInfoFile ../../node_modules/image-studio-demo.app.tsbuildinfo && tsc -p tsconfig.node.json --noEmit --tsBuildInfoFile ../../node_modules/image-studio-demo.node.tsbuildinfo"
   },
   "dependencies": {
+    "@litertjs/core": "^2.5.2",
     "@richly/core": "1.0.0-rc.8",
+    "@richly/image-ai-litert": "0.0.0",
     "@richly/image-core": "0.0.0",
     "@richly/image-studio": "0.0.0",
     "@richly/plugin-image-editor": "0.0.0",

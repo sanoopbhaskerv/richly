@@ -91,6 +91,34 @@ describe('@richly/image-ai-litert provider', () => {
     expect(output.deleted).toBe(true);
   });
 
+  it('raises tiny non-zero outputs when a profile requests visible demo values', async () => {
+    const output = new FakeTensor(new Float32Array([0.001, -0.002]), [2]);
+    const provider = createLiteRtImageAiProvider({
+      wasmUrl: '/litert/wasm/',
+      accelerator: 'wasm',
+      importCore: async () => fakeCore(output),
+      smartEnhance: {
+        id: 'classifier-demo',
+        label: 'Classifier Demo',
+        source: '/models/classifier.tflite',
+        input: { width: 2, height: 2, layout: 'nhwc' },
+        output: {
+          channels: ['contrast', 'saturation'],
+          scale: 1,
+          minimumVisibleMagnitude: 0.18,
+          clamp: 0.35
+        }
+      }
+    });
+
+    const result = await provider.smartEnhance?.({ imageData: imageData(2, 2) });
+
+    expect(result?.adjustments).toEqual([
+      { channel: 'contrast', value: 0.18 },
+      { channel: 'saturation', value: -0.18 }
+    ]);
+  });
+
   it('caches compiled models until the runtime is disposed', async () => {
     const model = { run: vi.fn(), delete: vi.fn() };
     const runtime = createLiteRtRuntime({

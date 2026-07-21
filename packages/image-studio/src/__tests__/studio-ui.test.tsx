@@ -17,6 +17,13 @@ const decoder: ImageSourceDecoder = async (): Promise<DecodedImageSource> => ({
   destroy() {}
 });
 
+async function createTestSession() {
+  return createImageSession(
+    { kind: 'url', url: '/fixture.png' },
+    { decoder, renderEngine: fakeRenderEngine() }
+  );
+}
+
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 describe('ImageStudio UI and controller', () => {
@@ -35,10 +42,7 @@ describe('ImageStudio UI and controller', () => {
   });
 
   it('renders the responsive shell and MVP tool controls', async () => {
-    const session = await createImageSession(
-      { kind: 'url', url: '/fixture.png' },
-      { decoder, renderEngine: fakeRenderEngine() }
-    );
+    const session = await createTestSession();
     act(() => root.render(<ImageStudio session={session} />));
     expect(container.querySelector('.ris-topbar')?.textContent).toContain('Richly Image Studio');
     expect(container.querySelector('.ris-tools-rail')?.textContent).toContain('Adjust');
@@ -47,10 +51,7 @@ describe('ImageStudio UI and controller', () => {
   });
 
   it('enables AI Tools and surfaces provider status without auto-applying edits', async () => {
-    const session = await createImageSession(
-      { kind: 'url', url: '/fixture.png' },
-      { decoder, renderEngine: fakeRenderEngine() }
-    );
+    const session = await createTestSession();
     act(() =>
       root.render(
         <ImageStudio
@@ -86,10 +87,7 @@ describe('ImageStudio UI and controller', () => {
   });
 
   it('delegates filmstrip Add image to the host callback', async () => {
-    const session = await createImageSession(
-      { kind: 'url', url: '/fixture.png' },
-      { decoder, renderEngine: fakeRenderEngine() }
-    );
+    const session = await createTestSession();
     const onAddImage = vi.fn();
     act(() => root.render(<ImageStudio session={session} onAddImage={onAddImage} />));
 
@@ -100,10 +98,7 @@ describe('ImageStudio UI and controller', () => {
   });
 
   it('applies filter presets as undoable adjustment stacks', async () => {
-    const session = await createImageSession(
-      { kind: 'url', url: '/fixture.png' },
-      { decoder, renderEngine: fakeRenderEngine() }
-    );
+    const session = await createTestSession();
     act(() => root.render(<ImageStudio session={session} />));
 
     const filters = Array.from(

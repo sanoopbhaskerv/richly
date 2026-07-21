@@ -275,13 +275,19 @@ function vectorToAdjustments(
   const channels = spec.channels.length > 0 ? spec.channels : DEFAULT_CHANNELS;
   const scale = spec.scale ?? 1;
   const offset = spec.offset ?? 0;
+  const minimumVisibleMagnitude = Math.max(0, spec.minimumVisibleMagnitude ?? 0);
   const clamp = spec.clamp ?? 1;
   const suggestions: LiteRtAdjustmentSuggestion[] = [];
   for (let index = 0; index < channels.length; index += 1) {
     const channel = channels[index];
     if (!channel) continue;
     const raw = Number(vector[index] ?? 0);
-    const value = Math.max(-clamp, Math.min(clamp, raw * scale + offset));
+    const scaled = raw * scale + offset;
+    const visible =
+      scaled !== 0 && Math.abs(scaled) < minimumVisibleMagnitude
+        ? Math.sign(scaled) * minimumVisibleMagnitude
+        : scaled;
+    const value = Math.max(-clamp, Math.min(clamp, visible));
     if (Number.isFinite(value) && value !== 0) suggestions.push({ channel, value });
   }
   return suggestions;

@@ -1,12 +1,53 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const liteRtWasmDir = path.resolve(__dirname, '../../node_modules/@litertjs/core/wasm');
+const liteRtWasmRoute = '/litert/wasm/';
+
+function liteRtWasmAssets(): Plugin {
+  return {
+    name: 'richly-demo-litert-wasm-assets',
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        if (!request.url?.startsWith(liteRtWasmRoute)) {
+          next();
+          return;
+        }
+        const assetName = decodeURIComponent(request.url.slice(liteRtWasmRoute.length));
+        const assetPath = path.resolve(liteRtWasmDir, assetName);
+        if (!assetPath.startsWith(liteRtWasmDir) || !fs.existsSync(assetPath)) {
+          response.statusCode = 404;
+          response.end();
+          return;
+        }
+        response.setHeader(
+          'content-type',
+          assetName.endsWith('.wasm') ? 'application/wasm' : 'text/javascript'
+        );
+        fs.createReadStream(assetPath).pipe(response);
+      });
+    },
+    generateBundle() {
+      if (!fs.existsSync(liteRtWasmDir)) return;
+      for (const file of fs.readdirSync(liteRtWasmDir)) {
+        const assetPath = path.join(liteRtWasmDir, file);
+        if (!fs.statSync(assetPath).isFile()) continue;
+        this.emitFile({
+          type: 'asset',
+          fileName: `litert/wasm/${file}`,
+          source: fs.readFileSync(assetPath)
+        });
+      }
+    }
+  };
+}
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), liteRtWasmAssets()],
   resolve: {
     alias: [
       // Resolve workspace packages to TypeScript sources (same pattern as
@@ -32,6 +73,10 @@ export default defineConfig({
       {
         find: /^@richly\/image-studio$/,
         replacement: path.resolve(__dirname, '../image-studio/src/index.ts')
+      },
+      {
+        find: /^@richly\/image-ai-litert$/,
+        replacement: path.resolve(__dirname, '../image-ai-litert/src/index.ts')
       },
       {
         find: /^@richly\/image-react$/,

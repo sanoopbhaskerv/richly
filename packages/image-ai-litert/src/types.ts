@@ -142,6 +142,8 @@ export interface LiteRtAdjustmentOutputSpec {
   readonly scale?: number;
   /** Offset added after scaling. */
   readonly offset?: number;
+  /** Raises tiny non-zero outputs to a visible magnitude for demo or classifier-derived models. */
+  readonly minimumVisibleMagnitude?: number;
   /** Absolute clamp for normalized adjustment values. Defaults to 1. */
   readonly clamp?: number;
 }

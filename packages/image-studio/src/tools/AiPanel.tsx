@@ -73,17 +73,23 @@ export function AiPanel(props: AiPanelProps) {
         setMessage('Smart Enhance found no useful changes');
         return;
       }
+      let appliedCount = 0;
       session.transact(result.label, () => {
         for (const adjustment of result.adjustments) {
-          session.execute('adjust', {
+          const executed = session.execute('adjust', {
             channel: adjustment.channel,
             value: adjustment.value
           });
+          if (executed.ok) appliedCount += 1;
         }
       });
+      if (appliedCount === 0) {
+        setMessage('Smart Enhance suggestions were outside supported adjustment ranges');
+        return;
+      }
       setMessage(
-        `Applied ${result.adjustments.length} adjustment${
-          result.adjustments.length === 1 ? '' : 's'
+        `Applied ${appliedCount} adjustment${
+          appliedCount === 1 ? '' : 's'
         }${result.model ? ` from ${result.model}` : ''}`
       );
     } catch (caught) {

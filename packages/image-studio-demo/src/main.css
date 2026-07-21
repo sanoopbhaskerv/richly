@@ -56,6 +56,77 @@ body {
   padding: 4px 6px;
 }
 
+.demo-ai-model {
+  position: fixed;
+  inset-block-end: 18px;
+  inset-inline-start: 18px;
+  z-index: 20;
+  max-inline-size: min(620px, calc(100vw - 36px));
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 10px;
+  padding: 6px;
+  color: #f7f9fc;
+  background: rgb(22 26 34 / 92%);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 30%);
+  backdrop-filter: blur(14px);
+}
+
+.demo-ai-model label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.demo-ai-model label span {
+  padding-inline-start: 8px;
+  color: #9fa8b7;
+  font-size: 12px;
+}
+
+.demo-ai-model select {
+  min-block-size: 32px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 8px;
+  color: #f7f9fc;
+  background: #252a34;
+}
+
+.demo-ai-model > span,
+.demo-ai-model-file {
+  min-inline-size: 0;
+  flex: 1 1 160px;
+  overflow: hidden;
+  color: #c8ced8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.demo-ai-model-file {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.demo-ai-model button {
+  flex: 0 0 auto;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 8px;
+  padding: 7px 10px;
+  color: #ffffff;
+  background: #2fca72;
+  cursor: pointer;
+}
+
+.demo-ai-model button[aria-label] {
+  inline-size: 32px;
+  padding: 7px 0;
+  background: #252a34;
+}
+
 .demo-loading {
   margin: 24px;
   color: #aeb5c0;

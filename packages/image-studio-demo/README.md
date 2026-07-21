@@ -23,6 +23,17 @@ Offline caching is currently disabled so local development and browser automatio
 always load fresh assets. The `/sw.js` file only removes older demo caches and
 unregisters itself for browsers that previously installed the offline shell.
 
+## LiteRT Smart Enhance
+
+The AI Tools panel is wired to the real optional `@richly/image-ai-litert`
+provider. It does not bundle a model. To enable **Apply smart enhance**, copy
+`.env.example` to `.env`, set `VITE_IMAGE_STUDIO_SMART_ENHANCE_MODEL_URL` to a
+real `.tflite` model, and tune the tensor/output mapping for that model.
+
+LiteRT Wasm files are served by the Vite config from
+`node_modules/@litertjs/core/wasm/` at `/litert/wasm/` in dev and copied into
+the production build.
+
 ## Scripts
 
 | Script       | Purpose                                    |
