@@ -4,6 +4,13 @@ import { resolve } from 'node:path';
 
 const cache = resolve(tmpdir(), 'richly-npm-cache');
 
+// TODO(image-packages-publish): when image packages go public, add them to
+// this list so release:pack validates their tarballs too:
+//   './packages/image-core',
+//   './packages/image-react',
+//   './packages/image-studio',
+//   './packages/plugin-image-editor',
+//   './packages/image-ai-litert'
 for (const packagePath of ['./packages/core', './packages/react']) {
   const result = spawnSync('npm', ['pack', '--dry-run', packagePath], {
     stdio: 'inherit',

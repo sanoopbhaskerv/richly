@@ -1,8 +1,12 @@
 # Releasing Richly
 
-Richly follows [Semantic Versioning](https://semver.org/) for both public
-packages. `@richly/core` and `@richly/react` are released together with the
+Richly follows [Semantic Versioning](https://semver.org/) for public
+packages. Currently, `@richly/core` and `@richly/react` are released together with the
 same version so their compatibility is obvious.
+
+Image packages (`@richly/image-core`, `@richly/image-react`, `@richly/image-studio`,
+`@richly/plugin-image-editor`, `@richly/image-ai-litert`) are currently marked
+`private: true` (version `0.0.0`) and are excluded from public releases and npm publishing.
 
 ## Version policy
 
@@ -57,6 +61,15 @@ The `Release` GitHub Actions workflow verifies the tag matches both package
 versions, runs the release checks, publishes core before React with npm
 provenance, and creates a GitHub release from the changelog. Prerelease tags
 publish under npm's `next` dist-tag; stable tags publish under `latest`.
+
+### Publishing Image Packages (Future)
+
+When the image editing suite is ready for public npm release:
+
+1. **Manifest updates**: Remove `"private": true`, add `"publishConfig": { "access": "public" }`, and configure `repository`, `homepage`, and `bugs` fields in `packages/image-*/package.json` and `packages/plugin-image-editor/package.json`.
+2. **Release scripts**: Update the package lists in `scripts/prepare-release.mjs`, `scripts/check-release.mjs`, and `scripts/pack-dry-run.mjs` to include image packages (look for code locations commented with `image-packages-publish`).
+3. **CI pipeline**: Update `.github/workflows/release.yml` to validate and publish image packages to npm alongside `@richly/core` and `@richly/react`.
+4. **Lockstep versioning**: Once public, all published packages will be version-bumped and released in lockstep.
 
 ## Repository protection
 

@@ -29,6 +29,11 @@ if (react.dependencies?.['@richly/core'] !== `^${core.version}`)
 if (process.env.GITHUB_REF_TYPE === 'tag' && process.env.GITHUB_REF_NAME !== `v${core.version}`)
   fail(`tag ${process.env.GITHUB_REF_NAME} must match package version v${core.version}`);
 
+// TODO(image-packages-publish): when image packages go public, add validation
+// here for each one: version must match @richly/core version, private must be
+// false, publishConfig.access must be 'public', and repository/homepage/bugs
+// metadata must be declared. Also extend the published-text legacy-name check
+// to include their README.md and LICENSE files.
 for (const [name, pkg] of [
   ['@richly/core', core],
   ['@richly/react', react]

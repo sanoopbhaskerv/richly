@@ -174,6 +174,15 @@ if (dryRun) {
 }
 
 // --- apply to package manifests ----------------------------------------------
+// TODO(image-packages-publish): when image packages go public, add their
+// manifests here so release:prepare bumps their versions in lockstep:
+//   'packages/image-core/package.json',
+//   'packages/image-react/package.json',
+//   'packages/image-studio/package.json',
+//   'packages/plugin-image-editor/package.json',
+//   'packages/image-ai-litert/package.json'
+// Also update the cross-dependency rewrites below if image packages depend
+// on @richly/core (currently peerDependencies in plugin-image-editor).
 const manifests = [
   'package.json',
   'packages/core/package.json',
