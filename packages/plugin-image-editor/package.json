@@ -40,7 +40,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "peerDependencies": {
-    "@richly/core": "^1.0.0-rc.8",
+    "@richly/core": "^1.0.0",
     "@richly/image-core": "0.0.0"
   },
   "devDependencies": {

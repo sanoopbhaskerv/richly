@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@litertjs/core": "^2.5.2",
-    "@richly/core": "1.0.0-rc.8",
+    "@richly/core": "1.0.0",
     "@richly/image-ai-litert": "0.0.0",
     "@richly/image-core": "0.0.0",
     "@richly/image-studio": "0.0.0",

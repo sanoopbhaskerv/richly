@@ -778,18 +778,6 @@
   dependencies:
     playwright "1.61.1"
 
-"@richly/core@^0.9.0":
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/@richly/core/-/core-0.9.0.tgz#36e3184ab4a30a165860229b69c85cb747a9d62d"
-  integrity sha512-XenJ1L9uUZKQbCe51jrbIcOPPE2VY0BgUxROrf+/kEvaXTW3uF1j/FuLsq3CAIezGA54OxomMVtGG5G0zxVhFg==
-
-"@richly/react@*":
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/@richly/react/-/react-0.9.0.tgz#38fed774d5e753bd827805627e7198c34202dabb"
-  integrity sha512-EkGyyzclys9lR74U6LKlOamZKBBeA9JmjnawgZWXg66GF4HtJqrcDr7jOsuyb/A3++HLVrTM01Vx3enISwLLrw==
-  dependencies:
-    "@richly/core" "^0.9.0"
-
 "@rolldown/pluginutils@1.0.0-beta.27":
   version "1.0.0-beta.27"
   resolved "https://registry.npmjs.org/@rolldown/pluginutils/-/pluginutils-1.0.0-beta.27.tgz"
