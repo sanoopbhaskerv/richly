@@ -485,4 +485,45 @@ describe('imageInlineToolbarPlugin', () => {
     expect(harness.bar().getAttribute('aria-label')).toBe('Image actions');
     harness.editor.destroy();
   });
+
+  it('hides the root studio button when enableStudioAction is false', () => {
+    const harness = createHarness({ enableStudioAction: false });
+    selectImage(harness);
+    // studio action must not appear even though openEditor is provided
+    expect(harness.maybeButton('studio')).toBeNull();
+    // other root actions are unaffected
+    for (const id of ['align', 'crop', 'transform', 'adjust', 'alt', 'replace', 'more']) {
+      expect(harness.maybeButton(id), id).not.toBeNull();
+    }
+    harness.editor.destroy();
+  });
+
+  it('shows the root studio button by default when openEditor is provided', () => {
+    const harness = createHarness(); // enableStudioAction not set — defaults to showing
+    selectImage(harness);
+    expect(harness.maybeButton('studio')).not.toBeNull();
+    harness.editor.destroy();
+  });
+
+  it('hides "More adjustments in Image Studio" button in Adjust mode when enableAdjustStudio is false', () => {
+    const harness = createHarness({ enableAdjustStudio: false });
+    selectImage(harness);
+    harness.button('adjust').click();
+    expect(harness.bar().getAttribute('aria-label')).toBe('Adjust image');
+    // Inline adjustment sliders must still be present
+    for (const id of ['brightness', 'contrast', 'saturation', 'grayscale']) {
+      expect(harness.maybeButton(id), id).not.toBeNull();
+    }
+    // The studio shortcut inside Adjust must be absent
+    expect(harness.maybeButton('adjust-studio')).toBeNull();
+    harness.editor.destroy();
+  });
+
+  it('shows "More adjustments in Image Studio" button in Adjust mode by default', () => {
+    const harness = createHarness(); // enableAdjustStudio not set — defaults to showing
+    selectImage(harness);
+    harness.button('adjust').click();
+    expect(harness.maybeButton('adjust-studio')).not.toBeNull();
+    harness.editor.destroy();
+  });
 });

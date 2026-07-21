@@ -7,6 +7,95 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+#### Image Studio — new packages
+
+- Added `@richly/image-core` package: framework-free image editing engine
+  providing `ImageSession` (operation history, serialization), canvas-based
+  rendering and export, and image adjustment channels (brightness, contrast,
+  saturation, grayscale, sharpen). Includes built-in crop, resize, rotate, and
+  flip operations with a typed `OperationRegistry` and transient adjustment
+  previews so slider gestures update the canvas without committing to history.
+- Added `@richly/image-react` package: React primitives over `@richly/image-core`
+  — `ImageEditorProvider`, `useImageEditor` hook, `CropOverlay`,
+  `CropOverlayParts`, `ImageSlider`, and `ImageToolbarButton`. Provides the
+  direct-manipulation crop handle system and high-frequency gesture handling
+  separated from core state subscription.
+- Added `@richly/image-studio` package: full responsive React Image Studio UI
+  shell with tool screens for Crop, Transform (rotate, straighten, flip), Adjust
+  (brightness, contrast, saturation, grayscale with filter presets), Resize,
+  Before/After comparison, and Export. Includes a Filmstrip for session history,
+  a ContextPanel, a keyboard shortcut layer (Ctrl+Z/Y, 0 for fit, 1 for 100%),
+  and an `ImageStudioController` for host-controlled modal lifecycle.
+- Added `@richly/image-studio-demo` package: standalone PWA demo for Image
+  Studio with offline-capable service worker, sample image, and integration
+  reference for hosts.
+- Added `@richly/image-ai-litert` package: optional on-device AI provider for
+  Smart Enhance using LiteRT.js. Exposes `createLiteRtImageAiProvider()` and
+  integrates with the Image Studio AI Tools panel to run local inference without
+  a server round-trip.
+
+#### plugin-image-editor — Richly integration
+
+- Added `@richly/plugin-image-editor` package: bridges the text editor with Image
+  Studio. Provides `imageEditorPlugin` (toolbar button, command integration) and
+  `imageInlineToolbarPlugin` (floating toolbar that appears when an image is
+  selected).
+- Added `imageInlineToolbarPlugin` inline toolbar with configurable root actions
+  (`align`, `crop`, `transform`, `adjust`, `studio`, `alt`, `replace`, `more`,
+  `delete`), compact mobile layout, and escape-chain keyboard navigation.
+  Quick edits (crop presets, rotate, flip, brightness/contrast/saturation/
+  grayscale sliders) run entirely in-browser via `@richly/image-core` and commit
+  as a single undoable change. Full Image Studio can be launched with an
+  optional `openEditor` callback, keeping the bundle lazy-loadable.
+- Added `enableStudioAction` option (default `true`) to
+  `imageInlineToolbarPlugin`. Set to `false` to hide the root "Open Image Studio"
+  button without removing `openEditor`; useful when the full Studio is available
+  internally but should not be exposed to end-users.
+- Added `enableAdjustStudio` option (default `true`) to
+  `imageInlineToolbarPlugin`. Set to `false` to hide the "More adjustments in
+  Image Studio" shortcut inside the Adjust sub-toolbar independently of the root
+  studio action.
+- Added an Image Studio integration fixture to the demo playground demonstrating
+  host-side `openEditor` / `persist` callbacks and a modal container with full
+  Image Studio shell.
+
+### Fixed
+
+- Fixed crop draft desync after Undo/Redo: the crop draft's frozen bounds were
+  never resynced with the session's committed output size when it changed outside
+  the draft, causing a subsequent drag/apply to silently mis-crop the real image.
+- Fixed Resize panel "Percent" mode always displaying pixels instead of
+  percentages.
+- Fixed page overflow at 320 px width caused by a bare `1fr` grid track allowing
+  the compact single-column layout to grow past the viewport; replaced with
+  `minmax(0, 1fr)`.
+- Fixed Before/After toolbar button toggle: `pointerup` was immediately resetting
+  `compareMode` to `false` before the `click` handler flipped it back, leaving
+  every click stuck in the active state. Replaced with a single duration-based
+  handler (short press toggles, sustained press previews while held).
+- Fixed demo host's post-export download link blocking a subsequent export by
+  remaining fixed-positioned over the Export/Close controls; the link now
+  auto-dismisses and exposes an explicit dismiss control.
+- Fixed missing accessible name on the Crop aspect-ratio `<select>` (axe
+  critical violation).
+- Disabled offline caching in the Image Studio demo PWA during development to
+  prevent stale asset serving.
+- Fixed crop drag handles not responding in certain pointer configurations.
+- Fixed crop draft alignment when the canvas coordinate system and the displayed
+  overlay were out of sync.
+
+### Tests
+
+- Added unit tests for `enableStudioAction: false` and `enableAdjustStudio: false`
+  flags verifying button absence and backwards-compatibility defaults.
+- Added E2E Playwright tests in the demo playground for both new opt-out flags
+  (root studio button hidden, Adjust sub-toolbar studio shortcut hidden).
+- Added exploratory and monkey E2E coverage for Image Studio: shell, crop,
+  transform, adjust, undo/redo, error resilience, and responsive layout at
+  320 × 568, 390 × 844, and desktop widths.
+
 ## [1.0.0-rc.8] - 2026-07-14
 
 ### Fixed

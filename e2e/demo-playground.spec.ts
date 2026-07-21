@@ -84,24 +84,51 @@ test.describe('demo configuration playground', () => {
     await expect(editor.content).toContainText('Configure this editor live');
   });
 
-  test('opens Image Studio from the plugin-image-editor inline toolbar', async ({ page }) => {
+  // The demo fixture wires imageInlineToolbarPlugin with:
+  //   enableStudioAction: false  — hides the root "Open Image Studio" button
+  //   enableAdjustStudio: false  — hides the "More adjustments in Image Studio" button
+  // These tests verify that both flags are respected in the browser.
+
+  test('hides the root studio button when enableStudioAction is false', async ({ page }) => {
     const editor = new EditorPage(page, 'editor');
     await editor.goto();
 
-    const integration = page.getByTestId('demo-richly-integration');
     const imageEditorContent = page.getByTestId('richly-image-content');
-    await expect(integration).toBeVisible();
     await imageEditorContent.locator('img').click();
 
     const inlineToolbar = page.getByTestId('image-inline-toolbar');
     await expect(inlineToolbar).toBeVisible();
-    await inlineToolbar.getByTestId('image-toolbar-studio').click();
 
-    const modal = page.getByTestId('demo-richly-studio-modal');
-    await expect(modal).toBeVisible();
-    await expect(page.getByTestId('image-studio-root')).toBeVisible();
+    // Other root actions must still appear
+    await expect(inlineToolbar.getByTestId('image-toolbar-adjust')).toBeVisible();
+    await expect(inlineToolbar.getByTestId('image-toolbar-crop')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Close' }).click();
-    await expect(modal).toHaveCount(0);
+    // The studio button must be absent
+    await expect(inlineToolbar.getByTestId('image-toolbar-studio')).toHaveCount(0);
+  });
+
+  test('hides the More-adjustments-in-Studio button in Adjust mode when enableAdjustStudio is false', async ({
+    page
+  }) => {
+    const editor = new EditorPage(page, 'editor');
+    await editor.goto();
+
+    const imageEditorContent = page.getByTestId('richly-image-content');
+    await imageEditorContent.locator('img').click();
+
+    const inlineToolbar = page.getByTestId('image-inline-toolbar');
+    await expect(inlineToolbar).toBeVisible();
+
+    // Enter the Adjust sub-toolbar
+    await inlineToolbar.getByTestId('image-toolbar-adjust').click();
+    await expect(inlineToolbar.getByTestId('image-toolbar-back')).toBeVisible();
+
+    // Inline adjustment sliders must still be present
+    for (const id of ['brightness', 'contrast', 'saturation', 'grayscale']) {
+      await expect(inlineToolbar.getByTestId(`image-toolbar-${id}`), id).toBeVisible();
+    }
+
+    // The studio shortcut inside Adjust must be absent
+    await expect(inlineToolbar.getByTestId('image-toolbar-adjust-studio')).toHaveCount(0);
   });
 });
