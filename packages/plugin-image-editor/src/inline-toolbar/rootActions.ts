@@ -25,6 +25,7 @@ export function createRootActionButton(options: RootActionButtonOptions): HTMLBu
   const { action, compact, doc, editor } = options;
   const needsStudio = action === 'studio';
   if (needsStudio && !options.options.openEditor) return null;
+  if (needsStudio && options.options.enableStudioAction === false) return null;
   if (action === 'crop' && (options.options.quickCrop === false || !options.options.persist))
     return null;
   if (

@@ -83,4 +83,25 @@ test.describe('demo configuration playground', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expect(editor.content).toContainText('Configure this editor live');
   });
+
+  test('opens Image Studio from the plugin-image-editor inline toolbar', async ({ page }) => {
+    const editor = new EditorPage(page, 'editor');
+    await editor.goto();
+
+    const integration = page.getByTestId('demo-richly-integration');
+    const imageEditorContent = page.getByTestId('richly-image-content');
+    await expect(integration).toBeVisible();
+    await imageEditorContent.locator('img').click();
+
+    const inlineToolbar = page.getByTestId('image-inline-toolbar');
+    await expect(inlineToolbar).toBeVisible();
+    await inlineToolbar.getByTestId('image-toolbar-studio').click();
+
+    const modal = page.getByTestId('demo-richly-studio-modal');
+    await expect(modal).toBeVisible();
+    await expect(page.getByTestId('image-studio-root')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Close' }).click();
+    await expect(modal).toHaveCount(0);
+  });
 });

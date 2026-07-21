@@ -24,6 +24,26 @@ export default defineConfig({
       {
         find: /^@richly\/react$/,
         replacement: path.resolve(__dirname, '../react/src/index.ts')
+      },
+      {
+        find: /^@richly\/plugin-image-editor$/,
+        replacement: path.resolve(__dirname, '../plugin-image-editor/src/index.ts')
+      },
+      {
+        find: /^@richly\/image-studio\/controller$/,
+        replacement: path.resolve(__dirname, '../image-studio/src/controller.ts')
+      },
+      {
+        find: /^@richly\/image-studio$/,
+        replacement: path.resolve(__dirname, '../image-studio/src/index.ts')
+      },
+      {
+        find: /^@richly\/image-react$/,
+        replacement: path.resolve(__dirname, '../image-react/src/index.ts')
+      },
+      {
+        find: /^@richly\/image-core$/,
+        replacement: path.resolve(__dirname, '../image-core/src/index.ts')
       }
     ]
   }

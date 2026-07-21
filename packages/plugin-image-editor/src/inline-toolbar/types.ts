@@ -41,6 +41,18 @@ export interface ImageInlineToolbarOptions {
   readonly quickAdjust?: boolean;
   /** Enables the inline centered-crop popover. Default true. */
   readonly quickCrop?: boolean;
+  /**
+   * Shows the "Open Image Studio" (AI) button on the root toolbar.
+   * Only has effect when `openEditor` is also provided.
+   * Set to `false` to hide the button from end-users. Default true.
+   */
+  readonly enableStudioAction?: boolean;
+  /**
+   * Shows the "More adjustments in Image Studio" button inside the Adjust
+   * sub-toolbar. Only has effect when `openEditor` is also provided.
+   * Set to `false` to hide it from end-users. Default true.
+   */
+  readonly enableAdjustStudio?: boolean;
   /** Opens the full Image Studio; omitted hosts lose Studio/Resize entries. */
   readonly openEditor?: (
     input: ImageInlineToolbarOpenInput,

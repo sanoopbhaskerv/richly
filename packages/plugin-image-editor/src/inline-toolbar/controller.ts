@@ -438,7 +438,7 @@ function installInlineImageToolbar(editor: Editor, options: ImageInlineToolbarOp
         })
       );
     }
-    if (options.openEditor) {
+    if (options.openEditor && options.enableAdjustStudio !== false) {
       bar.append(
         createSeparator(doc),
         createToolbarButton(doc, {

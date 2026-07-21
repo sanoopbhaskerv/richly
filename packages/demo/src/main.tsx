@@ -6,6 +6,13 @@ import {
   type ToolbarMode,
   type ToolbarPreset
 } from '@richly/core';
+import { ImageStudio, type ImageStudioResult } from '@richly/image-studio';
+import {
+  imageEditorPlugin,
+  imageInlineToolbarPlugin,
+  type ImageEditorResult,
+  type ImageInlineToolbarOpenInput
+} from '@richly/plugin-image-editor';
 import { Editor as ReactEditor } from '@richly/react';
 import { createRoot } from 'react-dom/client';
 import { StrictMode, useEffect, useRef, useState } from 'react';
@@ -18,18 +25,63 @@ const initialBlockquoteStyle = !new URLSearchParams(window.location.search).has(
   'noBlockquoteStyle'
 );
 
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ''));
+    reader.onerror = () => reject(reader.error ?? new Error('Failed to read file'));
+    reader.readAsDataURL(blob);
+  });
+}
+
 const uploadImage = async (file: File): Promise<{ src: string; alt?: string }> => {
   await new Promise((resolve) => setTimeout(resolve, 150));
   if (shouldFailUpload) throw new Error('Upload failed');
 
-  const dataUrl = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result ?? ''));
-    reader.onerror = () => reject(reader.error ?? new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
+  const dataUrl = await blobToDataUrl(file);
   return { src: dataUrl, alt: file.name.replace(/\.[^.]+$/, '') };
 };
+
+function createSampleImageDataUrl(): string {
+  const canvas = document.createElement('canvas');
+  canvas.width = 640;
+  canvas.height = 420;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Canvas 2D is required for the demo image');
+
+  const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, '#dbeafe');
+  gradient.addColorStop(0.5, '#67a3b8');
+  gradient.addColorStop(1, '#233247');
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.fillStyle = '#f4cf6d';
+  context.beginPath();
+  context.arc(500, 96, 52, 0, Math.PI * 2);
+  context.fill();
+
+  context.fillStyle = '#1a2437';
+  context.beginPath();
+  context.moveTo(0, 330);
+  context.lineTo(170, 170);
+  context.lineTo(320, 330);
+  context.closePath();
+  context.fill();
+
+  context.fillStyle = '#2d4159';
+  context.beginPath();
+  context.moveTo(210, 340);
+  context.lineTo(400, 130);
+  context.lineTo(600, 340);
+  context.closePath();
+  context.fill();
+
+  context.fillStyle = 'rgb(255 255 255 / 0.85)';
+  context.fillRect(58, 58, 170, 9);
+  context.fillRect(58, 80, 120, 9);
+  return canvas.toDataURL('image/png');
+}
 
 /** Add demo plugins beside related actions without changing preset grouping. */
 const withDemoPlugins = (toolbar: string): string => {
@@ -85,6 +137,127 @@ const BooleanControl = ({
     />
   </label>
 );
+
+interface StudioRequest {
+  readonly input: ImageInlineToolbarOpenInput;
+  readonly resolve: (result: ImageEditorResult | null) => void;
+}
+
+function RichlyImageStudioIntegration(): JSX.Element {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const requestRef = useRef<StudioRequest | null>(null);
+  const [request, setRequest] = useState<StudioRequest | null>(null);
+  const [changes, setChanges] = useState(0);
+  const [html, setHtml] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    host.replaceChildren();
+
+    const openEditor = (input: ImageInlineToolbarOpenInput): Promise<ImageEditorResult | null> =>
+      new Promise((resolve) => {
+        const next: StudioRequest = { input, resolve };
+        requestRef.current = next;
+        setRequest(next);
+      });
+    const persist = async (result: ImageEditorResult) => ({
+      src: await blobToDataUrl(result.blob),
+      alt: result.alt
+    });
+    const onError = (cause: unknown): void =>
+      setError(cause instanceof Error ? cause.message : String(cause));
+
+    const editor = VanillaEditor.init({
+      target: host,
+      testIdPrefix: 'richly-image',
+      toolbar: 'undo redo | bold italic | image imageedit',
+      initialContent: `
+        <h2>Image Studio integration fixture</h2>
+        <p>Select the image and open the inline toolbar to run quick edits or launch Image Studio.</p>
+        <p><img src="${createSampleImageDataUrl()}" alt="Sample mountain scene" width="360"></p>`,
+      images: { upload: uploadImage },
+      plugins: [
+        imageEditorPlugin({ openEditor, persist, onError }),
+        imageInlineToolbarPlugin({
+          openEditor,
+          persist,
+          onError,
+          enableStudioAction: false, // hides "Open Image Studio" root button
+          enableAdjustStudio: false
+        })
+      ]
+    });
+
+    setHtml(editor.getContent());
+    const offChange = editor.on('change', (value) => {
+      setHtml(value);
+      setChanges((count) => count + 1);
+    });
+
+    return () => {
+      offChange();
+      editor.destroy();
+    };
+  }, []);
+
+  const settleStudio = (result: ImageStudioResult | null): void => {
+    requestRef.current?.resolve(result);
+    requestRef.current = null;
+    setRequest(null);
+  };
+
+  return (
+    <div className="richly-image-integration" data-testid="demo-richly-integration">
+      <p className="richly-image-note">
+        Inline actions stay close to the image. Studio opens only when requested, then persists on
+        Save.
+      </p>
+      {error ? (
+        <p role="alert" data-testid="demo-richly-host-error" className="richly-image-error">
+          {error}
+          <button type="button" onClick={() => setError(null)}>
+            Dismiss
+          </button>
+        </p>
+      ) : null}
+      <div className="richly-image-editor" ref={hostRef} />
+      <div className="richly-image-inspect">
+        <p>
+          Change events: <span data-testid="demo-richly-change-count">{changes}</span>
+        </p>
+        <pre data-testid="demo-richly-html-output" tabIndex={0} aria-label="Richly HTML output">
+          {html}
+        </pre>
+      </div>
+      {request ? (
+        <div className="richly-image-studio-modal" data-testid="demo-richly-studio-modal">
+          <div className="richly-image-studio-frame">
+            <div className="richly-image-studio-copy">
+              <strong>Image Studio</strong>
+              <span>Save and close applies changes back to Richly.</span>
+            </div>
+            <ImageStudio
+              source={request.input.source}
+              initialAlt={request.input.alt}
+              initialTool={request.input.initialTool}
+              suggestedFilename={request.input.suggestedFilename}
+              theme="dark"
+              mode="modal"
+              onSave={(result) => settleStudio(result)}
+              onCancel={() => settleStudio(null)}
+              onError={(cause) => {
+                setError(cause instanceof Error ? cause.message : String(cause));
+                settleStudio(null);
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 function PlaygroundApp(): JSX.Element {
   const [toolbarMode, setToolbarMode] = useState<ToolbarMode>('wrap');
@@ -555,3 +728,9 @@ createRoot(document.getElementById('react-host')!).render(
 );
 
 createRoot(document.getElementById('react-clean-host')!).render(<CleanReactApp />);
+
+createRoot(document.getElementById('richly-image-host')!).render(
+  <StrictMode>
+    <RichlyImageStudioIntegration />
+  </StrictMode>
+);

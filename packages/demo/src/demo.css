@@ -855,6 +855,124 @@ html[data-theme='dark'] .fixture-chip--new {
   min-height: 155px;
 }
 
+.richly-image-integration {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 0 20px 20px;
+}
+
+.richly-image-note {
+  margin: 0;
+  color: var(--demo-text-muted);
+  font-size: 13px;
+}
+
+.richly-image-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, #dc2626 28%, var(--demo-border));
+  border-radius: 10px;
+  color: #b91c1c;
+  background: color-mix(in srgb, #ef4444 8%, var(--demo-surface-solid));
+  font-size: 13px;
+}
+
+html[data-theme='dark'] .richly-image-error {
+  color: #fca5a5;
+  background: color-mix(in srgb, #ef4444 14%, var(--demo-surface-solid));
+}
+
+.richly-image-error button {
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid currentColor;
+  border-radius: 7px;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.richly-image-editor .rly-content {
+  min-height: 220px;
+}
+
+.richly-image-inspect {
+  display: grid;
+  gap: 8px;
+}
+
+.richly-image-inspect p {
+  margin: 0;
+  color: var(--demo-text-faint);
+  font-size: 12px;
+}
+
+.richly-image-inspect pre {
+  max-height: 210px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border-radius: 10px;
+  color: var(--demo-code-text);
+  background: var(--demo-code-bg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.richly-image-studio-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(100, 116, 139, 0.28), transparent 30%),
+    rgba(10, 14, 22, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.richly-image-studio-frame {
+  width: min(1260px, 100%);
+  height: min(820px, calc(100svh - 56px));
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  background: #11151b;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
+}
+
+.richly-image-studio-copy {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 14px;
+  color: #eef2f7;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+}
+
+.richly-image-studio-copy span {
+  color: #aeb7c4;
+}
+
+.richly-image-studio-frame .ris-root {
+  min-block-size: 0;
+  block-size: 100%;
+}
+
 /* CustomPlugin.ts demo badge: class-based styling survives sanitized output
    while remaining fully themeable by the host application. */
 .rly-content .custom-timestamp-badge {
@@ -1093,6 +1211,24 @@ html[data-theme='dark'] .fixture-chip--new {
 
   .fixture-heading {
     align-items: flex-start;
+  }
+
+  .richly-image-integration {
+    padding: 0 0 16px;
+  }
+
+  .richly-image-studio-modal {
+    padding: 0;
+  }
+
+  .richly-image-studio-frame {
+    width: 100%;
+    height: 100svh;
+    border-radius: 0;
+  }
+
+  .richly-image-studio-copy {
+    display: none;
   }
 
   .app-footer {
