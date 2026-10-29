@@ -13,6 +13,7 @@ import { openDialog } from '../ui/Dialog';
 interface LinkArgs {
   href: string;
   text?: string;
+  openInNewTab?: boolean;
 }
 
 function normalizeHref(href: string): string {
@@ -37,11 +38,36 @@ async function openLinkDialog(editor: Editor): Promise<void> {
         type: 'url',
         placeholder: 'https://example.com',
         value: existing?.getAttribute('href') ?? ''
+      },
+      {
+        name: 'openInNewTab',
+        label: 'Open in new tab',
+        type: 'checkbox',
+        value: String(existing?.getAttribute('target') === '_blank')
       }
     ],
     submitText: existing ? 'Update' : 'Insert'
   });
-  if (result?.href) editor.execCommand('InsertLink', { href: result.href });
+  if (result?.href) {
+    editor.execCommand('InsertLink', {
+      href: result.href,
+      openInNewTab: result.openInNewTab === 'true'
+    });
+  }
+}
+
+function setLinkAttributes(link: HTMLElement, href: string, openInNewTab?: boolean): void {
+  link.setAttribute('href', href);
+  if (openInNewTab === true) {
+    link.setAttribute('target', '_blank');
+    const rel = new Set((link.getAttribute('rel') ?? '').split(/\s+/).filter(Boolean));
+    rel.delete('opener');
+    rel.add('noopener');
+    rel.add('noreferrer');
+    link.setAttribute('rel', [...rel].join(' '));
+  } else if (openInNewTab === false) {
+    link.removeAttribute('target');
+  }
 }
 
 function insertLink(editor: Editor, args: LinkArgs): void {
@@ -51,12 +77,12 @@ function insertLink(editor: Editor, args: LinkArgs): void {
 
   const existing = currentLink(editor);
   if (existing) {
-    existing.setAttribute('href', href);
+    setLinkAttributes(existing, href, args.openInNewTab);
     if (args.text) existing.textContent = args.text;
   } else if (range.collapsed) {
     const doc = editor.getBody().ownerDocument;
     const a = doc.createElement('a');
-    a.setAttribute('href', href);
+    setLinkAttributes(a, href, args.openInNewTab);
     a.textContent = args.text || args.href;
     range.insertNode(a);
     const after = doc.createRange();
@@ -69,7 +95,7 @@ function insertLink(editor: Editor, args: LinkArgs): void {
     const subRanges = inlineRangesForBlocks(range, editor.getBody());
     const outRanges = subRanges.map((subRange) => {
       const out = applyInline(subRange, 'a');
-      (out.commonAncestorContainer as HTMLElement).setAttribute('href', href);
+      setLinkAttributes(out.commonAncestorContainer as HTMLElement, href, args.openInNewTab);
       return out;
     });
     if (outRanges.length) editor.selection.setRange(combineRanges(outRanges));

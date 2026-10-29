@@ -8,6 +8,47 @@ afterEach(() => destroyAll(ed));
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 
 describe('link plugin', () => {
+  it('applies new-tab attributes to links across blocks', () => {
+    ed = createTestEditor('<p>first</p><p>second</p>');
+    const range = document.createRange();
+    range.selectNodeContents(ed.getBody());
+    ed.selection.setRange(range);
+    ed.execCommand('InsertLink', { href: 'https://example.com', openInNewTab: true });
+    const links = ed.getBody().querySelectorAll('a');
+    expect(links).toHaveLength(2);
+    links.forEach((link) => {
+      expect(link.getAttribute('target')).toBe('_blank');
+      expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+    });
+  });
+
+  it('inserts a new-tab link at a collapsed cursor and preserves it on URL-only edits', () => {
+    ed = createTestEditor('<p>x</p>');
+    placeCursor(ed, 'x', 1);
+    ed.execCommand('InsertLink', {
+      href: 'https://example.com',
+      text: 'docs',
+      openInNewTab: true
+    });
+    selectText(ed, 'docs');
+    ed.execCommand('InsertLink', { href: 'https://new.com' });
+    expect(ed.getContent()).toContain(
+      '<a href="https://new.com" target="_blank" rel="noopener noreferrer">docs</a>'
+    );
+  });
+
+  it('preserves unrelated rel tokens and can switch an existing link to the same tab', () => {
+    ed = createTestEditor('<p><a href="https://old.com" rel="nofollow opener">docs</a></p>');
+    selectText(ed, 'docs');
+    ed.execCommand('InsertLink', { href: 'https://new.com', openInNewTab: true });
+    expect(ed.getBody().querySelector('a')!.getAttribute('rel')).toBe(
+      'nofollow noopener noreferrer'
+    );
+    ed.execCommand('InsertLink', { href: 'https://new.com', openInNewTab: false });
+    expect(ed.getBody().querySelector('a')!.hasAttribute('target')).toBe(false);
+    expect(ed.getBody().querySelector('a')!.getAttribute('rel')).toContain('nofollow');
+  });
+
   it('InsertLink with args wraps the selection', () => {
     ed = createTestEditor('<p>visit the docs now</p>');
     selectText(ed, 'the docs');
@@ -85,12 +126,39 @@ describe('link plugin', () => {
 });
 
 describe('link dialog', () => {
+  it('inserts a new-tab link and restores the checkbox when editing', async () => {
+    ed = createTestEditor('<p>docs</p>');
+    selectText(ed, 'docs');
+    ed.execCommand('InsertLink');
+    document.querySelector<HTMLInputElement>('[data-testid="dialog-field-href"]')!.value =
+      'https://example.com';
+    document.querySelector<HTMLInputElement>('[data-testid="dialog-field-openInNewTab"]')!.checked =
+      true;
+    document.querySelector<HTMLButtonElement>('[data-testid="dialog-submit"]')!.click();
+    await tick();
+    expect(ed.getContent()).toContain('target="_blank" rel="noopener noreferrer"');
+
+    selectText(ed, 'docs');
+    ed.execCommand('InsertLink');
+    const checkbox = document.querySelector<HTMLInputElement>(
+      '[data-testid="dialog-field-openInNewTab"]'
+    )!;
+    expect(checkbox.checked).toBe(true);
+    checkbox.checked = false;
+    document.querySelector<HTMLButtonElement>('[data-testid="dialog-submit"]')!.click();
+    await tick();
+    expect(ed.getBody().querySelector('a')!.hasAttribute('target')).toBe(false);
+  });
+
   it('InsertLink without args opens the dialog; submit inserts the link', async () => {
     ed = createTestEditor('<p>click me</p>');
     selectText(ed, 'click me');
     ed.execCommand('InsertLink');
     const dialog = document.querySelector<HTMLElement>('[data-testid="dialog-link"]');
     expect(dialog).toBeTruthy();
+    expect(
+      dialog!.querySelector<HTMLInputElement>('[data-testid="dialog-field-openInNewTab"]')!.checked
+    ).toBe(false);
 
     const input = dialog!.querySelector<HTMLInputElement>('[data-testid="dialog-field-href"]')!;
     input.value = 'https://cool.dev';

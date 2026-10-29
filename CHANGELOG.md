@@ -7,6 +7,19 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Restored disc and decimal markers and list indentation in edit mode when host
+  CSS resets hide native list markers. Explicit marker choices remain supported.
+- Fixed new-tab links being blocked by the document preview sandbox. Normal
+  clicks now open the destination tab while preview scripts remain disabled.
+
+### Added
+
+- Added an "Open in new tab" checkbox to the insert/edit link dialog and an
+  optional `openInNewTab` argument to `InsertLink`. New-tab links include
+  `rel="noopener noreferrer"`; new links open in the same tab by default.
+
 ## [1.1.0] - 2026-07-21
 
 ### Added

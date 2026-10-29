@@ -345,10 +345,16 @@ editor.execCommand('ForeColor', '#e5484d');
 editor.execCommand('FontSize', { value: '18px' });
 editor.execCommand('FontSize', { value: null }); // remove explicit size
 editor.execCommand('InsertLink', { href: 'https://example.com', text: 'Example' });
+editor.execCommand('InsertLink', { href: 'https://example.com', openInNewTab: true });
 
 editor.queryCommandState('Bold'); // → boolean
 editor.queryCommandValue('FontSize'); // → '18px'
 ```
+
+`InsertLink` accepts `openInNewTab: true` to set `target="_blank"` and add
+`noopener noreferrer` to the link's `rel` tokens. Use `false` to open in the same
+tab. Omitting the option preserves an existing link's target; new links default
+to the same tab. The link dialog exposes this as an "Open in new tab" checkbox.
 
 Built-in command names include:
 
