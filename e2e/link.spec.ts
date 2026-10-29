@@ -24,6 +24,27 @@ test.describe('link plugin + menubar (vanilla instance)', () => {
     await expect(dialog).not.toBeVisible();
   });
 
+  test('new-tab option persists when editing and can be disabled', async ({ page }) => {
+    await editor.type('read docs');
+    await editor.selectWord('docs');
+    await editor.clickButton('link');
+    const checkbox = page.getByTestId('dialog-field-openInNewTab');
+    await expect(checkbox).not.toBeChecked();
+    await page.getByTestId('dialog-field-href').fill('https://example.com');
+    await checkbox.check();
+    await page.getByTestId('dialog-submit').click();
+    await editor.expectContentContains('target="_blank"');
+    await editor.expectContentContains('rel="noopener noreferrer"');
+
+    await editor.selectWord('docs');
+    await editor.clickButton('link');
+    await expect(checkbox).toBeChecked();
+    await checkbox.uncheck();
+    await page.getByTestId('dialog-submit').click();
+    await expect(page.getByTestId('dialog-link')).not.toBeVisible();
+    expect(await editor.content.innerHTML()).not.toContain('target=');
+  });
+
   test('dialog cancel and Escape leave content untouched', async ({ page }) => {
     await editor.type('plain text');
     await editor.selectWord('plain');

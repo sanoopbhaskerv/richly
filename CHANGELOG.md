@@ -7,6 +7,12 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Added an "Open in new tab" checkbox to the insert/edit link dialog and an
+  optional `openInNewTab` argument to `InsertLink`. New-tab links include
+  `rel="noopener noreferrer"`; new links open in the same tab by default.
+
 ## [1.1.0] - 2026-07-21
 
 ### Added
