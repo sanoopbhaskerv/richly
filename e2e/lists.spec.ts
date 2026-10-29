@@ -44,6 +44,47 @@ test.describe('lists, indent, alignment (vanilla instance)', () => {
     await editor.expectContentMatches(/<p>one<\/p>/);
   });
 
+  for (const { control, marker, tag } of [
+    { control: 'bulliststyles', marker: 'disc', tag: 'ul' },
+    { control: 'numliststyles', marker: 'decimal', tag: 'ol' }
+  ]) {
+    test(`${marker} markers survive host CSS resets in edit mode`, async ({ page }) => {
+      await page.addStyleTag({
+        content:
+          'ul, ol { list-style: none; padding: 0; margin: 0; } li { display: block; list-style: none; }'
+      });
+      await editor.type('first');
+      await page.keyboard.press('Enter');
+      await page.keyboard.type('second');
+      await editor.selectAll();
+      await editor.clickButton(control);
+
+      const list = editor.content.locator(tag);
+      const item = list.locator('li').first();
+      await expect(list).toHaveCSS('list-style-type', marker);
+      await expect(item).toHaveCSS('display', 'list-item');
+      await expect(item).toHaveCSS('list-style-type', marker);
+      await expect(item).toHaveCSS('list-style-position', 'outside');
+      expect(
+        await list.evaluate((el) => parseFloat(getComputedStyle(el).paddingInlineStart))
+      ).toBeGreaterThan(20);
+
+      await editor.selectWord('second');
+      await page.keyboard.press('Tab');
+      await expect(editor.content.locator(`${tag} ${tag} > li`)).toHaveCSS(
+        'list-style-type',
+        marker
+      );
+      // Explicit alternatives must still override the theme's defaults.
+      const alternative = tag === 'ul' ? 'square' : 'upper-roman';
+      await editor.choose(control, alternative, true);
+      await expect(editor.content.locator(`${tag} ${tag} > li`)).toHaveCSS(
+        'list-style-type',
+        alternative
+      );
+    });
+  }
+
   test('alignment buttons set text-align and track state', async () => {
     await editor.type('centered text');
     await editor.selectWord('centered');

@@ -21,6 +21,25 @@
 .rly-content p {
   margin: 0.45em 0;
 }
+/* Restore native markers and their gutter when host CSS resets list defaults.
+   Inline marker styles chosen by the list plugin still take precedence. */
+.rly-content ul,
+.rly-content ol {
+  margin-block: 0.45em;
+  padding-inline-start: 2.5em;
+  list-style-position: outside;
+  list-style-image: none;
+}
+.rly-content ul {
+  list-style-type: disc;
+}
+.rly-content ol {
+  list-style-type: decimal;
+}
+.rly-content li {
+  display: list-item;
+  list-style: inherit;
+}
 /* Opt-out via EditorConfig.blockquoteStyle: false — see Editor.ts buildChrome(). */
 .rly-content.rly-blockquote-styled blockquote {
   border-left: 3px solid var(--rly-accent);

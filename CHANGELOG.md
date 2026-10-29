@@ -9,6 +9,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Restored disc and decimal markers and list indentation in edit mode when host
+  CSS resets hide native list markers. Explicit marker choices remain supported.
 - Fixed new-tab links being blocked by the document preview sandbox. Normal
   clicks now open the destination tab while preview scripts remain disabled.
 
