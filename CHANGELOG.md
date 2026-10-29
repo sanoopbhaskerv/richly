@@ -7,6 +7,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-29
+
 ### Fixed
 
 - Restored disc and decimal markers and list indentation in edit mode when host
@@ -462,7 +464,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Firefox inline-format and link commands now recognize selections whose range
   boundaries surround the inline element from its parent node.
 
-[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/sanoopbhaskerv/richly/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0...v1.0.0
 [1.0.0-rc.9]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0-rc.8...v1.0.0-rc.9
