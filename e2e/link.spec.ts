@@ -45,6 +45,42 @@ test.describe('link plugin + menubar (vanilla instance)', () => {
     expect(await editor.content.innerHTML()).not.toContain('target=');
   });
 
+  for (const openInNewTab of [true, false]) {
+    test(`preview follows links with a normal click (new tab: ${openInNewTab})`, async ({
+      page
+    }) => {
+      const destination = 'https://example.com/preview-link';
+      await page.context().route(destination, (route) =>
+        route.fulfill({
+          contentType: 'text/html',
+          body: '<h1>Link destination</h1><script>document.title = "Destination scripts work"</script>'
+        })
+      );
+      await editor.type('read docs');
+      await editor.selectWord('docs');
+      await editor.clickButton('link');
+      await page.getByTestId('dialog-field-href').fill(destination);
+      await page.getByTestId('dialog-field-openInNewTab').setChecked(openInNewTab);
+      await page.getByTestId('dialog-submit').click();
+      await editor.clickButton('preview');
+      const preview = page.frameLocator('[data-testid="preview-frame"]');
+
+      if (openInNewTab) {
+        const popupPromise = page.waitForEvent('popup');
+        await preview.getByRole('link', { name: 'docs' }).click();
+        const popup = await popupPromise;
+        await expect(popup).toHaveURL(destination);
+        await expect(popup).toHaveTitle('Destination scripts work');
+        await expect(preview.getByRole('link', { name: 'docs' })).toBeVisible();
+        await popup.close();
+      } else {
+        await preview.getByRole('link', { name: 'docs' }).click();
+        await expect(preview.getByRole('heading', { name: 'Link destination' })).toBeVisible();
+        expect(page.context().pages()).toHaveLength(1);
+      }
+    });
+  }
+
   test('dialog cancel and Escape leave content untouched', async ({ page }) => {
     await editor.type('plain text');
     await editor.selectWord('plain');

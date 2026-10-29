@@ -7,6 +7,11 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed new-tab links being blocked by the document preview sandbox. Normal
+  clicks now open the destination tab while preview scripts remain disabled.
+
 ### Added
 
 - Added an "Open in new tab" checkbox to the insert/edit link dialog and an

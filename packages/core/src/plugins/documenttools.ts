@@ -496,7 +496,8 @@ function openPreview(editor: Editor): void {
   frame.className = 'rly-preview-frame';
   frame.dataset.testid = 'preview-frame';
   frame.title = 'Document preview';
-  frame.setAttribute('sandbox', '');
+  // Keep preview scripts disabled, but let links open usable destination tabs.
+  frame.setAttribute('sandbox', 'allow-popups allow-popups-to-escape-sandbox');
   frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>body{max-width:760px;margin:32px auto;padding:0 24px;font:16px/1.65 system-ui;color:#1f2733}img{max-width:100%}table{border-collapse:collapse;width:100%}td,th{border:1px solid #d8dce3;padding:8px}blockquote{border-left:3px solid #3574f0;padding-left:16px}</style></head><body>${editor.getContent()}</body></html>`;
   header.append(title, close);
   dialog.append(header, frame);

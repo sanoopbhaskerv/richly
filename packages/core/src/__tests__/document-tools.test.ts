@@ -36,7 +36,7 @@ describe('document tools', () => {
 
     const frame = document.querySelector<HTMLIFrameElement>('[data-testid="preview-frame"]')!;
     expect(frame).not.toBeNull();
-    expect(frame.getAttribute('sandbox')).toBe('');
+    expect(frame.getAttribute('sandbox')).toBe('allow-popups allow-popups-to-escape-sandbox');
     expect(frame.srcdoc).toContain('<h1>Preview me</h1>');
     document.querySelector<HTMLButtonElement>('[data-testid="preview-close"]')!.click();
     expect(document.querySelector('[data-testid="preview-overlay"]')).toBeNull();
