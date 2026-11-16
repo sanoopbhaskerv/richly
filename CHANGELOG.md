@@ -7,6 +7,12 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Security
+
+- Block executable URL scheme obfuscations in imported HTML and apply the same
+  validation to `InsertLink`, while retaining existing benign custom-scheme and
+  raster-data URL behavior. Reject active data URLs and MIME-prefix lookalikes.
+
 ## [1.2.0] - 2026-10-29
 
 ### Fixed

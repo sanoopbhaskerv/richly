@@ -1,3 +1,5 @@
+import { isAllowedUrl } from './Url';
+
 /** Whitelist-based HTML sanitizer. ALL inbound HTML (setContent, paste) passes through here. */
 
 /** Internal release-contract source; package consumers should use sanitize(). */
@@ -101,8 +103,6 @@ const ALLOWED_ATTRS: Record<string, ReadonlySet<string>> = {
 const ALLOWED_STYLES = new Set<string>(SANITIZER_SCHEMA.styles);
 const DROP_ENTIRELY = new Set<string>(SANITIZER_SCHEMA.dropEntirely);
 
-const URL_SCHEME_BLOCKLIST = /^\s*(javascript|vbscript|data(?!:image\/(png|gif|jpe?g|webp)))\s*:/i;
-
 function cleanElement(el: Element): void {
   const tag = el.tagName.toLowerCase();
 
@@ -114,7 +114,7 @@ function cleanElement(el: Element): void {
       el.removeAttribute(attr.name);
       continue;
     }
-    if ((name === 'href' || name === 'src') && URL_SCHEME_BLOCKLIST.test(attr.value)) {
+    if ((name === 'href' || name === 'src') && !isAllowedUrl(attr.value)) {
       el.removeAttribute(attr.name);
     }
   }

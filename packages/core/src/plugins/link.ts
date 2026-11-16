@@ -9,6 +9,7 @@ import {
   unwrap
 } from '../dom/DomUtils';
 import { openDialog } from '../ui/Dialog';
+import { isAllowedUrl } from '../model/Url';
 
 interface LinkArgs {
   href: string;
@@ -74,6 +75,8 @@ function insertLink(editor: Editor, args: LinkArgs): void {
   const range = editor.selection.getRange();
   if (!range) return;
   const href = normalizeHref(args.href);
+  // Commands and the link dialog must enforce the same policy as HTML import.
+  if (!isAllowedUrl(href)) return;
 
   const existing = currentLink(editor);
   if (existing) {

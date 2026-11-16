@@ -29,6 +29,20 @@ Treat changes to these areas as public migrations:
 
 Internal DOM structure and undocumented CSS classes may change without notice.
 
+## Pending 1.x URL security fix
+
+The security fix rejects executable JavaScript/VBScript links even when their
+schemes contain encoded or literal tabs/newlines, and applies the same check to
+`InsertLink`. Active HTML/SVG data URLs and raster MIME-prefix lookalikes are also
+rejected. Do not depend on preserving these unsafe values. Existing accepted
+custom schemes, FTP/file/blob links, raster data links and line-wrapped raster
+images retain their behavior. No new configuration or API is required.
+
+Before: `java&#x09;script:...` could survive HTML import. After: its `href` is
+removed. An unsafe `InsertLink` leaves the document unchanged. Applications that
+need stricter control over custom protocols must enforce that separately; do not
+roll back to vulnerable URL validation to restore an unsafe link.
+
 ## 0.x → 1.0
 
 Richly 1.0 freezes the surfaces below for the lifetime of the 1.x release
