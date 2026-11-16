@@ -7,6 +7,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-11-16
+
 ### Security
 
 - Upgrade development/test tooling to patched releases, with a scoped and tested
@@ -474,7 +476,8 @@ and releases follow [Semantic Versioning](https://semver.org/).
 - Firefox inline-format and link commands now recognize selections whose range
   boundaries surround the inline element from its parent node.
 
-[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/sanoopbhaskerv/richly/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/sanoopbhaskerv/richly/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/sanoopbhaskerv/richly/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/sanoopbhaskerv/richly/compare/v1.0.0...v1.0.0

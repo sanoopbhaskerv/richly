@@ -29,7 +29,7 @@ Treat changes to these areas as public migrations:
 
 Internal DOM structure and undocumented CSS classes may change without notice.
 
-## Pending 1.x URL security fix
+## 1.2.1 URL security fix
 
 The security fix rejects executable JavaScript/VBScript links even when their
 schemes contain encoded or literal tabs/newlines, and applies the same check to
