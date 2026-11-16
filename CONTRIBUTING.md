@@ -4,7 +4,9 @@ Thanks for helping improve Richly.
 
 ## Local setup
 
-Use Node.js 18.18 or newer and Yarn 1.22:
+For development, use Node.js 22.18+ (22.x), 24.11+ (24.x), or 26+, with Yarn 1.22.
+CI covers Node 22 and 24. These build-tool requirements do not change the public
+packages' runtime engine requirements.
 
 ```bash
 yarn install
@@ -19,6 +21,7 @@ convenience — CI remains the enforcement gate — so avoid `--no-verify`.
 
 ```bash
 yarn format:write
+yarn security:tooling
 yarn lint
 yarn format
 yarn test:coverage
@@ -49,3 +52,14 @@ output, coverage data, local environment files, or Playwright artifacts.
 
 Maintainers preparing a release should follow `RELEASING.md` and run
 `yarn release:check` before creating a version tag.
+
+## Security-related toolchain resolution
+
+The root `resolutions` entry for
+`**/@typescript-eslint/typescript-estree/minimatch` is intentionally scoped to the
+parser. It replaces vulnerable minimatch 10 with 11.0.8 while the parser still
+declares the older range. The parser uses only the retained `minimatch()` function
+with `dot: true`, not the removed `makeRe`/AST APIs. `yarn security:tooling` checks
+the resolved version and representative parser matching behavior. Remove this
+resolution once the upstream parser declares a patched compatible range, after
+rerunning lint and this check. Do not broaden it to other consumers blindly.

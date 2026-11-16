@@ -12,7 +12,7 @@ export default defineConfig({
     globals: true,
     coverage: {
       provider: 'v8',
-      include: ['src/**'],
+      include: ['src/**/*.{ts,tsx}'],
       exclude: ['src/ui/icons.ts', 'src/**/__tests__/**'],
       thresholds: {
         lines: 80,

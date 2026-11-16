@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
           cache: yarn
       - run: yarn install --frozen-lockfile
       - run: yarn commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [20, 22]
+        node: [22, 24]
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -38,6 +38,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: yarn
       - run: yarn install --frozen-lockfile
+      - run: yarn security:tooling
       - run: yarn lint
       - run: yarn format
       - run: yarn test:coverage
@@ -53,7 +54,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
           cache: yarn
       - run: yarn install --frozen-lockfile
       - run: yarn playwright install --with-deps ${{ matrix.browser }}

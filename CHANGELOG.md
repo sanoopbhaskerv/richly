@@ -9,6 +9,10 @@ and releases follow [Semantic Versioning](https://semver.org/).
 
 ### Security
 
+- Upgrade development/test tooling to patched releases, with a scoped and tested
+  parser glob dependency resolution. Development builds now require Node 22.18+,
+  24.11+, or 26+; published package runtime requirements remain unchanged.
+
 - Block executable URL scheme obfuscations in imported HTML and apply the same
   validation to `InsertLink`, while retaining existing benign custom-scheme and
   raster-data URL behavior. Reject active data URLs and MIME-prefix lookalikes.
