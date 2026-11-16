@@ -10,6 +10,28 @@ test.describe('link plugin + menubar (vanilla instance)', () => {
     await editor.clear();
   });
 
+  test('rejects executable URLs from the link dialog', async ({ page }) => {
+    await editor.type('docs');
+    await editor.selectWord('docs');
+    await editor.clickButton('link');
+    await page.getByTestId('dialog-field-href').fill('javascript:alert(1)');
+    await page.getByTestId('dialog-submit').click();
+    await expect(page.getByTestId('dialog-link')).not.toBeVisible();
+    expect(await editor.content.innerHTML()).not.toContain('href=');
+  });
+
+  test('source import strips obfuscated executable URLs', async ({ page }) => {
+    await editor.clickButton('code');
+    await page
+      .getByTestId('dialog-field-code')
+      .fill(
+        '<p><a href="java&#x09;script:alert(1)">tab</a><a href="java&#x0a;script:alert(1)">lf</a><a href="java&#x0d;script:alert(1)">cr</a></p>'
+      );
+    await page.getByTestId('dialog-submit').click();
+    await expect(page.getByTestId('dialog-code')).not.toBeVisible();
+    expect(await editor.content.innerHTML()).toBe('<p><a>tab</a><a>lf</a><a>cr</a></p>');
+  });
+
   test('insert link via toolbar dialog', async ({ page }) => {
     await editor.type('visit the docs today');
     await editor.selectWord('docs');

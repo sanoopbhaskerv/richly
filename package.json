@@ -23,12 +23,13 @@
     "release:prepare": "node scripts/prepare-release.mjs",
     "release:validate": "node scripts/check-release.mjs",
     "release:pack": "node scripts/pack-dry-run.mjs",
-    "release:check": "yarn release:validate && yarn lint && yarn format && yarn test && yarn build && yarn release:pack",
+    "release:check": "yarn release:validate && yarn security:tooling && yarn lint && yarn format && yarn test && yarn build && yarn release:pack",
     "prepare": "husky",
     "graph:check": "graphify check-update .",
     "graph:update": "graphify update .",
     "graph:watch": "graphify watch .",
-    "graph:query": "graphify query"
+    "graph:query": "graphify query",
+    "security:tooling": "node scripts/check-security-tooling.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs}": [
@@ -41,7 +42,7 @@
   },
   "packageManager": "yarn@1.22.22",
   "engines": {
-    "node": ">=20.19.0"
+    "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
   },
   "repository": {
     "type": "git",
@@ -57,15 +58,18 @@
     "@commitlint/config-conventional": "^19.8.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.45.0",
-    "eslint": "^10.6.0",
+    "eslint": "^10.15.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.7.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
     "playwright": "^1.61.1",
     "prettier": "^3.9.5",
-    "tsup": "^8.5.1",
+    "tsup": "^9.0.0",
     "typescript": "^5.5.0",
-    "typescript-eslint": "^8.63.0"
+    "typescript-eslint": "^8.72.2"
+  },
+  "resolutions": {
+    "**/@typescript-eslint/typescript-estree/minimatch": "11.0.8"
   }
 }

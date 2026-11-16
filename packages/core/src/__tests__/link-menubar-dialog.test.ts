@@ -8,6 +8,41 @@ afterEach(() => destroyAll(ed));
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 
 describe('link plugin', () => {
+  it.each([
+    'javascript:alert(1)',
+    'java\tscript:alert(1)',
+    'java\nscript:alert(1)',
+    'java\rscript:alert(1)',
+    'data:text/html,x',
+    'vbscript:msgbox(1)'
+  ])('rejects unsafe InsertLink URL %s without changing content', (href) => {
+    ed = createTestEditor('<p>hello</p>');
+    selectText(ed, 'hello');
+    ed.execCommand('InsertLink', { href });
+    expect(ed.getContent()).toBe('<p>hello</p>');
+    placeCursor(ed, 'hello', 5);
+    ed.execCommand('InsertLink', { href });
+    expect(ed.getContent()).toBe('<p>hello</p>');
+    ed.setContent('<p><a href="https://example.com">hello</a></p>');
+    selectText(ed, 'hello');
+    ed.execCommand('InsertLink', { href });
+    expect(ed.getContent()).toBe('<p><a href="https://example.com">hello</a></p>');
+  });
+
+  it.each([
+    'myapp:document/123',
+    'slack://channel?id=123',
+    'ftp://example.com/file',
+    'blob:https://example.com/id',
+    'data:image/png;base64,AA=='
+  ])('preserves previously supported command URL %s', (href) => {
+    ed = createTestEditor('<p>hello</p>');
+    selectText(ed, 'hello');
+    ed.execCommand('InsertLink', { href });
+    expect(ed.getBody().querySelector('a')?.getAttribute('href')).toBe(href);
+    expect(ed.getContent()).toBe(`<p><a href="${href}">hello</a></p>`);
+  });
+
   it('applies new-tab attributes to links across blocks', () => {
     ed = createTestEditor('<p>first</p><p>second</p>');
     const range = document.createRange();

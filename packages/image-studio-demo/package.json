@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@litertjs/core": "^2.5.2",
-    "@richly/core": "1.0.0",
+    "@richly/core": "^1.2.0",
     "@richly/image-ai-litert": "0.0.0",
     "@richly/image-core": "0.0.0",
     "@richly/image-studio": "0.0.0",
@@ -24,8 +24,8 @@
     "@types/node": "^26.1.1",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
     "typescript": "^5.5.0",
-    "vite": "^5.3.0"
+    "vite": "^8.3.8"
   }
 }

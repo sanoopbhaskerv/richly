@@ -24,6 +24,53 @@ describe('Sanitizer', () => {
     );
   });
 
+  it.each(['&#x09;', '&#x0a;', '&#x0d;'])('blocks scheme obfuscation using %s', (control) => {
+    expect(sanitize(`<a href="java${control}script:alert(1)">x</a>`)).toBe('<a>x</a>');
+  });
+
+  it.each(['javascript:alert(1)', 'vbscript:msgbox(1)', 'data:text/html,x'])(
+    'rejects unsafe link URL %s',
+    (url) => {
+      expect(sanitize(`<a href="${url}">x</a>`)).toBe('<a>x</a>');
+    }
+  );
+
+  it.each([
+    'https://example.com',
+    'http://example.com',
+    '/relative',
+    '../relative',
+    '#anchor',
+    '//example.com',
+    'mailto:a@example.com',
+    'tel:+123456',
+    'ftp://example.com/file',
+    'myapp:document/123',
+    'slack://channel?id=123',
+    'blob:https://example.com/id'
+  ])('preserves supported link URL %s', (url) => {
+    expect(sanitize(`<a href="${url}">x</a>`)).toBe(`<a href="${url}">x</a>`);
+  });
+
+  it('restricts data URLs to raster MIME types while preserving existing anchors', () => {
+    expect(sanitize('<img src="data:image/png;base64,AA==">')).toBe(
+      '<img src="data:image/png;base64,AA==">'
+    );
+    expect(sanitize('<img src="data:image/svg+xml,x">')).toBe('<img>');
+    expect(sanitize('<img src="data:image/pngfoo,x">')).toBe('<img>');
+    expect(sanitize('<a href="data:image/png;base64,AA==">x</a>')).toBe(
+      '<a href="data:image/png;base64,AA==">x</a>'
+    );
+    expect(sanitize('<img src="blob:https://example.com/id">')).toBe(
+      '<img src="blob:https://example.com/id">'
+    );
+  });
+
+  it('preserves line-wrapped raster data images', () => {
+    const html = '<img src="data:image/png;base64,AA\nBB">';
+    expect(sanitize(html)).toBe(html);
+  });
+
   it('unwraps unknown tags but keeps content (Word paste)', () => {
     expect(sanitize('<o:p><b>bold</b></o:p>')).toBe('<b>bold</b>');
   });
